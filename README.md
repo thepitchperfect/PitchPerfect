@@ -51,6 +51,6 @@ The initial dataset for football clubs. This will consist of the clubs name, lea
     * Comparing clubs statistics.
 
 ## Related Links
-GitHub: [GitHub Link](https://github.com/thepitchperfect/PerfectPitch)
-PWS deployment: [PWS Deployment Link](arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id)
-Figma Design: [Figma Design Link](https://www.figma.com/design/cEZoGfGJkYfyTcuJxowkNN/ThePitchPerfect?node-id=0-1&t=88G0BzMiWYsIi7Xc-1)
+- GitHub: [GitHub Link](https://github.com/thepitchperfect/PerfectPitch)
+- PWS deployment: [PWS Deployment Link](arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id)
+- Figma Design: [Figma Design Link](https://www.figma.com/design/cEZoGfGJkYfyTcuJxowkNN/ThePitchPerfect?node-id=0-1&t=88G0BzMiWYsIi7Xc-1)
