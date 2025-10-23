@@ -22,4 +22,5 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/statistics/', permanent=False), name='home'),
     path('admin/', admin.site.urls),
     path('statistics/', include('statisticsrafi.urls')),
+    path('directory/', include('club_directories.urls')),
 ]
