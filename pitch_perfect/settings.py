@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'club_directories',
+    'forum',
 ]
 
 MIDDLEWARE = [
