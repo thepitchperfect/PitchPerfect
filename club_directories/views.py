@@ -32,7 +32,6 @@ def show_club_directory(request):
                 'name': club.name,
                 'logo_url': club.logo_url,
                 'founded_year': club.founded_year,
-                'stadium': club.stadium,
                 'desc': f"Founded in {club.founded_year or 'N/A'}. Plays in {league.name}." 
             })
         
