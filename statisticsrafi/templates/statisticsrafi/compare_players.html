@@ -1,0 +1,92 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}Compare Players - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>⚖️ Player Comparison Tool</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        Select two players to compare their statistics
+    </p>
+</div>
+
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    <div class="card-header">Select Players to Compare</div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+            <div>
+                <label for="player1_id" style="display: block; margin-bottom: 0.5rem; font-family: var(--font-subheader); font-weight: 600;">
+                    Player 1:
+                </label>
+                <select 
+                    id="player1_id" 
+                    name="player1_id" 
+                    required
+                    style="width: 100%; padding: 0.75rem; font-family: var(--font-paragraph); border: 2px solid var(--color-gray-400); border-radius: 5px; font-size: 1rem;"
+                >
+                    <option value="">-- Select Player 1 --</option>
+                    {% for player in players %}
+                        <option value="{{ player.id }}">{{ player.name }} ({{ player.club.name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="player2_id" style="display: block; margin-bottom: 0.5rem; font-family: var(--font-subheader); font-weight: 600;">
+                    Player 2:
+                </label>
+                <select 
+                    id="player2_id" 
+                    name="player2_id" 
+                    required
+                    style="width: 100%; padding: 0.75rem; font-family: var(--font-paragraph); border: 2px solid var(--color-gray-400); border-radius: 5px; font-size: 1rem;"
+                >
+                    <option value="">-- Select Player 2 --</option>
+                    {% for player in players %}
+                        <option value="{{ player.id }}">{{ player.name }} ({{ player.club.name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label for="season" style="display: block; margin-bottom: 0.5rem; font-family: var(--font-subheader); font-weight: 600;">
+                Season:
+            </label>
+            <select 
+                id="season" 
+                name="season"
+                style="width: 100%; padding: 0.75rem; font-family: var(--font-paragraph); border: 2px solid var(--color-gray-400); border-radius: 5px; font-size: 1rem;"
+            >
+                <option value="2024/25" selected>2024/25</option>
+                <option value="2023/24">2023/24</option>
+                <option value="2025/26">2025/26</option>
+            </select>
+        </div>
+        
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                🔍 Compare Players
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if user.is_authenticated %}
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:my_comparisons' %}" class="btn btn-secondary">View My Comparison History</a>
+</div>
+{% endif %}
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+
+

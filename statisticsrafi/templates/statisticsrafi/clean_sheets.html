@@ -1,0 +1,77 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}Most Clean Sheets - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>🧤 Most Clean Sheets</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        Season: {{ season }}
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-header">Clean Sheets Leaderboard</div>
+    
+    {% if clean_sheets %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Club</th>
+                <th>Position</th>
+                <th>Clean Sheets</th>
+                <th>Goals Conceded</th>
+                <th>Appearances</th>
+                <th>Minutes Played</th>
+                <th>Avg Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in clean_sheets %}
+            <tr>
+                <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                <td>
+                    <strong>{{ stat.player.name }}</strong>
+                    <br>
+                    <small style="color: var(--color-gray-600);">{{ stat.player.nationality }}</small>
+                </td>
+                <td>{{ stat.player.club.name }}</td>
+                <td>{{ stat.player.get_position_display }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.2rem;">{{ stat.clean_sheets }}</span></td>
+                <td>
+                    {% if stat.player.position == 'GK' %}
+                        {{ stat.goals|default:"-" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ stat.appearances }}</td>
+                <td>{{ stat.minutes_played }}</td>
+                <td>
+                    {% if stat.average_rating %}
+                        {{ stat.average_rating }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 3rem;">
+        No statistics available for this season yet. Add some data in the admin panel!
+    </p>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+

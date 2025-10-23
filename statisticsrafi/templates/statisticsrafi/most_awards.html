@@ -1,0 +1,62 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}Most Awards - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>🏆 Players with Most Awards</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        All-time award winners
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-header">Award Winners Leaderboard</div>
+    
+    {% if players %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Club</th>
+                <th>Position</th>
+                <th>Total Awards</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in players %}
+            <tr>
+                <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                <td>
+                    <strong>{{ player.name }}</strong>
+                    <br>
+                    <small style="color: var(--color-gray-600);">{{ player.nationality }}</small>
+                </td>
+                <td>{{ player.club.name }}</td>
+                <td>{{ player.get_position_display }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.2rem;">{{ player.award_count }}</span></td>
+                <td>
+                    <a href="{% url 'statisticsrafi:player_detail' player.id %}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">View Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 3rem;">
+        No awards have been added yet. Add some awards in the admin panel!
+    </p>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+
+
