@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ match.home_team.name }} vs {{ match.away_team.name }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900 font-sans min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-6 shadow-lg">
+    <h1 class="text-3xl font-extrabold text-center tracking-tight">⚽ Match Center</h1>
+    <p class="text-center text-indigo-200 text-sm mt-1">Live predictions and fan voting</p>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-5xl mx-auto mt-10 bg-white rounded-2xl shadow-2xl p-10 border border-gray-200 relative overflow-hidden">
+
+    <!-- Decorative background -->
+    <div class="absolute inset-0 opacity-10 pointer-events-none"
+         style="background: radial-gradient(circle at 30% 20%, #6366f1 0, transparent 60%);"></div>
+
+    <!-- Teams -->
+    <section class="relative z-10 flex justify-between items-center mb-8">
+      <!-- Home -->
+      <div class="flex flex-col items-center w-1/3">
+        <img src="{{ match.home_team.logo_url }}" alt="{{ match.home_team.name }}"
+             class="w-28 h-28 mb-3 rounded-full border-4 border-indigo-200 shadow-md bg-white p-2 transform transition hover:scale-105">
+        <h2 class="text-xl font-bold text-gray-800">{{ match.home_team.name }}</h2>
+      </div>
+
+      <!-- VS -->
+      <div class="text-center w-1/3">
+        <p class="text-4xl font-extrabold text-indigo-600 drop-shadow mb-1">VS</p>
+        <p class="text-sm text-gray-500">{{ match.match_date|date:"D, M d, Y H:i" }}</p>
+        <p class="text-xs text-gray-400 uppercase tracking-wide mt-2 bg-gray-100 px-3 py-1 inline-block rounded-full shadow-sm">
+          {{ match.status }}
+        </p>
+      </div>
+
+      <!-- Away -->
+      <div class="flex flex-col items-center w-1/3">
+        <img src="{{ match.away_team.logo_url }}" alt="{{ match.away_team.name }}"
+             class="w-28 h-28 mb-3 rounded-full border-4 border-indigo-200 shadow-md bg-white p-2 transform transition hover:scale-105">
+        <h2 class="text-xl font-bold text-gray-800">{{ match.away_team.name }}</h2>
+      </div>
+    </section>
+
+    <hr class="my-8 border-gray-300">
+
+    <!-- Voting -->
+    <section class="relative z-10">
+      <h3 class="text-2xl font-semibold mb-6 text-center text-gray-800">Cast Your Prediction</h3>
+
+      {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'vote_match' match.id %}" class="flex flex-col items-center">
+          {% csrf_token %}
+          <div class="flex gap-6 mb-4 flex-wrap justify-center">
+            <!-- Home Win -->
+            <button type="submit" name="prediction" value="home_win"
+              class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105 
+                     {% if user_vote and user_vote.prediction == 'home_win' %}
+                        bg-gray-400 text-white cursor-not-allowed
+                     {% else %}
+                        bg-green-500 hover:bg-green-600 text-white shadow-md
+                     {% endif %}">
+              {{ match.home_team.name }} Win
+            </button>
+
+            <!-- Draw -->
+            <button type="submit" name="prediction" value="draw"
+              class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
+                     {% if user_vote and user_vote.prediction == 'draw' %}
+                        bg-gray-400 text-white cursor-not-allowed
+                     {% else %}
+                        bg-yellow-500 hover:bg-yellow-600 text-white shadow-md
+                     {% endif %}">
+              Draw
+            </button>
+
+            <!-- Away Win -->
+            <button type="submit" name="prediction" value="away_win"
+              class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
+                     {% if user_vote and user_vote.prediction == 'away_win' %}
+                        bg-gray-400 text-white cursor-not-allowed
+                     {% else %}
+                        bg-blue-500 hover:bg-blue-600 text-white shadow-md
+                     {% endif %}">
+              {{ match.away_team.name }} Win
+            </button>
+          </div>
+
+          {% if user_vote %}
+            <p class="text-sm text-gray-600 mt-2">
+            ✅ You voted:
+            <span class="font-semibold text-indigo-600">
+                {% if user_vote.prediction == "home_win" %}
+                {{ match.home_team.name }} Win
+                {% elif user_vote.prediction == "away_win" %}
+                {{ match.away_team.name }} Win
+                {% else %}
+                     Draw
+                {% endif %}
+            </span>
+            </p>
+          {% endif %}
+        </form>
+      {% else %}
+        <p class="text-center mt-6">
+          <a href="/login/" class="text-indigo-600 hover:text-indigo-800 font-medium underline">
+            Login
+          </a> to participate in match predictions.
+        </p>
+      {% endif %}
+    </section>
+
+    <hr class="my-10 border-gray-300">
+
+    <!-- Results -->
+    <section class="relative z-10 text-center">
+      <h4 class="text-2xl font-semibold mb-8 text-gray-800">📊 Fan Voting Results</h4>
+
+      {% if total_votes > 0 %}
+      <div class="space-y-6 text-left">
+
+        <!-- 🏠 Home Win -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <p class="font-semibold text-gray-700">🏠 {{ match.home_team.name }} Win</p>
+            <p class="text-sm text-gray-600">{{ vote_summary.home_win }}% ({{ home_votes }} votes)</p>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
+            <div class="bg-green-500 h-5 rounded-full text-xs font-bold text-white text-right pr-2 transition-all duration-700 ease-out"
+                 style="width: {{ vote_summary.home_win }}%">
+              {{ vote_summary.home_win }}%
+            </div>
+          </div>
+        </div>
+
+        <!-- ⚖️ Draw -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <p class="font-semibold text-gray-700">⚖️ Draw</p>
+            <p class="text-sm text-gray-600">{{ vote_summary.draw }}% ({{ draw_votes }} votes)</p>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
+            <div class="bg-yellow-500 h-5 rounded-full text-xs font-bold text-white text-right pr-2 transition-all duration-700 ease-out"
+                 style="width: {{ vote_summary.draw }}%">
+              {{ vote_summary.draw }}%
+            </div>
+          </div>
+        </div>
+
+        <!-- 🚀 Away Win -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <p class="font-semibold text-gray-700">🚀 {{ match.away_team.name }} Win</p>
+            <p class="text-sm text-gray-600">{{ vote_summary.away_win }}% ({{ away_votes }} votes)</p>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
+            <div class="bg-blue-500 h-5 rounded-full text-xs font-bold text-white text-right pr-2 transition-all duration-700 ease-out"
+                 style="width: {{ vote_summary.away_win }}%">
+              {{ vote_summary.away_win }}%
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Votes -->
+        <p class="text-sm text-gray-500 italic mt-4 text-center">
+          Total votes: <span class="font-semibold">{{ total_votes }}</span> fans
+        </p>
+
+      </div>
+      {% else %}
+        <p class="text-gray-500 text-sm italic">No votes have been cast yet.</p>
+      {% endif %}
+    </section>
+
+    <!-- Back Button -->
+    <div class="text-center mt-10 relative z-10">
+      <a href="{% url 'main' %}"
+         class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium shadow-md transition transform hover:scale-105">
+        ⬅️ Back to Matches
+      </a>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-10 text-center text-sm text-gray-500 py-6">
+    &copy; {{ now.year }} PitchPerfect. All rights reserved.
+  </footer>
+
+</body>
+</html>

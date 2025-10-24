@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {# This is how I load Tailwind CSS, based of Tutorial 4 #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    {# This block will hold all the <head> content from my file #}
+    {% block meta %}{% endblock meta %}
+</head>
+<body class="bg-gray-50">
+    {# This block will hold all the <body> content from my file #}
+    {% block content %}{% endblock content %}
+</body>
+</html>
