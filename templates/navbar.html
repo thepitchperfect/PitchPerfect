@@ -30,7 +30,7 @@
                                 {{ user.username|default:"Username" }}
                             </div>
                             <div class="font-tektur text-xs lg:text-sm not-italic font-normal">
-                                {{ user.get_full_name|default:"Full Name" }}
+                                {{ user.full_name|default:"Full Name" }}
                             </div>
                         </div>
                     </button>
@@ -96,7 +96,7 @@
                     {{ user.username|default:"Username" }}
                 </div>
                 <div class="font-tektur text-xs not-italic font-normal">
-                    {{ user.get_full_name|default:"Full Name" }}
+                    {{ user.full_name|default:"Full Name" }}
                 </div>
             </div>
             <a href="" class="flex w-fit py-[2px] px-3 justify-center items-center rounded-full bg-red-600 text-white text-center font-lato text-xs not-italic font-extrabold">
