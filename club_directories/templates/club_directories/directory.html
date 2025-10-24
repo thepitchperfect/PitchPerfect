@@ -286,10 +286,7 @@
                         </div>
                          <p id="detailsError" class="details-error hidden">Could not load club details.</p>
                         
-                         <!-- ====================================================== -->
-                         <!-- MODIFICATION: New Bento Grid Layout -->
-                         <!-- ====================================================== -->
-                        <div id="detailsBentoGrid" class="details-grid hidden">
+                         <div id="detailsBentoGrid" class="details-grid hidden">
                             
                             <!-- Header Info -->
                             <div class="details-item details-logo-box">
@@ -343,9 +340,6 @@
                                 </div>
                             {% endif %}
                         </div>
-                        <!-- ============================================ -->
-                        <!-- END MODIFICATION -->
-                        <!-- ============================================ -->
                     </div>
                 </div>
             </div>
@@ -431,33 +425,8 @@
             const logo = club.logo_url || initialsFallback;
             const onErrorScript = `if (this.src !== '${initialsFallback}') { this.src='${initialsFallback}'; this.onerror=null; }`;
 
-            // Check favorite status directly from the club object
-            const isFavorite = club.is_favorite || false;
-            
-            // ======================================================
-            // MODIFICATION: Add Favorite Icon Toggle
-            // ======================================================
-            const heartIconHTML = `
-                <button class="favorite-toggle-btn absolute top-3 right-3 p-1.5 rounded-full z-20 ${isFavorite ? 'bg-red-500 text-white' : 'bg-white/70 text-gray-700 backdrop-blur-sm'} transition-colors duration-200 hover:scale-110" 
-                        data-club-id="${club.id}" 
-                        data-is-favorite="${isFavorite}"
-                        aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                      <path d="m11.645 20.91-1.091-1.091c-2.863-2.863-4.695-4.695-4.695-4.695C5.859 15.125 5 14.15 5 13c0-1.657 1.343-3 3-3 1.05 0 2.016.54 2.645 1.383C11.274 10.54 12.239 10 13.29 10c1.657 0 3 1.343 3 3 0 1.15-.859 2.125-1.855 3.124 0 0-1.832 1.832-4.695 4.695l-1.091 1.091a.5.5 0 0 1-.707 0Z" />
-                    </svg>
-                </button>
-            `;
-            // ============================================
-            // END MODIFICATION
-            // ============================================
-
             return `
                 <div class="club-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col relative" data-league="${leagueName}" data-club-id="${club.id}">
-                    
-                    {% if user.is_authenticated %}
-                        ${heartIconHTML}
-                    {% endif %}
-
                     <img src="${logo}" alt="${club.name} Logo" class="w-20 h-20 mx-auto mt-5 object-contain" onerror="${onErrorScript}">
                     <div class="p-5 flex flex-col flex-grow">
                         <h2 class="club-name font-tektur text-xl font-bold text-gray-900 text-center truncate" title="${club.name}">${club.name}</h2>
@@ -822,77 +791,8 @@
                  detailsClubName.textContent = 'Error Loading Details';
              }
         }
-
-        // ======================================================
-        // NEW FUNCTION: handleFavoriteClick
-        // ======================================================
-        async function handleFavoriteClick(e) {
-            e.preventDefault();
-            e.stopPropagation(); // Stop it from triggering other clicks
-
-            const button = e.currentTarget;
-            const clubId = button.dataset.clubId;
-            let isFavorite = button.dataset.isFavorite === 'true';
-
-            // Optimistic UI update
-            isFavorite = !isFavorite;
-            updateFavoriteButtonUI(button, isFavorite);
-
-            const url = `/directory/toggle-favorite/`;
-            const csrftoken = getCookie('csrftoken');
-            
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `club_id=${clubId}`
-                });
-
-                if (!response.ok) {
-                    throw new Error('Server response was not ok.');
-                }
-                
-                const data = await response.json();
-                
-                // Server returns the true state, re-sync UI
-                updateFavoriteButtonUI(button, data.is_favorite);
-
-                // Update the master data object
-                updateClubFavoriteStatus(clubId, data.is_favorite);
-
-            } catch (error) {
-                console.error("Error toggling favorite:", error);
-                // Revert optimistic update on error
-                updateFavoriteButtonUI(button, !isFavorite); 
-            }
-        }
         
-        function updateFavoriteButtonUI(button, isFavorite) {
-            button.dataset.isFavorite = isFavorite;
-            button.setAttribute('aria-label', isFavorite ? 'Remove from favorites' : 'Add to favorites');
-            if (isFavorite) {
-                button.classList.add('bg-red-500', 'text-white');
-                button.classList.remove('bg-white/70', 'text-gray-700');
-            } else {
-                button.classList.remove('bg-red-500', 'text-white');
-                button.classList.add('bg-white/70', 'text-gray-700');
-            }
-        }
-        
-        function updateClubFavoriteStatus(clubId, isFavorite) {
-            // Update the source of truth
-             for (const league of leagueData) {
-                const club = league.clubs.find(c => c.id == clubId);
-                if (club) {
-                    club.is_favorite = isFavorite;
-                    break;
-                }
-            }
-        }
-        
+        // Helper function (if not already defined)
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -907,9 +807,6 @@
             }
             return cookieValue;
         }
-        // ============================================
-        // END NEW FUNCTIONS
-        // ============================================
 
 
         // --- INITIALIZATION ---
@@ -978,12 +875,7 @@
 
             clubGrid.addEventListener('click', (e) => {
                  const viewButton = e.target.closest('button.view-club-btn');
-                 const favButton = e.target.closest('button.favorite-toggle-btn');
-
-                 if (favButton) {
-                     handleFavoriteClick(e);
-                     return;
-                 }
+                 // Removed favButton check
                  
                  if (viewButton) {
                      e.preventDefault();
