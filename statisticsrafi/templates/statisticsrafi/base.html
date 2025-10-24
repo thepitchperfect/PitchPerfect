@@ -27,7 +27,7 @@
             /* Orange Accent Colors */
             --color-orange-100: #ffd7aa;
             --color-orange-200: #ffb054;
-            --color-orange-300: #fe9800;
+            --color-orange-300: #FE8800;
             --color-orange-400: #c58900;
             
             /* Typography */
@@ -86,10 +86,6 @@
             transition: color 0.3s ease;
         }
         
-        a:hover {
-            color: var(--color-orange-400);
-        }
-        
         /* Header/Navigation */
         header {
             background: linear-gradient(135deg, var(--color-gray-1000) 0%, var(--color-gray-800) 100%);
@@ -143,11 +139,6 @@
             white-space: nowrap;
         }
         
-        .nav-links a:hover {
-            background-color: var(--color-orange-300);
-            color: var(--color-white);
-        }
-        
         /* Responsive navbar */
         @media (max-width: 768px) {
             nav {
@@ -180,7 +171,6 @@
             padding: 2rem;
             margin-bottom: 2rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid var(--color-orange-300);
         }
         
         .card-header {
@@ -208,21 +198,21 @@
         .btn-primary {
             background-color: var(--color-orange-300);
             color: var(--color-white);
+            transition: transform 0.2s ease-in-out;
         }
         
         .btn-primary:hover {
-            background-color: var(--color-orange-400);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(254, 152, 0, 0.3);
         }
         
         .btn-secondary {
             background-color: var(--color-gray-600);
             color: var(--color-white);
+            transition: transform 0.2s ease-in-out;
         }
         
         .btn-secondary:hover {
-            background-color: var(--color-gray-800);
+            transform: translateY(-2px);
         }
         
         /* Table Styles */
@@ -243,11 +233,6 @@
             padding: 1rem;
             text-align: left;
             border-bottom: 1px solid var(--color-gray-400);
-        }
-        
-        tbody tr:hover {
-            background-color: var(--color-orange-100);
-            transition: background-color 0.2s ease;
         }
         
         /* Messages/Alerts */
@@ -279,7 +264,6 @@
         .alert-info {
             background-color: var(--color-orange-100);
             color: var(--color-orange-400);
-            border-left: 4px solid var(--color-orange-300);
         }
         
         /* Footer */

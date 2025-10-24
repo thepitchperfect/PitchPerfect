@@ -1,61 +1,59 @@
 {% extends 'statisticsrafi/base.html' %}
 
-{% block title %}Most Clean Sheets - PitchPerfect Statistics{% endblock %}
+{% block title %}Top Clean Sheets Club - PitchPerfect Statistics{% endblock %}
 
 {% block content %}
 <div class="text-center mb-2">
-    <h1>🧤 Most Clean Sheets</h1>
+    <h1>🧤 Top Clean Sheets Club (Club Stats)</h1>
     <p style="font-size: 1.1rem; color: var(--color-gray-600);">
         Season: {{ season }}
     </p>
 </div>
 
 <div class="card">
-    <div class="card-header">Clean Sheets Leaderboard</div>
+    <div class="card-header">Top Clean Sheets Percentage Leaderboard</div>
     
     {% if clean_sheets %}
     <table>
         <thead>
             <tr>
                 <th>Rank</th>
-                <th>Player</th>
+                <th>Logo</th>
                 <th>Club</th>
-                <th>Position</th>
-                <th>Clean Sheets</th>
-                <th>Goals Conceded</th>
-                <th>Appearances</th>
-                <th>Minutes Played</th>
-                <th>Avg Rating</th>
+                <th>League</th>
+                <th>Clean Sheets %</th>
+                <th>Goals Conceded per Match</th>
+                <th>Wins</th>
+                <th>Draws</th>
+                <th>Losses</th>
+                <th>Possession %</th>
             </tr>
         </thead>
         <tbody>
             {% for stat in clean_sheets %}
             <tr>
                 <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                <td style="text-align: center;">
+                    {% if stat.club.logo_url %}
+                        <img src="{{ stat.club.logo_url }}" alt="{{ stat.club.name }} logo" style="width: 35px; height: 35px; object-fit: contain;">
+                    {% else %}
+                        <span style="color: var(--color-gray-600);">-</span>
+                    {% endif %}
+                </td>
                 <td>
-                    <strong>{{ stat.player.name }}</strong>
+                    <a href="{% url 'statisticsrafi:team_detail' stat.club.id %}" style="color: var(--color-orange-300); font-weight: bold;">
+                        <strong>{{ stat.club.name }}</strong>
+                    </a>
                     <br>
-                    <small style="color: var(--color-gray-600);">{{ stat.player.nationality }}</small>
+                    <small style="color: var(--color-gray-600);">{{ stat.club.league.region }}</small>
                 </td>
-                <td>{{ stat.player.club.name }}</td>
-                <td>{{ stat.player.get_position_display }}</td>
-                <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.2rem;">{{ stat.clean_sheets }}</span></td>
-                <td>
-                    {% if stat.player.position == 'GK' %}
-                        {{ stat.goals|default:"-" }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>{{ stat.appearances }}</td>
-                <td>{{ stat.minutes_played }}</td>
-                <td>
-                    {% if stat.average_rating %}
-                        {{ stat.average_rating }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
+                <td>{{ stat.club.league.name }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.2rem;">{{ stat.clean_sheets_percentage }}%</span></td>
+                <td>{{ stat.conceded_per_match }}</td>
+                <td>{{ stat.wins }}</td>
+                <td>{{ stat.draws }}</td>
+                <td>{{ stat.losses }}</td>
+                <td>{{ stat.possession_avg }}%</td>
             </tr>
             {% endfor %}
         </tbody>

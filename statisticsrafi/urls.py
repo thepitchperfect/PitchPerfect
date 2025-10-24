@@ -33,9 +33,12 @@ urlpatterns = [
     path('vote/<str:category>/<str:season>/', views.vote, name='vote'),
     path('vote-results/<str:category>/<str:season>/', views.vote_results, name='vote_results'),
     
-    # Player Comparison
-    path('compare/', views.compare_players, name='compare_players'),
-    path('my-comparisons/', views.my_comparisons, name='my_comparisons'),
+    # Club of the Season Voting
+    path('vote-club/<uuid:club_id>/', views.vote_for_club, name='vote_for_club'),
+    path('club-voting-results/', views.voting_results, name='voting_results'),
+    
+    # Club Comparison
+    path('compare/', views.compare_clubs, name='compare_clubs'),
     
     # Style Guide
     path('style-guide/', views.style_guide, name='style_guide'),
