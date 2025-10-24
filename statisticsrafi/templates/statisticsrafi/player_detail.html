@@ -13,8 +13,8 @@
         </div>
         {% if user.is_authenticated %}
         <div>
-            <a href="{% url 'statisticsrafi:add_to_watchlist' player.id %}" class="btn btn-primary">
-                ⭐ Add to Watchlist
+            <a href="{% url 'statisticsrafi:vote' 'PLAYER_SEASON' '2025/26' %}" class="btn btn-primary">
+                🗳️ Vote for Player
             </a>
         </div>
         {% endif %}

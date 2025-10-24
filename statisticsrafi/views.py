@@ -94,12 +94,12 @@ def add_to_watchlist(request, player_id):
     
     return redirect('player_detail', player_id=player_id)
 
-# READ - Watchlist
+# READ - User Votes
 @login_required
 def my_watchlist(request):
-    """User's watchlist"""
-    watchlist = UserWatchlist.objects.filter(user=request.user)
-    return render(request, 'statisticsrafi/watchlist.html', {'watchlist': watchlist})
+    """User's voting history"""
+    votes = Vote.objects.filter(user=request.user)
+    return render(request, 'statisticsrafi/watchlist.html', {'votes': votes})
 
 # DELETE - Watchlist
 @login_required
