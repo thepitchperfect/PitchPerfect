@@ -86,10 +86,6 @@
             transition: color 0.3s ease;
         }
         
-        a:hover {
-            color: var(--color-orange-400);
-        }
-        
         /* Header/Navigation */
         header {
             background: linear-gradient(135deg, var(--color-gray-1000) 0%, var(--color-gray-800) 100%);
@@ -141,11 +137,6 @@
             transition: all 0.3s ease;
             display: block;
             white-space: nowrap;
-        }
-        
-        .nav-links a:hover {
-            background-color: var(--color-orange-300);
-            color: var(--color-white);
         }
         
         /* Responsive navbar */
@@ -208,21 +199,21 @@
         .btn-primary {
             background-color: var(--color-orange-300);
             color: var(--color-white);
+            transition: transform 0.2s ease-in-out;
         }
         
         .btn-primary:hover {
-            background-color: var(--color-orange-400);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(254, 152, 0, 0.3);
         }
         
         .btn-secondary {
             background-color: var(--color-gray-600);
             color: var(--color-white);
+            transition: transform 0.2s ease-in-out;
         }
         
         .btn-secondary:hover {
-            background-color: var(--color-gray-800);
+            transform: translateY(-2px);
         }
         
         /* Table Styles */
@@ -243,11 +234,6 @@
             padding: 1rem;
             text-align: left;
             border-bottom: 1px solid var(--color-gray-400);
-        }
-        
-        tbody tr:hover {
-            background-color: var(--color-orange-100);
-            transition: background-color 0.2s ease;
         }
         
         /* Messages/Alerts */

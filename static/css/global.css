@@ -8,3 +8,26 @@ body {
 .font-tektur { font-family: 'Tektur', sans-serif; }
 
 .font-lato { font-family: 'Lato', sans-serif; }
+
+/* Custom button hover effects that don't darken */
+.btn-orange {
+    background-color: #FE8800;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-orange:hover {
+    background-color: #FE8800;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(254, 136, 0, 0.3);
+}
+
+.btn-red {
+    background-color: #dc2626;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-red:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}

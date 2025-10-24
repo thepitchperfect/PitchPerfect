@@ -41,7 +41,7 @@
                     </div>
                 </div>
                 {% else %}
-                <a href="" class="flex min-w-12 py-[3px] lg:py-1 px-4 lg:px-5 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base lg:text-lg not-italic font-extrabold">
+                <a href="{% url 'main:login' %}" class="flex min-w-12 py-[3px] lg:py-1 px-4 lg:px-5 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base lg:text-lg not-italic font-extrabold">
                     Log In
                 </a>
                 {% endif %}
@@ -103,7 +103,7 @@
                 Log Out
             </a>
             {% else %}
-            <a href="" class="flex w-fit py-[3px] px-4 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base not-italic font-extrabold">
+            <a href="{% url 'main:login' %}" class="flex w-fit py-[3px] px-4 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base not-italic font-extrabold">
                 Log In
             </a>
             {% endif %}

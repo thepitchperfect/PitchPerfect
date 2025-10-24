@@ -1,7 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from club_directories.models import Club, League
+
+User = get_user_model()
 
 class Player(models.Model):
     """Football Player"""
@@ -243,3 +245,24 @@ class TeamStatistics(models.Model):
         unique_together = ['club', 'season']
         ordering = ['-season', 'club__name']
         verbose_name_plural = "Team Statistics"
+
+
+class ClubVote(models.Model):
+    """Vote for Club of the Season"""
+    SEASON_CHOICES = [
+        ('2023/24', '2023/24'),
+        ('2024/25', '2024/25'),
+        ('2025/26', '2025/26'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='club_votes')
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='club_votes')
+    season = models.CharField(max_length=10, choices=SEASON_CHOICES, default='2025/26')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} voted for {self.club.name} ({self.season})"
+    
+    class Meta:
+        unique_together = ['user', 'season']  # One vote per user per season
+        ordering = ['-created_at']

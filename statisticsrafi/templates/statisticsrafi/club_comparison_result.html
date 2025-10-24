@@ -1,0 +1,175 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}{{ club1.name }} vs {{ club2.name }} - Club Comparison{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>⚖️ Club Comparison</h1>
+    <h2 style="color: var(--color-gray-600);">
+        {{ club1.name }} <span style="color: var(--color-orange-300);">VS</span> {{ club2.name }}
+    </h2>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">Season: {{ season }}</p>
+</div>
+
+<!-- Club Overview -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, var(--color-orange-300), var(--color-orange-400)); color: white;">
+            {{ club1.name }}
+        </div>
+        <div style="padding: 1rem;">
+            <p><strong>League:</strong> {{ club1.league.name }}</p>
+            <p><strong>Region:</strong> {{ club1.league.region }}</p>
+            <p><strong>Founded:</strong> {{ club1.founded_year }}</p>
+            {% if club1.logo_url %}
+            <div style="text-align: center; margin-top: 1rem;">
+                <img src="{{ club1.logo_url }}" alt="{{ club1.name }} logo" style="width: 60px; height: 60px; object-fit: contain;">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, var(--color-gray-800), var(--color-gray-1000)); color: white;">
+            {{ club2.name }}
+        </div>
+        <div style="padding: 1rem;">
+            <p><strong>League:</strong> {{ club2.league.name }}</p>
+            <p><strong>Region:</strong> {{ club2.league.region }}</p>
+            <p><strong>Founded:</strong> {{ club2.founded_year }}</p>
+            {% if club2.logo_url %}
+            <div style="text-align: center; margin-top: 1rem;">
+                <img src="{{ club2.logo_url }}" alt="{{ club2.name }} logo" style="width: 60px; height: 60px; object-fit: contain;">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Comparison -->
+<div class="card">
+    <div class="card-header">📊 Season {{ season }} Statistics Comparison</div>
+    
+    {% if stats1 or stats2 %}
+    <table>
+        <thead>
+            <tr>
+                <th>Statistic</th>
+                <th style="background: var(--color-orange-100);">{{ club1.name }}</th>
+                <th style="background: var(--color-gray-400);">{{ club2.name }}</th>
+                <th>Better</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Wins</strong></td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold;">{{ stats1.wins|default:"0" }}</span></td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold;">{{ stats2.wins|default:"0" }}</span></td>
+                <td>
+                    {% if stats1.wins > stats2.wins %}
+                        ← {{ club1.name }}
+                    {% elif stats2.wins > stats1.wins %}
+                        {{ club2.name }} →
+                    {% else %}
+                        Tie
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Goals per Match</strong></td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold;">{{ stats1.scored_per_match|default:"0" }}</span></td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold;">{{ stats2.scored_per_match|default:"0" }}</span></td>
+                <td>
+                    {% if stats1.scored_per_match > stats2.scored_per_match %}
+                        ← {{ club1.name }}
+                    {% elif stats2.scored_per_match > stats1.scored_per_match %}
+                        {{ club2.name }} →
+                    {% else %}
+                        Tie
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Possession %</strong></td>
+                <td>{{ stats1.possession_avg|default:"0" }}%</td>
+                <td>{{ stats2.possession_avg|default:"0" }}%</td>
+                <td>
+                    {% if stats1.possession_avg > stats2.possession_avg %}
+                        ← {{ club1.name }}
+                    {% elif stats2.possession_avg > stats1.possession_avg %}
+                        {{ club2.name }} →
+                    {% else %}
+                        Tie
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Clean Sheets %</strong></td>
+                <td>{{ stats1.clean_sheets_percentage|default:"0" }}%</td>
+                <td>{{ stats2.clean_sheets_percentage|default:"0" }}%</td>
+                <td>
+                    {% if stats1.clean_sheets_percentage > stats2.clean_sheets_percentage %}
+                        ← {{ club1.name }}
+                    {% elif stats2.clean_sheets_percentage > stats1.clean_sheets_percentage %}
+                        {{ club2.name }} →
+                    {% else %}
+                        Tie
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Shots per Match</strong></td>
+                <td>{{ stats1.shots_taken_per_match|default:"0" }}</td>
+                <td>{{ stats2.shots_taken_per_match|default:"0" }}</td>
+                <td>
+                    {% if stats1.shots_taken_per_match > stats2.shots_taken_per_match %}
+                        ← {{ club1.name }}
+                    {% elif stats2.shots_taken_per_match > stats1.shots_taken_per_match %}
+                        {{ club2.name }} →
+                    {% else %}
+                        Tie
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Conversion Rate %</strong></td>
+                <td>{{ stats1.shots_conversion_rate|default:"0" }}%</td>
+                <td>{{ stats2.shots_conversion_rate|default:"0" }}%</td>
+                <td>
+                    {% if stats1.shots_conversion_rate > stats2.shots_conversion_rate %}
+                        ← {{ club1.name }}
+                    {% elif stats2.shots_conversion_rate > stats1.shots_conversion_rate %}
+                        {{ club2.name }} →
+                    {% else %}
+                        Tie
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Goals Conceded per Match</strong></td>
+                <td>{{ stats1.conceded_per_match|default:"0" }}</td>
+                <td>{{ stats2.conceded_per_match|default:"0" }}</td>
+                <td>
+                    {% if stats1.conceded_per_match < stats2.conceded_per_match %}
+                        ← {{ club1.name }} (Better)
+                    {% elif stats2.conceded_per_match < stats1.conceded_per_match %}
+                        {{ club2.name }} (Better) →
+                    {% else %}
+                        Tie
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 3rem;">
+        No statistics available for this season. Add club statistics in the admin panel!
+    </p>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:compare_clubs' %}" class="btn btn-primary">Compare Other Clubs</a>
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}

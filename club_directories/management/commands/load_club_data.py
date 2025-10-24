@@ -29,7 +29,7 @@ CLUBS_DATA = [
     {"name": "Newcastle United", "league_name": "Premier League", "year": 1892, "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Newcastle_United_Logo.svg/300px-Newcastle_United_Logo.svg.png"},
     {"name": "Nottingham Forest", "league_name": "Premier League", "year": 1865, "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Nottingham_Forest_F.C._logo.svg/300px-Nottingham_Forest_F.C._logo.svg.png"},
     {"name": "Sunderland", "league_name": "Premier League", "year": 1879, "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/7/77/Logo_Sunderland.svg/300px-Logo_Sunderland.svg.png"},
-    {"name": "Tottenham Hotspur", "league_name": "Premier League", "year": 1882, "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/b/b4/Tottenham_Hotspur.svg/200px-Tottenham_Hotspur.svg.png"},
+    {"name": "Tottenham Hotspur", "league_name": "Premier League", "year": 1882, "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/b/b4/Tottenham_Hotspur.svg/260px-Tottenham_Hotspur.svg.png"},
     {"name": "West Ham United", "league_name": "Premier League", "year": 1895, "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/c/c2/West_Ham_United_FC_logo.svg/278px-West_Ham_United_FC_logo.svg.png"},
     {"name": "Wolverhampton Wanderers", "league_name": "Premier League", "year": 1877, "logo": "https://football-logos.cc/logos/england/700x700/wolves.png"},
     {"name": "Real Madrid", "league_name": "La Liga", "year": 1902, "logo": "https://football-logos.cc/logos/spain/700x700/real-madrid.png"},

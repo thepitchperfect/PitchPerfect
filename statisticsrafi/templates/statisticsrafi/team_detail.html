@@ -6,7 +6,7 @@
 <style>
     /* Override base styles for full-page layout */
     body {
-        background-color: #1a1a2e;
+        background: linear-gradient(to right, #1f2937, #374151);
         color: #ffffff;
         overflow-x: hidden;
     }
@@ -100,17 +100,15 @@
         font-family: var(--font-subheader);
         font-weight: 500;
         margin-bottom: 0.8rem;
-        transition: all 0.3s ease;
+        transition: transform 0.2s ease-in-out;
     }
     
     .sidebar-button:hover {
-        background: rgba(0, 0, 0, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
         transform: translateY(-2px);
     }
     
     .team-content {
-        background: #1a1a2e;
+        background: linear-gradient(to right, #1f2937, #374151);
         padding: 3rem;
         overflow-y: auto;
         min-height: 100%;
@@ -214,14 +212,12 @@
         font-family: var(--font-subheader);
         font-weight: 600;
         box-shadow: 0 4px 12px rgba(254, 152, 0, 0.4);
-        transition: all 0.3s ease;
+        transition: transform 0.2s ease-in-out;
         z-index: 100;
     }
     
     .back-button:hover {
-        background: var(--color-orange-400);
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(254, 152, 0, 0.5);
     }
     
     @media (max-width: 968px) {
@@ -276,7 +272,6 @@
             <div class="team-info">
                 {% if club.founded_year %}
                 <div class="team-info-item">
-                    <span>📅</span>
                     <span>Est. {{ club.founded_year }}</span>
                 </div>
                 {% endif %}
@@ -317,6 +312,16 @@
             </a>
             {% endif %}
         </div>
+        
+        {% if user.is_authenticated %}
+        <div class="sidebar-section">
+            <h3>Vote for Club of the Season</h3>
+            <button id="voteButton" class="sidebar-button" onclick="voteForClub()">
+                🗳️ Vote for {{ club.name }}
+            </button>
+            <div id="voteMessage" style="margin-top: 1rem; display: none;"></div>
+        </div>
+        {% endif %}
     </div>
     
     <!-- Right Content Area -->
@@ -465,6 +470,69 @@
 <a href="{% url 'statisticsrafi:home' %}" class="back-button">
     ← Back to Home
 </a>
+
+<script>
+function voteForClub() {
+    const voteButton = document.getElementById('voteButton');
+    const voteMessage = document.getElementById('voteMessage');
+    
+    // Disable button during request
+    voteButton.disabled = true;
+    voteButton.textContent = 'Voting...';
+    
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Send vote request
+    fetch('{% url "statisticsrafi:vote_for_club" club.id %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'season=2025/26'
+    })
+    .then(response => response.json())
+    .then(data => {
+        voteMessage.style.display = 'block';
+        
+        if (data.status === 'success') {
+            voteMessage.innerHTML = `<div style="color: #4ade80; font-size: 0.9rem;">✅ ${data.message}</div>`;
+            voteButton.textContent = '✅ Voted!';
+            voteButton.style.background = 'rgba(74, 222, 128, 0.3)';
+        } else if (data.status === 'info') {
+            voteMessage.innerHTML = `<div style="color: #fbbf24; font-size: 0.9rem;">ℹ️ ${data.message}</div>`;
+            voteButton.textContent = '✅ Already Voted';
+            voteButton.style.background = 'rgba(251, 191, 36, 0.3)';
+        } else {
+            voteMessage.innerHTML = `<div style="color: #f87171; font-size: 0.9rem;">❌ ${data.message}</div>`;
+            voteButton.textContent = '🗳️ Vote for {{ club.name }}';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        voteMessage.style.display = 'block';
+        voteMessage.innerHTML = `<div style="color: #f87171; font-size: 0.9rem;">❌ An error occurred. Please try again.</div>`;
+        voteButton.textContent = '🗳️ Vote for {{ club.name }}';
+    })
+    .finally(() => {
+        voteButton.disabled = false;
+    });
+}
+</script>
 
 {% endblock %}
 

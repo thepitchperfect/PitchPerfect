@@ -3,36 +3,38 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, Q
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db import IntegrityError
+from django.views.decorators.http import require_POST
 from .models import (
     Player, Club, PlayerStatistics, Award, 
-    UserWatchlist, Vote, PlayerComparison, ClubRanking, TeamStatistics
+    UserWatchlist, Vote, PlayerComparison, ClubRanking, TeamStatistics, ClubVote
 )
 
 # READ - List Views
 def statistics_home(request):
     """Main statistics dashboard"""
     context = {
-        'top_scorers': PlayerStatistics.objects.filter(season='2024/25').order_by('-goals')[:10],
-        'top_assisters': PlayerStatistics.objects.filter(season='2024/25').order_by('-assists')[:10],
-        'most_clean_sheets': PlayerStatistics.objects.filter(season='2024/25').order_by('-clean_sheets')[:10],
+        'top_goals': TeamStatistics.objects.filter(season='2025/26').order_by('-scored_per_match')[:10],
+        'top_possession': TeamStatistics.objects.filter(season='2025/26').order_by('-possession_avg')[:10],
+        'top_clean_sheets': TeamStatistics.objects.filter(season='2025/26').order_by('-clean_sheets_percentage')[:10],
         'club_rankings': ClubRanking.objects.order_by('rank')[:20],
     }
     return render(request, 'statisticsrafi/home.html', context)
 
-def top_scorers(request, season='2024/25'):
-    """Top goal scorers"""
-    scorers = PlayerStatistics.objects.filter(season=season).order_by('-goals')
-    return render(request, 'statisticsrafi/top_scorers.html', {'scorers': scorers, 'season': season})
+def top_scorers(request, season='2025/26'):
+    """Top goals based on club stats"""
+    top_goals = TeamStatistics.objects.filter(season=season).order_by('-scored_per_match')
+    return render(request, 'statisticsrafi/top_scorers.html', {'scorers': top_goals, 'season': season})
 
-def top_assisters(request, season='2024/25'):
-    """Top assist providers"""
-    assisters = PlayerStatistics.objects.filter(season=season).order_by('-assists')
-    return render(request, 'statisticsrafi/top_assisters.html', {'assisters': assisters, 'season': season})
+def top_assisters(request, season='2025/26'):
+    """Top possession average based on club stats"""
+    top_possession = TeamStatistics.objects.filter(season=season).order_by('-possession_avg')
+    return render(request, 'statisticsrafi/top_assisters.html', {'assisters': top_possession, 'season': season})
 
-def most_clean_sheets(request, season='2024/25'):
-    """Most clean sheets (goalkeepers/defenders)"""
-    clean_sheets = PlayerStatistics.objects.filter(season=season).order_by('-clean_sheets')
-    return render(request, 'statisticsrafi/clean_sheets.html', {'clean_sheets': clean_sheets, 'season': season})
+def most_clean_sheets(request, season='2025/26'):
+    """Top clean sheets based on club stats"""
+    top_clean_sheets = TeamStatistics.objects.filter(season=season).order_by('-clean_sheets_percentage')
+    return render(request, 'statisticsrafi/clean_sheets.html', {'clean_sheets': top_clean_sheets, 'season': season})
 
 def most_awards(request):
     """Players and clubs with most awards"""
@@ -177,47 +179,32 @@ def vote_results(request, category, season):
     }
     return render(request, 'statisticsrafi/vote_results.html', context)
 
-# Player Comparison
-def compare_players(request):
-    """Compare two players statistics"""
+# Club Comparison
+def compare_clubs(request):
+    """Compare two clubs statistics"""
     if request.method == 'POST':
-        player1_id = request.POST.get('player1_id')
-        player2_id = request.POST.get('player2_id')
-        season = request.POST.get('season', '2024/25')
+        club1_id = request.POST.get('club1_id')
+        club2_id = request.POST.get('club2_id')
+        season = request.POST.get('season', '2025/26')
         
-        player1 = get_object_or_404(Player, id=player1_id)
-        player2 = get_object_or_404(Player, id=player2_id)
+        club1 = get_object_or_404(Club, id=club1_id)
+        club2 = get_object_or_404(Club, id=club2_id)
         
-        stats1 = PlayerStatistics.objects.filter(player=player1, season=season).first()
-        stats2 = PlayerStatistics.objects.filter(player=player2, season=season).first()
-        
-        # Save comparison history if user is logged in
-        if request.user.is_authenticated:
-            PlayerComparison.objects.create(
-                user=request.user,
-                player1=player1,
-                player2=player2,
-                season=season
-            )
+        stats1 = TeamStatistics.objects.filter(club=club1, season=season).first()
+        stats2 = TeamStatistics.objects.filter(club=club2, season=season).first()
         
         context = {
-            'player1': player1,
-            'player2': player2,
+            'club1': club1,
+            'club2': club2,
             'stats1': stats1,
             'stats2': stats2,
             'season': season,
         }
-        return render(request, 'statisticsrafi/comparison_result.html', context)
+        return render(request, 'statisticsrafi/club_comparison_result.html', context)
     
     # GET request - show comparison form
-    players = Player.objects.all()
-    return render(request, 'statisticsrafi/compare_players.html', {'players': players})
-
-@login_required
-def my_comparisons(request):
-    """User's comparison history"""
-    comparisons = PlayerComparison.objects.filter(user=request.user)
-    return render(request, 'statisticsrafi/my_comparisons.html', {'comparisons': comparisons})
+    clubs = Club.objects.all()
+    return render(request, 'statisticsrafi/compare_clubs.html', {'clubs': clubs})
 
 # Style Guide
 def style_guide(request):
@@ -254,3 +241,71 @@ def team_detail(request, club_id):
         'club_awards': club_awards,
     }
     return render(request, 'statisticsrafi/team_detail.html', context)
+
+
+@login_required
+@require_POST
+def vote_for_club(request, club_id):
+    """Vote for Club of the Season"""
+    club = get_object_or_404(Club, id=club_id)
+    season = request.POST.get('season', '2025/26')
+    
+    try:
+        # Check if user already voted for this season
+        existing_vote = ClubVote.objects.filter(user=request.user, season=season).first()
+        
+        if existing_vote:
+            if existing_vote.club == club:
+                return JsonResponse({
+                    'status': 'info',
+                    'message': f'You have already voted for {club.name} for {season} season.'
+                })
+            else:
+                # Update existing vote
+                existing_vote.club = club
+                existing_vote.save()
+                return JsonResponse({
+                    'status': 'success',
+                    'message': f'Your vote has been changed to {club.name} for {season} season.'
+                })
+        else:
+            # Create new vote
+            ClubVote.objects.create(user=request.user, club=club, season=season)
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Successfully voted for {club.name} for {season} season!'
+            })
+            
+    except IntegrityError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'An error occurred while processing your vote.'
+        })
+
+
+def voting_results(request):
+    """Display voting results for Club of the Season"""
+    season = request.GET.get('season', '2025/26')
+    
+    # Get vote counts for each club
+    vote_counts = ClubVote.objects.filter(season=season).values('club__name').annotate(
+        vote_count=Count('id')
+    ).order_by('-vote_count')
+    
+    # Get total votes
+    total_votes = ClubVote.objects.filter(season=season).count()
+    
+    # Get user's current vote
+    user_vote = None
+    if request.user.is_authenticated:
+        user_vote = ClubVote.objects.filter(user=request.user, season=season).first()
+    
+    context = {
+        'vote_counts': vote_counts,
+        'total_votes': total_votes,
+        'season': season,
+        'user_vote': user_vote,
+        'seasons': ['2023/24', '2024/25', '2025/26']
+    }
+    
+    return render(request, 'statisticsrafi/vote_results.html', context)
