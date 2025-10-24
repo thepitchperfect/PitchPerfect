@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 import uuid
 
 
@@ -67,7 +67,7 @@ class Match(models.Model):
 # 🗳️ Vote Model
 class Vote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='votes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='votes')
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='votes')
     prediction = models.CharField(
         max_length=10,

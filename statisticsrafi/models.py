@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from club_directories.models import Club, League
 
@@ -107,7 +107,7 @@ class Award(models.Model):
 
 class UserWatchlist(models.Model):
     """User's favorite players watchlist"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='watchlist')
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='watched_by')
     added_date = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, help_text="Personal notes about the player")
@@ -131,7 +131,7 @@ class Vote(models.Model):
         ('TEAM_SEASON', 'Team of the Season'),
     ]
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='votes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='votes')
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='votes', null=True, blank=True)
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='votes', null=True, blank=True)
     category = models.CharField(max_length=20, choices=VOTE_CATEGORY)
@@ -151,7 +151,7 @@ class Vote(models.Model):
 
 class PlayerComparison(models.Model):
     """Store user's player comparisons for history"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comparisons')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comparisons')
     player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='comparison_player1')
     player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='comparison_player2')
     season = models.CharField(max_length=10)

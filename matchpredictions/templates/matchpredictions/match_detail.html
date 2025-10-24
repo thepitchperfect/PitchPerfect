@@ -6,20 +6,20 @@
 {% block content %}
 <main class="max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl p-10 border border-gray-200 relative overflow-hidden">
 
-  <!-- Decorative background glow -->
+  <!-- Decorative background -->
   <div class="absolute inset-0 opacity-5 pointer-events-none"
        style="background: radial-gradient(circle at 30% 20%, #fe9800 0, transparent 60%);"></div>
 
   <!-- 🏟️ Match Header -->
   <section class="relative z-10 flex justify-between items-center mb-10">
-    <!-- Home Team -->
+    <!-- Home -->
     <div class="flex flex-col items-center w-1/3">
       <img src="{{ match.home_team.logo_url }}" alt="{{ match.home_team.name }}"
            class="w-28 h-28 mb-3 rounded-full border-4 border-orange-200 shadow-md bg-white p-2 transform transition hover:scale-105">
       <h2 class="text-xl font-bold text-gray-800">{{ match.home_team.name }}</h2>
     </div>
 
-    <!-- VS + Match Info -->
+    <!-- VS -->
     <div class="text-center w-1/3">
       <p class="text-4xl font-extrabold text-orange-500 drop-shadow mb-1">VS</p>
       <p class="text-sm text-gray-600">{{ match.match_date|date:"D, M d, Y H:i" }}</p>
@@ -28,7 +28,7 @@
       </p>
     </div>
 
-    <!-- Away Team -->
+    <!-- Away -->
     <div class="flex flex-col items-center w-1/3">
       <img src="{{ match.away_team.logo_url }}" alt="{{ match.away_team.name }}"
            class="w-28 h-28 mb-3 rounded-full border-4 border-orange-200 shadow-md bg-white p-2 transform transition hover:scale-105">
@@ -36,7 +36,51 @@
     </div>
   </section>
 
-  <hr class="my-8 border-gray-300">
+  <!-- 📊 Team Stats + Chart -->
+  <section class="relative z-10 text-center mb-10">
+    <h3 class="text-2xl font-semibold mb-6 text-gray-800">Team Statistics</h3>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-3 text-sm font-medium text-gray-700 mb-8">
+      <!-- Home Stats -->
+      <div class="text-left">
+        {% if home_stats %}
+          <p>🏆 Wins: {{ home_stats.wins }}</p>
+          <p>🤝 Draws: {{ home_stats.draws }}</p>
+          <p>❌ Losses: {{ home_stats.losses }}</p>
+          <p>⚽ Scored / Match: {{ home_stats.goals_per_match }}</p>
+          <p>📈 Avg Goals: {{ home_stats.avg_goals }}</p>
+        {% else %}
+          <p class="text-gray-500 italic">No data available.</p>
+        {% endif %}
+      </div>
+
+      <div class="text-center flex flex-col justify-center text-gray-500">
+        <p class="text-xl font-bold text-orange-500 mb-1">VS</p>
+        <p class="text-xs">Stat Comparison</p>
+      </div>
+
+      <!-- Away Stats -->
+      <div class="text-right">
+        {% if away_stats %}
+          <p>🏆 Wins: {{ away_stats.wins }}</p>
+          <p>🤝 Draws: {{ away_stats.draws }}</p>
+          <p>❌ Losses: {{ away_stats.losses }}</p>
+          <p>⚽ Scored / Match: {{ away_stats.goals_per_match }}</p>
+          <p>📈 Avg Goals: {{ away_stats.avg_goals }}</p>
+        {% else %}
+          <p class="text-gray-500 italic">No data available.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Horizontal Chart -->
+    <div class="relative w-full h-64">
+      <canvas id="teamComparisonChart"></canvas>
+    </div>
+  </section>
+
+  <hr class="my-10 border-gray-300">
 
   <!-- 🗳️ Voting Section -->
   <section class="relative z-10 text-center">
@@ -46,7 +90,6 @@
       <form method="POST" action="{% url 'vote_match' match.id %}" class="flex flex-col items-center">
         {% csrf_token %}
         <div class="flex gap-6 mb-4 flex-wrap justify-center">
-          <!-- Home Win -->
           <button type="submit" name="prediction" value="home_win"
             class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105 
                    {% if user_vote and user_vote.prediction == 'home_win' %}
@@ -57,7 +100,6 @@
             {{ match.home_team.name }} Win
           </button>
 
-          <!-- Draw -->
           <button type="submit" name="prediction" value="draw"
             class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
                    {% if user_vote and user_vote.prediction == 'draw' %}
@@ -68,7 +110,6 @@
             Draw
           </button>
 
-          <!-- Away Win -->
           <button type="submit" name="prediction" value="away_win"
             class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
                    {% if user_vote and user_vote.prediction == 'away_win' %}
@@ -89,7 +130,7 @@
               {% elif user_vote.prediction == "away_win" %}
               {{ match.away_team.name }} Win
               {% else %}
-                   Draw
+              Draw
               {% endif %}
           </span>
           </p>
@@ -106,16 +147,15 @@
 
   <hr class="my-10 border-gray-300">
 
-  <!-- 📊 Results -->
+  <!-- 📊 Fan Voting Results -->
   <section class="relative z-10 text-center">
     <h4 class="text-2xl font-semibold mb-8 text-gray-800">Fan Voting Results</h4>
 
     {% if total_votes > 0 %}
     <div class="space-y-6 text-left">
-      <!-- 🏠 Home Win -->
       <div>
         <div class="flex justify-between mb-1">
-          <p class="font-semibold text-gray-700"> {{ match.home_team.name }} Win</p>
+          <p class="font-semibold text-gray-700">{{ match.home_team.name }} Win</p>
           <p class="text-sm text-gray-600">{{ vote_summary.home_win }}% ({{ home_votes }} votes)</p>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
@@ -126,10 +166,9 @@
         </div>
       </div>
 
-      <!-- ⚖️ Draw -->
       <div>
         <div class="flex justify-between mb-1">
-          <p class="font-semibold text-gray-700"> Draw</p>
+          <p class="font-semibold text-gray-700">Draw</p>
           <p class="text-sm text-gray-600">{{ vote_summary.draw }}% ({{ draw_votes }} votes)</p>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
@@ -140,10 +179,9 @@
         </div>
       </div>
 
-      <!-- 🚀 Away Win -->
       <div>
         <div class="flex justify-between mb-1">
-          <p class="font-semibold text-gray-700"> {{ match.away_team.name }} Win</p>
+          <p class="font-semibold text-gray-700">{{ match.away_team.name }} Win</p>
           <p class="text-sm text-gray-600">{{ vote_summary.away_win }}% ({{ away_votes }} votes)</p>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
@@ -163,7 +201,7 @@
     {% endif %}
   </section>
 
-  <!-- ⬅️ Back Button -->
+  <!-- ⬅️ Back -->
   <div class="text-center mt-10 relative z-10">
     <a href="{% url 'main' %}"
        class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 text-white px-6 py-3 rounded-lg font-medium shadow-md transition transform hover:scale-105">
@@ -171,5 +209,71 @@
     </a>
   </div>
 </main>
-{% endblock %}
 
+<!-- 📊 Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('teamComparisonChart').getContext('2d');
+
+  const data = {
+    labels: ['Wins', 'Draws', 'Losses', 'Goals/Match', 'Avg Goals'],
+    datasets: [
+      {
+        label: '{{ match.home_team.name }}',
+        data: [
+          {{ home_stats.wins|default:0 }},
+          {{ home_stats.draws|default:0 }},
+          {{ home_stats.losses|default:0 }},
+          {{ home_stats.goals_per_match|default:0 }},
+          {{ home_stats.avg_goals|default:0 }}
+        ],
+        backgroundColor: 'rgba(254, 152, 0, 0.7)',
+        borderColor: '#fe9800',
+        borderWidth: 1,
+        borderSkipped: false,
+        barThickness: 18
+      },
+      {
+        label: '{{ match.away_team.name }}',
+        data: [
+          -{{ away_stats.wins|default:0 }},
+          -{{ away_stats.draws|default:0 }},
+          -{{ away_stats.losses|default:0 }},
+          -{{ away_stats.goals_per_match|default:0 }},
+          -{{ away_stats.avg_goals|default:0 }}
+        ],
+        backgroundColor: 'rgba(128, 128, 128, 0.7)',
+        borderColor: '#888',
+        borderWidth: 1,
+        borderSkipped: false,
+        barThickness: 18
+      }
+    ]
+  };
+
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: data,
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#333', font: { size: 12 } }
+        },
+      },
+      responsive: true,
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: '#eee' },
+          ticks: { callback: value => Math.abs(value) }
+        },
+        y: {
+          grid: { color: '#eee' }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}
