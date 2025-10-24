@@ -121,7 +121,7 @@
 
         /* --- New Club Details Modal Styling --- */
         #clubDetailsModal {
-            position: fixed; inset: 0; background-color: rgba(31, 41, 55, 0.8); /* Darker overlay (gray-800/80) */
+            position: fixed; inset: 0; background-color: rgba(31, 41, 55, 0.8);
             z-index: 150; display: flex; align-items: center; justify-content: center;
             padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
         }
@@ -129,10 +129,10 @@
 
         .details-modal-content {
              background-color: #ffffff;
-             border-radius: 1rem; /* More rounded */
+             border-radius: 1rem;
              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-             max-width: 90%; width: 640px; /* Slightly narrower */
-             transform: translateY(20px) scale(0.98); /* Start from slightly below */
+             max-width: 90%; width: 640px;
+             transform: translateY(20px) scale(0.98);
              transition: transform 0.3s ease-out, opacity 0.3s ease-out;
              opacity: 0;
              overflow: hidden;
@@ -141,33 +141,42 @@
          #clubDetailsModal.is-visible .details-modal-content { transform: translateY(0) scale(1); opacity: 1; }
 
          .details-header {
-             background: linear-gradient(to right, #1f2937, #374151); /* Dark Gray gradient */
+             background: linear-gradient(to right, #1f2937, #374151);
              padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
-             position: relative; border-bottom: 4px solid #fb923c; /* Orange accent border */
+             position: relative; border-bottom: 4px solid #fb923c;
          }
          .details-header h3 { color: white; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-right: 40px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-         .details-close-btn { background: none; border: none; color: #d1d5db; /* gray-300 */ transition: color 0.2s; cursor: pointer; }
+         .details-close-btn { background: none; border: none; color: #d1d5db; transition: color 0.2s; cursor: pointer; }
          .details-close-btn:hover { color: white; }
-         /* Removed the .details-external-link styles */
 
-        .details-body { padding: 1.5rem; background-color: #f9fafb; /* gray-50 */ max-height: 70vh; overflow-y: auto; }
-        .details-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; } /* 6 columns for flexibility */
+        .details-body { padding: 1.5rem; background-color: #f9fafb; max-height: 70vh; overflow-y: auto; }
+        .details-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; }
 
         .details-item { background-color: #ffffff; border-radius: 0.5rem; padding: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .details-item h4 { font-family: 'Tektur', sans-serif; font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; }
+        .details-item h4 { 
+            font-family: 'Tektur', sans-serif; font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem; 
+            text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; 
+        }
         .details-item p, .details-item span { font-size: 1rem; color: #1f2937; font-weight: 600; word-wrap: break-word; }
-        .details-item img.details-logo { display: block; width: 100%; height: auto; max-height: 120px; object-fit: contain; margin-bottom: 1rem; }
-        .details-item img.league-logo { height: 24px; width: auto; display: inline-block; vertical-align: middle; margin-right: 0.5rem; }
-        .details-item .league-info { display: flex; align-items: center; }
-
+        
+        /* Specifics for the new layout */
+        .details-logo-box { grid-column: span 2 / span 2; display: flex; align-items: center; justify-content: center; }
+        .details-logo-box img { max-width: 100%; max-height: 120px; object-fit: contain; }
+        
+        .details-title-box { grid-column: span 4 / span 4; display: flex; flex-direction: column; justify-content: center; }
+        .details-title-box h2 { font-family: 'Tektur', sans-serif; font-size: 1.75rem; font-weight: 600; color: #1f2937; line-height: 1.2; }
+        .details-title-box .league-info { display: flex; align-items: center; margin-top: 0.5rem; }
+        .details-title-box .league-logo { height: 24px; width: auto; margin-right: 0.5rem; }
+        .details-title-box .league-name { font-size: 1rem; color: #4b5563; font-weight: 600; }
+        
         .details-item.gc-2 { grid-column: span 2 / span 2; }
         .details-item.gc-3 { grid-column: span 3 / span 3; }
         .details-item.gc-4 { grid-column: span 4 / span 4; }
         .details-item.gc-6 { grid-column: span 6 / span 6; }
-        .details-item.flex-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .details-item .description-text, .details-item .history-text { font-size: 0.875rem; color: #4b5563; font-weight: normal; line-height: 1.6; max-height: 150px; overflow-y: auto; padding-right: 0.5rem; } /* Scrollable text */
+        
+        .info-text { font-size: 0.9rem; color: #4b5563; font-weight: normal; line-height: 1.6; max-height: 150px; overflow-y: auto; padding-right: 0.5rem; }
 
-        .details-loading { display: flex; justify-content: center; align-items: center; min-height: 250px; } /* Increased height */
+        .details-loading { display: flex; justify-content: center; align-items: center; min-height: 250px; }
         .details-error { color: #dc2626; text-align: center; padding: 2rem; font-weight: 600; }
 
         .set-pick-button {
@@ -178,19 +187,19 @@
              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
          .set-pick-button.selected {
-             background-color: #fef9c3; /* yellow-50 */ color: #a16207; /* yellow-700 */ border-color: #facc15; /* yellow-400 */
+             background-color: #fef9c3; color: #a16207; border-color: #facc15;
              box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
          }
          .set-pick-button.not-selected {
-              background-color: #fb923c; /* orange-400 */ color: white; border-color: #f97316; /* orange-500 */
+              background-color: #fb923c; color: white; border-color: #f97316;
          }
-         .set-pick-button:hover:not(.selected) { background-color: #f97316; /* orange-500 */ }
-         .set-pick-button:hover.selected { background-color: #fef3c7; /* yellow-100 */ }
+         .set-pick-button:hover:not(.selected) { background-color: #f97316; }
+         .set-pick-button:hover.selected { background-color: #fef3c7; }
          .set-pick-button:active { transform: scale(0.98); }
          .set-pick-button svg { width: 1.25rem; height: 1.25rem; margin-right: 0.5rem; }
 
-         /* Buttom to go to Rafi's model*/
          .club-stats-btn {
+             /* Styles for your friend's button */
          }
 
     </style>
@@ -214,11 +223,37 @@
                 <div id="map" class="w-full rounded-xl shadow-lg border border-gray-300 bg-gray-200"></div>
             </section>
 
-            <section id="champions-section" class="mb-12">
-                <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-6">MY LEAGUE PICKS</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            
+            {% if user.is_authenticated %}
+                <!-- LOGGED-IN VERSION: The original, functional section -->
+                <section id="champions-section" class="mb-12">
+                    <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-6">MY LEAGUE PICKS</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                        <!-- Slots will be populated by JS -->
                     </div>
-            </section>
+                </section>
+            
+            {% else %}
+                <!-- LOGGED-OUT VERSION: Blurred placeholder with a login prompt -->
+                <section id="champions-section-logged-out" class="mb-12 relative">
+                    <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-6">MY LEAGUE PICKS</h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto filter blur-sm pointer-events-none">
+                        <div class="champion-slot !cursor-default"><span class="select-text">SELECT PICK</span><span class="league-label">LEAGUE 1</span></div>
+                        <div class="champion-slot !cursor-default"><span class="select-text">SELECT PICK</span><span class="league-label">LEAGUE 2</span></div>
+                        <div class="champion-slot !cursor-default"><span class="select-text">SELECT PICK</span><span class="league-label">LEAGUE 3</span></div>
+                    </div>
+                    
+                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/50 backdrop-blur-[2px] rounded-lg">
+                        <h3 class="font-tektur text-2xl font-bold text-gray-800 mb-4">Log in to Set Your Picks</h3>
+                        <a href="{% url 'main:login' %}" 
+                           class="px-6 py-2 bg-orange-500 text-white font-tektur rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+                            Log In
+                        </a>
+                    </div>
+                </section>
+            {% endif %}
+
 
             <div id="clubSelectorModal">
                 <div class="modal-content">
@@ -236,58 +271,81 @@
                 <div class="details-modal-content">
                     <div class="details-header">
                         <h3 id="detailsClubName" class="font-orbitron text-2xl font-bold">Club Details</h3>
-                        {# --- Wrapper for right-side buttons --- #}
                         <div class="flex items-center space-x-4">
-                            {# --- Moved and updated Club Stats Button --- #}
                             <button class="club-stats-btn bg-orange-500 hover:bg-orange-600 text-white font-tektur text-xs font-bold py-1 px-3 rounded-md shadow transition-colors duration-200">
                                 Club Stats
                             </button>
-                            {# --- Close Button stays here --- #}
                             <button id="detailsCloseBtn" class="details-close-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        {# --- End Button Wrapper --- #}
                     </div>
                     <div id="detailsContent" class="details-body">
                          <div class="details-loading p-8">
                             <svg class="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
                         </div>
                          <p id="detailsError" class="details-error hidden">Could not load club details.</p>
+                        
+                         <!-- ====================================================== -->
+                         <!-- MODIFICATION: New Bento Grid Layout -->
+                         <!-- ====================================================== -->
                         <div id="detailsBentoGrid" class="details-grid hidden">
-                            <div class="details-item gc-2 flex-center">
-                                <img id="detailsLogo" src="" alt="Club Logo" class="details-logo">
+                            
+                            <!-- Header Info -->
+                            <div class="details-item details-logo-box">
+                                <img id="detailsLogo" src="" alt="Club Logo">
                             </div>
-                            <div class="details-item gc-2">
-                                <h4>League</h4>
+                            <div class="details-item details-title-box">
+                                <h2 id="detailsClubNameModal">Club Name</h2>
                                 <div class="league-info">
                                     <img id="detailsLeagueLogo" src="" alt="League Logo" class="league-logo">
-                                    <p id="detailsLeagueName"></p>
+                                    <p id="detailsLeagueName" class="league-name">League Name</p>
                                 </div>
                             </div>
-                            <div class="details-item gc-1">
+                            
+                            <!-- Quick Info Row -->
+                            <div class="details-item gc-2">
                                 <h4>Founded</h4>
                                 <p id="detailsFounded">----</p>
                             </div>
-                             <div class="details-item gc-1">
-                                <h4>Region</h4>
-                                <p id="detailsRegion">N/A</p>
+                            <div class="details-item gc-4">
+                                <h4>Manager</h4>
+                                <p id="detailsManager">N/A</p>
                             </div>
-                            <div class="details-item gc-3">
+
+                            <!-- Stadium Info Row -->
+                            <div class="details-item gc-4">
+                                <h4>Stadium</h4>
+                                <p id="detailsStadium">N/A</p>
+                            </div>
+                            <div class="details-item gc-2">
+                                <h4>Capacity</h4>
+                                <p id="detailsCapacity">N/A</p>
+                            </div>
+
+                            <!-- Text Info -->
+                            <div class="details-item gc-6">
                                 <h4>Description</h4>
-                                <p id="detailsDescription" class="description-text">N/A</p>
-                            </div>
-                             <div class="details-item gc-3">
-                                <h4>History</h4>
-                                <p id="detailsHistory" class="history-text">Placeholder for club history/timeline...</p>
+                                <p id="detailsDescription" class="info-text">N/A</p>
                             </div>
                              <div class="details-item gc-6">
-                                 <button id="setLeaguePickBtn" class="set-pick-button not-selected" data-club-id="" data-club-name="" data-logo-url="" data-league-id="">
-                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.31h5.518a.563.563 0 0 1 .32.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-3.357a.562.562 0 0 0-.652 0l-4.725 3.357a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .32-.988h5.518a.563.563 0 0 0 .475-.31L11.48 3.5Z" /></svg>
-                                     <span id="setLeaguePickBtnText">Set as League Pick</span>
-                                 </button>
+                                <h4>History Summary</h4>
+                                <p id="detailsHistory" class="info-text">N/A</p>
                             </div>
+
+                            <!-- Favorite Button -->
+                            {% if user.is_authenticated %}
+                                 <div class="details-item gc-6">
+                                     <button id="setLeaguePickBtn" class="set-pick-button not-selected" data-club-id="" data-club-name="" data-logo-url="" data-league-id="">
+                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.31h5.518a.563.563 0 0 1 .32.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-3.357a.562.562 0 0 0-.652 0l-4.725 3.357a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .32-.988h5.518a.563.563 0 0 0 .475-.31L11.48 3.5Z" /></svg>
+                                         <span id="setLeaguePickBtnText">Set as League Pick</span>
+                                     </button>
+                                </div>
+                            {% endif %}
                         </div>
+                        <!-- ============================================ -->
+                        <!-- END MODIFICATION -->
+                        <!-- ============================================ -->
                     </div>
                 </div>
             </div>
@@ -324,7 +382,9 @@
         const leagueTitle = document.getElementById('league-title');
         const searchBar = document.getElementById('searchBar');
         const noClubsMessage = document.getElementById('no-clubs-message');
-        const championsContainer = document.querySelector('#champions-section .grid');
+        
+        const championsContainer = document.querySelector('#champions-section .grid'); 
+        
         const modal = document.getElementById('clubSelectorModal');
         const modalLeagueTitle = document.getElementById('modalLeagueTitle');
         const modalLogoScroll = document.getElementById('modalLogoScroll');
@@ -332,18 +392,24 @@
 
         const detailsModal = document.getElementById('clubDetailsModal');
         const detailsCloseBtn = document.getElementById('detailsCloseBtn');
-        const detailsClubName = document.getElementById('detailsClubName');
+        const detailsClubName = document.getElementById('detailsClubName'); // Header
         const detailsContent = document.getElementById('detailsContent');
         const detailsLoading = detailsContent.querySelector('.details-loading');
         const detailsError = document.getElementById('detailsError');
         const detailsBentoGrid = document.getElementById('detailsBentoGrid');
+        
+        // --- New Bento Grid Elements ---
         const detailsLogo = document.getElementById('detailsLogo');
+        const detailsClubNameModal = document.getElementById('detailsClubNameModal'); // Inside bento
         const detailsLeagueName = document.getElementById('detailsLeagueName');
         const detailsLeagueLogo = document.getElementById('detailsLeagueLogo');
         const detailsFounded = document.getElementById('detailsFounded');
-        const detailsRegion = document.getElementById('detailsRegion');
+        const detailsManager = document.getElementById('detailsManager');
+        const detailsStadium = document.getElementById('detailsStadium');
+        const detailsCapacity = document.getElementById('detailsCapacity');
         const detailsDescription = document.getElementById('detailsDescription');
         const detailsHistory = document.getElementById('detailsHistory');
+        
         const setLeaguePickBtn = document.getElementById('setLeaguePickBtn');
         const setLeaguePickBtnText = document.getElementById('setLeaguePickBtnText');
 
@@ -365,8 +431,33 @@
             const logo = club.logo_url || initialsFallback;
             const onErrorScript = `if (this.src !== '${initialsFallback}') { this.src='${initialsFallback}'; this.onerror=null; }`;
 
+            // Check favorite status directly from the club object
+            const isFavorite = club.is_favorite || false;
+            
+            // ======================================================
+            // MODIFICATION: Add Favorite Icon Toggle
+            // ======================================================
+            const heartIconHTML = `
+                <button class="favorite-toggle-btn absolute top-3 right-3 p-1.5 rounded-full z-20 ${isFavorite ? 'bg-red-500 text-white' : 'bg-white/70 text-gray-700 backdrop-blur-sm'} transition-colors duration-200 hover:scale-110" 
+                        data-club-id="${club.id}" 
+                        data-is-favorite="${isFavorite}"
+                        aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                      <path d="m11.645 20.91-1.091-1.091c-2.863-2.863-4.695-4.695-4.695-4.695C5.859 15.125 5 14.15 5 13c0-1.657 1.343-3 3-3 1.05 0 2.016.54 2.645 1.383C11.274 10.54 12.239 10 13.29 10c1.657 0 3 1.343 3 3 0 1.15-.859 2.125-1.855 3.124 0 0-1.832 1.832-4.695 4.695l-1.091 1.091a.5.5 0 0 1-.707 0Z" />
+                    </svg>
+                </button>
+            `;
+            // ============================================
+            // END MODIFICATION
+            // ============================================
+
             return `
-                <div class="club-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col" data-league="${leagueName}" data-club-id="${club.id}">
+                <div class="club-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col relative" data-league="${leagueName}" data-club-id="${club.id}">
+                    
+                    {% if user.is_authenticated %}
+                        ${heartIconHTML}
+                    {% endif %}
+
                     <img src="${logo}" alt="${club.name} Logo" class="w-20 h-20 mx-auto mt-5 object-contain" onerror="${onErrorScript}">
                     <div class="p-5 flex flex-col flex-grow">
                         <h2 class="club-name font-tektur text-xl font-bold text-gray-900 text-center truncate" title="${club.name}">${club.name}</h2>
@@ -377,6 +468,43 @@
                         </div>
                     </div>
                 </div>`;
+        }
+        
+        function showAllClubs() {
+             currentLeague = null;
+             clubGrid.innerHTML = '';
+             leagueTitle.textContent = "All Clubs";
+             allClubCards = [];
+             noClubsMessage.classList.add('hidden');
+
+             if (!leagueData || leagueData.length === 0) {
+                  clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No clubs available.</p>';
+                  return;
+             }
+
+             let clubCount = 0;
+             leagueData.forEach(league => {
+                 if (league.clubs && league.clubs.length > 0) {
+                     league.clubs.forEach(club => {
+                        const cardHTML = createClubCard(club, league.name);
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = cardHTML.trim();
+                        const cardElement = tempDiv.firstElementChild;
+                        if (cardElement instanceof HTMLElement) {
+                            clubGrid.appendChild(cardElement);
+                            allClubCards.push(cardElement);
+                            clubCount++;
+                        }
+                    });
+                 }
+             });
+             
+             if (clubCount === 0) {
+                 clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No clubs found in any league.</p>';
+             }
+
+             searchBar.value = '';
+             filterClubs();
         }
 
         function showClubs(league) {
@@ -468,6 +596,7 @@
         }
 
         function populateChampionSlots() {
+            if (!championsContainer) return;
             championsContainer.innerHTML = '';
             const topLeagues = leagueData.slice(0, 6);
             topLeagues.forEach(league => {
@@ -609,11 +738,12 @@
         }
         function hideDetailsModal() {
              detailsModal.classList.remove('is-visible');
-             // Do not reset content here, wait until fetch starts
              currentDetailClub = null;
         }
 
         function updatePickButtonState(leagueId = null) {
+            if (!setLeaguePickBtn) return;
+            
             if (!currentDetailClub || (leagueId && currentDetailClub.league_id !== leagueId)) {
                 return;
             }
@@ -638,7 +768,6 @@
 
         async function fetchAndShowClubDetails(clubId) {
              showDetailsModal();
-             // Reset state immediately before fetch
              detailsLoading.classList.remove('hidden');
              detailsBentoGrid.classList.add('hidden');
              detailsError.classList.add('hidden');
@@ -655,17 +784,14 @@
                 const data = await response.json();
                 currentDetailClub = data;
 
-                detailsClubName.textContent = data.name || 'Club Details';
-
+                // --- Populate Bento Grid ---
+                detailsClubName.textContent = data.name || 'Club Details'; // Header
+                detailsClubNameModal.textContent = data.name || 'Club Name'; // Bento
+                
                 const initialsFallback = `https://placehold.co/100x100/EFEFEF/333333?text=${encodeURIComponent((data.name || '?').substring(0,3).toUpperCase())}`;
                 detailsLogo.src = data.logo_url || initialsFallback;
                 detailsLogo.alt = `${data.name || 'Club'} Logo`;
                 detailsLogo.onerror = function() { if (this.src !== initialsFallback) { this.src=initialsFallback; this.onerror=null; }};
-
-                detailsFounded.textContent = data.founded_year || '----';
-                detailsRegion.textContent = data.region || 'N/A';
-                detailsDescription.textContent = data.description || 'No description available.';
-                detailsHistory.textContent = data.history_summary || 'No history summary available.';
 
                 detailsLeagueName.textContent = data.league_name || 'N/A';
                 const leagueLogoPath = data.league_logo_path ? `{% static '' %}${data.league_logo_path.replace(/\\/g, '/')}` : '';
@@ -675,9 +801,17 @@
                 detailsLeagueLogo.onerror = function() { if (this.src !== leagueLogoFallback) { this.src=leagueLogoFallback; this.onerror=null; }};
                 detailsLeagueLogo.classList.toggle('hidden', !leagueLogoPath && !data.league_name);
 
+                detailsFounded.textContent = data.founded_year || '----';
+                detailsManager.textContent = data.manager_name || 'N/A';
+                detailsStadium.textContent = data.stadium_name || 'N/A';
+                detailsCapacity.textContent = data.stadium_capacity_str || 'N/A';
+                detailsDescription.textContent = data.description || 'No description available.';
+                detailsHistory.textContent = data.history_summary || 'No history summary available.';
 
-                updatePickButtonState();
-
+                if (setLeaguePickBtn) {
+                    updatePickButtonState();
+                }
+                
                 detailsLoading.classList.add('hidden');
                 detailsBentoGrid.classList.remove('hidden');
 
@@ -689,10 +823,132 @@
              }
         }
 
+        // ======================================================
+        // NEW FUNCTION: handleFavoriteClick
+        // ======================================================
+        async function handleFavoriteClick(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Stop it from triggering other clicks
+
+            const button = e.currentTarget;
+            const clubId = button.dataset.clubId;
+            let isFavorite = button.dataset.isFavorite === 'true';
+
+            // Optimistic UI update
+            isFavorite = !isFavorite;
+            updateFavoriteButtonUI(button, isFavorite);
+
+            const url = `/directory/toggle-favorite/`;
+            const csrftoken = getCookie('csrftoken');
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `club_id=${clubId}`
+                });
+
+                if (!response.ok) {
+                    throw new Error('Server response was not ok.');
+                }
+                
+                const data = await response.json();
+                
+                // Server returns the true state, re-sync UI
+                updateFavoriteButtonUI(button, data.is_favorite);
+
+                // Update the master data object
+                updateClubFavoriteStatus(clubId, data.is_favorite);
+
+            } catch (error) {
+                console.error("Error toggling favorite:", error);
+                // Revert optimistic update on error
+                updateFavoriteButtonUI(button, !isFavorite); 
+            }
+        }
+        
+        function updateFavoriteButtonUI(button, isFavorite) {
+            button.dataset.isFavorite = isFavorite;
+            button.setAttribute('aria-label', isFavorite ? 'Remove from favorites' : 'Add to favorites');
+            if (isFavorite) {
+                button.classList.add('bg-red-500', 'text-white');
+                button.classList.remove('bg-white/70', 'text-gray-700');
+            } else {
+                button.classList.remove('bg-red-500', 'text-white');
+                button.classList.add('bg-white/70', 'text-gray-700');
+            }
+        }
+        
+        function updateClubFavoriteStatus(clubId, isFavorite) {
+            // Update the source of truth
+             for (const league of leagueData) {
+                const club = league.clubs.find(c => c.id == clubId);
+                if (club) {
+                    club.is_favorite = isFavorite;
+                    break;
+                }
+            }
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        // ============================================
+        // END NEW FUNCTIONS
+        // ============================================
+
+
         // --- INITIALIZATION ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            populateChampionSlots();
+            
+            if (championsContainer) {
+                populateChampionSlots();
+                
+                championsContainer.addEventListener('click', (e) => {
+                    const slot = e.target.closest('.champion-slot');
+                    if (slot) {
+                        const leagueId = slot.dataset.leagueId;
+                        if(leagueId) openClubSelector(leagueId);
+                    }
+                });
+                
+                closeModalBtn.addEventListener('click', closeClubSelector);
+
+                modalLogoScroll.addEventListener('click', (e) => {
+                     const clickedItem = e.target.closest('img.modal-logo-item, div.none-option');
+                     if (clickedItem) {
+                         if (clickedItem.classList.contains('is-center')) {
+                             if (clickedItem.classList.contains('none-option')) {
+                                 selectChampion(currentSelectingLeagueId, 'NONE', null, null);
+                             } else {
+                                 const clubId = clickedItem.dataset.clubId;
+                                 const clubName = clickedItem.dataset.clubName;
+                                 const logoUrl = clickedItem.dataset.logoUrl;
+                                 if(clubId && clubName) selectChampion(currentSelectingLeagueId, clubId, clubName, logoUrl);
+                             }
+                         } else {
+                             scrollToItem(clickedItem);
+                         }
+                     }
+                });
+                modal.addEventListener('click', (e) => { if (e.target === modal) closeClubSelector(); });
+            }
+
 
             leagueData.forEach(league => {
                  const logoStaticPath = league.logo_path ? `{% static '' %}${league.logo_path.replace(/\\/g, '/')}` : `https://placehold.co/48x48/CCCCCC/333333?text=${league.short_id || 'L'}`;
@@ -720,37 +976,15 @@
 
             searchBar.addEventListener('input', filterClubs);
 
-            championsContainer.addEventListener('click', (e) => {
-                const slot = e.target.closest('.champion-slot');
-                if (slot) {
-                    const leagueId = slot.dataset.leagueId;
-                    if(leagueId) openClubSelector(leagueId);
-                }
-            });
-
-            closeModalBtn.addEventListener('click', closeClubSelector);
-
-            modalLogoScroll.addEventListener('click', (e) => {
-                 const clickedItem = e.target.closest('img.modal-logo-item, div.none-option');
-                 if (clickedItem) {
-                     if (clickedItem.classList.contains('is-center')) {
-                         if (clickedItem.classList.contains('none-option')) {
-                             selectChampion(currentSelectingLeagueId, 'NONE', null, null);
-                         } else {
-                             const clubId = clickedItem.dataset.clubId;
-                             const clubName = clickedItem.dataset.clubName;
-                             const logoUrl = clickedItem.dataset.logoUrl;
-                             if(clubId && clubName) selectChampion(currentSelectingLeagueId, clubId, clubName, logoUrl);
-                         }
-                     } else {
-                         scrollToItem(clickedItem);
-                     }
-                 }
-            });
-            modal.addEventListener('click', (e) => { if (e.target === modal) closeClubSelector(); });
-
             clubGrid.addEventListener('click', (e) => {
                  const viewButton = e.target.closest('button.view-club-btn');
+                 const favButton = e.target.closest('button.favorite-toggle-btn');
+
+                 if (favButton) {
+                     handleFavoriteClick(e);
+                     return;
+                 }
+                 
                  if (viewButton) {
                      e.preventDefault();
                      const card = viewButton.closest('.club-card');
@@ -768,23 +1002,26 @@
              detailsCloseBtn.addEventListener('click', hideDetailsModal);
              detailsModal.addEventListener('click', (e) => { if (e.target === detailsModal) hideDetailsModal(); });
 
-             setLeaguePickBtn.addEventListener('click', () => {
-                 const clubId = setLeaguePickBtn.dataset.clubId;
-                 const clubName = setLeaguePickBtn.dataset.clubName;
-                 const logoUrl = setLeaguePickBtn.dataset.logoUrl;
-                 const leagueId = setLeaguePickBtn.dataset.leagueId;
-                 const isSelected = setLeaguePickBtn.dataset.isSelected === 'true';
+            
+             if (setLeaguePickBtn) {
+                 setLeaguePickBtn.addEventListener('click', () => {
+                     const clubId = setLeaguePickBtn.dataset.clubId;
+                     const clubName = setLeaguePickBtn.dataset.clubName;
+                     const logoUrl = setLeaguePickBtn.dataset.logoUrl;
+                     const leagueId = setLeaguePickBtn.dataset.leagueId;
+                     const isSelected = setLeaguePickBtn.dataset.isSelected === 'true';
 
-                 if (leagueId && clubId && clubName) {
-                     selectChampion(leagueId, isSelected ? 'NONE' : clubId, isSelected ? null : clubName, isSelected ? null : logoUrl);
-                 } else {
-                      console.error("Missing data on pick button to set/unset champion.");
-                 }
-             });
+                     if (leagueId && clubId && clubName) {
+                         selectChampion(leagueId, isSelected ? 'NONE' : clubId, isSelected ? null : clubName, isSelected ? null : logoUrl);
+                     } else {
+                          console.error("Missing data on pick button to set/unset champion.");
+                     }
+                 });
+             }
 
 
             if (leagueData && leagueData.length > 0) {
-                showClubs(leagueData[0]);
+                showAllClubs();
             } else {
                 leagueTitle.textContent = "No Leagues Available";
                 clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">Could not load club data.</p>';

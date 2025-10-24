@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'main',
     'club_directories',
 ]
 
@@ -125,6 +126,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'main.CustomUser'
+
+AUTHENTICATION_BACKENDS = [
+    'main.backends.CustomUserBackend',
+    'django.contrib.auth.backends.ModelBackend', 
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
