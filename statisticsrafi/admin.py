@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Player, PlayerStatistics, Award,
-    UserWatchlist, Vote, PlayerComparison, ClubRanking
+    UserWatchlist, Vote, PlayerComparison, ClubRanking, TeamStatistics
 )
 from club_directories.models import Club, League
 
@@ -54,3 +54,10 @@ class ClubRankingAdmin(admin.ModelAdmin):
     list_filter = ['continent', 'ranking_date']
     search_fields = ['club__name']
     ordering = ['rank']
+
+@admin.register(TeamStatistics)
+class TeamStatisticsAdmin(admin.ModelAdmin):
+    list_display = ['club', 'season', 'wins', 'draws', 'losses', 'possession_avg', 'scored_per_match']
+    list_filter = ['season', 'club__league']
+    search_fields = ['club__name']
+    ordering = ['club__name']

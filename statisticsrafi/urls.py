@@ -20,6 +20,9 @@ urlpatterns = [
     # Player Details
     path('player/<int:player_id>/', views.player_detail, name='player_detail'),
     
+    # Team Details
+    path('team/<uuid:club_id>/', views.team_detail, name='team_detail'),
+    
     # Watchlist (CRUD)
     path('watchlist/', views.my_watchlist, name='my_watchlist'),
     path('watchlist/add/<int:player_id>/', views.add_to_watchlist, name='add_to_watchlist'),

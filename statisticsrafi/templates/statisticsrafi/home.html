@@ -150,7 +150,11 @@
                         <span style="color: var(--color-gray-600);">-</span>
                     {% endif %}
                 </td>
-                <td><strong>{{ ranking.club.name }}</strong></td>
+                <td>
+                    <a href="{% url 'statisticsrafi:team_detail' ranking.club.id %}" style="color: var(--color-orange-300); font-weight: bold;">
+                        {{ ranking.club.name }}
+                    </a>
+                </td>
                 <td>{{ ranking.club.league.region }}</td>
                 <td>{{ ranking.continent }}</td>
                 <td>{{ ranking.points }}</td>

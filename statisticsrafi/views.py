@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from .models import (
     Player, Club, PlayerStatistics, Award, 
-    UserWatchlist, Vote, PlayerComparison, ClubRanking
+    UserWatchlist, Vote, PlayerComparison, ClubRanking, TeamStatistics
 )
 
 # READ - List Views
@@ -223,3 +223,34 @@ def my_comparisons(request):
 def style_guide(request):
     """Design system style guide"""
     return render(request, 'statisticsrafi/style_guide.html')
+
+# Team Statistics Detail
+def team_detail(request, club_id):
+    """Display detailed statistics for a specific team"""
+    club = get_object_or_404(Club, id=club_id)
+    team_stats = TeamStatistics.objects.filter(club=club).order_by('-season').first()
+    
+    # Get club's players
+    players = Player.objects.filter(club=club)
+    
+    # Get club's player statistics for the season
+    player_stats = PlayerStatistics.objects.filter(
+        player__club=club,
+        season=team_stats.season if team_stats else '2025/26'
+    ).select_related('player').order_by('-goals')
+    
+    # Get club rankings
+    club_ranking = ClubRanking.objects.filter(club=club).order_by('-ranking_date').first()
+    
+    # Get club awards
+    club_awards = Award.objects.filter(club=club).order_by('-date_awarded')
+    
+    context = {
+        'club': club,
+        'team_stats': team_stats,
+        'players': players,
+        'player_stats': player_stats,
+        'club_ranking': club_ranking,
+        'club_awards': club_awards,
+    }
+    return render(request, 'statisticsrafi/team_detail.html', context)

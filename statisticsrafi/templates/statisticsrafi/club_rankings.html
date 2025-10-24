@@ -42,7 +42,9 @@
                     {% endif %}
                 </td>
                 <td>
-                    <strong>{{ ranking.club.name }}</strong>
+                    <a href="{% url 'statisticsrafi:team_detail' ranking.club.id %}" style="color: var(--color-orange-300); font-weight: bold;">
+                        {{ ranking.club.name }}
+                    </a>
                 </td>
                 <td>{{ ranking.club.league.region }}</td>
                 <td>{{ ranking.club.league.name }}</td>

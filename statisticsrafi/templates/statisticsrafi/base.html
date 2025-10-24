@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PitchPerfect Statistics{% endblock %}</title>
     
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Tektur:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Orbitron:wght@700&family=Tektur:wght@600&display=swap" rel="stylesheet">
     
     <style>
         /* Color Palette Variables */
@@ -301,22 +304,7 @@
 </head>
 <body>
     <!-- Header -->
-    <header>
-        <nav>
-            <div class="logo">⚽ PitchPerfect</div>
-            <ul class="nav-links">
-                <li><a href="{% url 'statisticsrafi:home' %}">Home</a></li>
-                <li><a href="{% url 'statisticsrafi:top_scorers' %}">Top Scorers</a></li>
-                <li><a href="{% url 'statisticsrafi:top_assisters' %}">Assists</a></li>
-                <li><a href="{% url 'statisticsrafi:clean_sheets' %}">Clean Sheets</a></li>
-                <li><a href="{% url 'statisticsrafi:club_rankings' %}">Rankings</a></li>
-                <li><a href="{% url 'statisticsrafi:compare_players' %}">Compare</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'statisticsrafi:my_watchlist' %}">My Watchlist</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </header>
+    {% include 'navbar.html' %}
     
     <!-- Messages -->
     {% if messages %}
