@@ -148,12 +148,7 @@
          .details-header h3 { color: white; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-right: 40px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
          .details-close-btn { background: none; border: none; color: #d1d5db; /* gray-300 */ transition: color 0.2s; cursor: pointer; }
          .details-close-btn:hover { color: white; }
-         .details-external-link {
-             position: absolute; top: 1rem; right: 4rem;
-             color: #d1d5db; transition: color 0.2s;
-         }
-         .details-external-link:hover { color: white; }
-         .details-external-link svg { width: 1.25rem; height: 1.25rem; }
+         /* Removed the .details-external-link styles */
 
         .details-body { padding: 1.5rem; background-color: #f9fafb; /* gray-50 */ max-height: 70vh; overflow-y: auto; }
         .details-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; } /* 6 columns for flexibility */
@@ -177,9 +172,9 @@
 
         .set-pick-button {
              display: inline-flex; align-items: center; justify-content: center; width: 100%;
-             padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 700; /* Bolder */
+             padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 700; 
              font-family: 'Tektur', sans-serif; font-size: 1rem; letter-spacing: 0.05em;
-             transition: all 0.2s ease; cursor: pointer; border: 2px solid transparent; /* Thicker border */
+             transition: all 0.2s ease; cursor: pointer; border: 2px solid transparent;
              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
          .set-pick-button.selected {
@@ -194,6 +189,9 @@
          .set-pick-button:active { transform: scale(0.98); }
          .set-pick-button svg { width: 1.25rem; height: 1.25rem; margin-right: 0.5rem; }
 
+         /* Buttom to go to Rafi's model*/
+         .club-stats-btn {
+         }
 
     </style>
 {% endblock meta %}
@@ -219,8 +217,7 @@
             <section id="champions-section" class="mb-12">
                 <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-6">MY LEAGUE PICKS</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                    <!-- Champion slots populated by JS -->
-                </div>
+                    </div>
             </section>
 
             <div id="clubSelectorModal">
@@ -229,33 +226,34 @@
                     <p class="text-sm text-gray-600">Click a logo below to choose.</p>
                     <div class="logo-scroll-outer-container">
                         <div id="modalLogoScroll" class="logo-scroll-container">
-                             <!-- Logos populated by JS -->
-                        </div>
+                             </div>
                     </div>
                     <button id="closeModalBtn" class="mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors">Close</button>
                 </div>
             </div>
 
-             <!-- New Club Details Modal Structure -->
-            <div id="clubDetailsModal">
+             <div id="clubDetailsModal">
                 <div class="details-modal-content">
                     <div class="details-header">
                         <h3 id="detailsClubName" class="font-orbitron text-2xl font-bold">Club Details</h3>
-                        <a href="#" class="details-external-link" title="Go to Club Analysis (Placeholder)">
-                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
-                        </a>
-                        <button id="detailsCloseBtn" class="details-close-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-                        </button>
+                        {# --- Wrapper for right-side buttons --- #}
+                        <div class="flex items-center space-x-4">
+                            {# --- Moved and updated Club Stats Button --- #}
+                            <button class="club-stats-btn bg-orange-500 hover:bg-orange-600 text-white font-tektur text-xs font-bold py-1 px-3 rounded-md shadow transition-colors duration-200">
+                                Club Stats
+                            </button>
+                            {# --- Close Button stays here --- #}
+                            <button id="detailsCloseBtn" class="details-close-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        {# --- End Button Wrapper --- #}
                     </div>
                     <div id="detailsContent" class="details-body">
-                         <!-- Loading State -->
-                        <div class="details-loading p-8">
+                         <div class="details-loading p-8">
                             <svg class="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
                         </div>
-                         <!-- Error State (Hidden Initially) -->
-                        <p id="detailsError" class="details-error hidden">Could not load club details.</p>
-                        <!-- New Details Grid Layout -->
+                         <p id="detailsError" class="details-error hidden">Could not load club details.</p>
                         <div id="detailsBentoGrid" class="details-grid hidden">
                             <div class="details-item gc-2 flex-center">
                                 <img id="detailsLogo" src="" alt="Club Logo" class="details-logo">
@@ -308,8 +306,7 @@
                 </div>
 
                 <div id="clubGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                     <!-- Club cards populated by JS -->
-                </div>
+                     </div>
                  <p id="no-clubs-message" class="text-center text-gray-500 mt-8 hidden">No clubs found matching your search.</p>
             </section>
         </div>
@@ -339,7 +336,7 @@
         const detailsContent = document.getElementById('detailsContent');
         const detailsLoading = detailsContent.querySelector('.details-loading');
         const detailsError = document.getElementById('detailsError');
-        const detailsBentoGrid = document.getElementById('detailsBentoGrid'); // Renamed
+        const detailsBentoGrid = document.getElementById('detailsBentoGrid');
         const detailsLogo = document.getElementById('detailsLogo');
         const detailsLeagueName = document.getElementById('detailsLeagueName');
         const detailsLeagueLogo = document.getElementById('detailsLeagueLogo');

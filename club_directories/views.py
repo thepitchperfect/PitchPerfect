@@ -1,10 +1,8 @@
-# club_directories/views.py
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .models import League, Club
 import json
 
-# show_club_directory function remains the same...
 def show_club_directory(request):
     leagues = League.objects.prefetch_related('clubs').all().order_by('name')
     leagues_data = []
@@ -29,8 +27,6 @@ def show_club_directory(request):
     context = {'leagues_data': leagues_data,}
     return render(request, 'club_directories/directory.html', context)
 
-
-# Updated get_club_details
 def get_club_details(request, club_id):
     club = get_object_or_404(Club.objects.select_related('league'), pk=club_id)
     data = {
@@ -38,14 +34,11 @@ def get_club_details(request, club_id):
         'name': club.name,
         'logo_url': club.logo_url,
         'founded_year': club.founded_year,
-        # stadium and fifa_ranking removed
-        'league_id': str(club.league.id), # Send league ID
+        'league_id': str(club.league.id), 
         'league_name': club.league.name,
-        'league_logo_path': club.league.logo_path, # Send league logo path
+        'league_logo_path': club.league.logo_path,
         'region': club.league.region,
-        # Add description (can be enhanced later)
         'description': f"A football club founded in {club.founded_year or 'N/A'}, currently playing in {club.league.name}, based in {club.league.region}.",
-        # Add placeholder for history
         'history_summary': f"{club.name} has a rich history in {club.league.name}..." # Placeholder
     }
     return JsonResponse(data)
