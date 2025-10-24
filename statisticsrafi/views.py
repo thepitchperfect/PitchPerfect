@@ -35,11 +35,25 @@ def most_clean_sheets(request, season='2024/25'):
     return render(request, 'statisticsrafi/clean_sheets.html', {'clean_sheets': clean_sheets, 'season': season})
 
 def most_awards(request):
-    """Players with most awards"""
+    """Players and clubs with most awards"""
+    from club_directories.models import Club
+    
     players_with_awards = Player.objects.annotate(
         award_count=Count('awards')
     ).filter(award_count__gt=0).order_by('-award_count')
-    return render(request, 'statisticsrafi/most_awards.html', {'players': players_with_awards})
+    
+    clubs_with_awards = Club.objects.annotate(
+        award_count=Count('awards')
+    ).filter(award_count__gt=0).order_by('-award_count')
+    
+    # Get all club awards ordered by date
+    club_awards = Award.objects.filter(club__isnull=False).select_related('club').order_by('-date_awarded')
+    
+    return render(request, 'statisticsrafi/most_awards.html', {
+        'players': players_with_awards,
+        'clubs': clubs_with_awards,
+        'club_awards': club_awards,
+    })
 
 def club_rankings(request):
     """FIFA Club World Rankings"""

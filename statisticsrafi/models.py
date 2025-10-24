@@ -1,29 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
-
-class Club(models.Model):
-    name = models.CharField(max_length=200)
-    country = models.CharField(max_length=100)
-    league = models.CharField(max_length=200)
-    logo_url = models.URLField(blank=True, null=True)
-    founded_year = models.IntegerField(null=True, blank=True)
-    stadium = models.CharField(max_length=200, blank=True)
-    fifa_ranking = models.IntegerField(null=True, blank=True)
-    
-    def __str__(self):
-        return self.name
-    
-    class Meta:
-        ordering = ['name']
-
-class League(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    region = models.CharField(max_length=100)
-    logo_path = models.CharField(max_length=255, null=True, blank=True)
-    
-    def __str__(self):
-        return self.name
+from club_directories.models import Club, League
 
 class Player(models.Model):
     """Football Player"""

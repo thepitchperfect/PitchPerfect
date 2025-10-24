@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
-from statisticsrafi.models import Club, ClubRanking
+from club_directories.models import Club
+from statisticsrafi.models import ClubRanking
 from datetime import date
 
-# Top 50 clubs with their FIFA rankings
+# Top 100 clubs with their FIFA rankings
 RANKINGS_DATA = [
     {"club_name": "Manchester City", "rank": 1, "points": 2077.5, "continent": "Europe"},
     {"club_name": "Real Madrid", "rank": 2, "points": 2014.0, "continent": "Europe"},
@@ -30,7 +31,7 @@ RANKINGS_DATA = [
     {"club_name": "Olympique Lyon", "rank": 24, "points": 1471.0, "continent": "Europe"},
     {"club_name": "Atalanta", "rank": 25, "points": 1447.5, "continent": "Europe"},
     {"club_name": "Benfica", "rank": 26, "points": 1424.0, "continent": "Europe"},
-    {"club_name": "Leicester City", "rank": 27, "points": 1400.5, "continent": "Europe"},
+    {"club_name": "FC Heidenheim 1846", "rank": 27, "points": 1400.5, "continent": "Europe"},
     {"club_name": "Villarreal CF", "rank": 28, "points": 1377.0, "continent": "Europe"},
     {"club_name": "West Ham United", "rank": 29, "points": 1353.5, "continent": "Europe"},
     {"club_name": "Sporting CP", "rank": 30, "points": 1330.0, "continent": "Europe"},
@@ -54,6 +55,56 @@ RANKINGS_DATA = [
     {"club_name": "1. FC Union Berlin", "rank": 48, "points": 907.0, "continent": "Europe"},
     {"club_name": "Fulham", "rank": 49, "points": 883.5, "continent": "Europe"},
     {"club_name": "Stade Rennais FC", "rank": 50, "points": 860.0, "continent": "Europe"},
+    {"club_name": "RC Lens", "rank": 51, "points": 836.5, "continent": "Europe"},
+    {"club_name": "Nottingham Forest", "rank": 52, "points": 813.0, "continent": "Europe"},
+    {"club_name": "Real Oviedo", "rank": 53, "points": 789.5, "continent": "Europe"},
+    {"club_name": "Girona FC", "rank": 54, "points": 766.0, "continent": "Europe"},
+    {"club_name": "RCD Mallorca", "rank": 55, "points": 742.5, "continent": "Europe"},
+    {"club_name": "Brentford", "rank": 56, "points": 719.0, "continent": "Europe"},
+    {"club_name": "RC Celta de Vigo", "rank": 57, "points": 695.5, "continent": "Europe"},
+    {"club_name": "AFC Bournemouth", "rank": 58, "points": 672.0, "continent": "Europe"},
+    {"club_name": "Leeds United", "rank": 59, "points": 648.5, "continent": "Europe"},
+    {"club_name": "SC Braga", "rank": 60, "points": 625.0, "continent": "Europe"},
+    {"club_name": "Borussia Mönchengladbach", "rank": 61, "points": 601.5, "continent": "Europe"},
+    {"club_name": "1. FSV Mainz 05", "rank": 62, "points": 578.0, "continent": "Europe"},
+    {"club_name": "VfL Wolfsburg", "rank": 63, "points": 554.5, "continent": "Europe"},
+    {"club_name": "FC Augsburg", "rank": 64, "points": 531.0, "continent": "Europe"},
+    {"club_name": "SV Werder Bremen", "rank": 65, "points": 507.5, "continent": "Europe"},
+    {"club_name": "TSG Hoffenheim", "rank": 66, "points": 484.0, "continent": "Europe"},
+    {"club_name": "Sport-Club Freiburg", "rank": 67, "points": 460.5, "continent": "Europe"},
+    {"club_name": "1. FC Köln", "rank": 68, "points": 437.0, "continent": "Europe"},
+    {"club_name": "Udinese", "rank": 69, "points": 413.5, "continent": "Europe"},
+    {"club_name": "Torino FC", "rank": 70, "points": 390.0, "continent": "Europe"},
+    {"club_name": "Sassuolo", "rank": 71, "points": 366.5, "continent": "Europe"},
+    {"club_name": "Parma", "rank": 72, "points": 343.0, "continent": "Europe"},
+    {"club_name": "Monza", "rank": 73, "points": 319.5, "continent": "Europe"},
+    {"club_name": "US Lecce", "rank": 74, "points": 296.0, "continent": "Europe"},
+    {"club_name": "Hellas Verona", "rank": 75, "points": 272.5, "continent": "Europe"},
+    {"club_name": "Genoa CFC", "rank": 76, "points": 249.0, "continent": "Europe"},
+    {"club_name": "FC Empoli", "rank": 77, "points": 225.5, "continent": "Europe"},
+    {"club_name": "Cagliari Calcio", "rank": 78, "points": 202.0, "continent": "Europe"},
+    {"club_name": "Venezia FC", "rank": 79, "points": 178.5, "continent": "Europe"},
+    {"club_name": "RC Strasbourg Alsace", "rank": 80, "points": 155.0, "continent": "Europe"},
+    {"club_name": "FC Toulouse", "rank": 81, "points": 131.5, "continent": "Europe"},
+    {"club_name": "FC Nantes", "rank": 82, "points": 108.0, "continent": "Europe"},
+    {"club_name": "AJ Auxerre", "rank": 83, "points": 84.5, "continent": "Europe"},
+    {"club_name": "FC Metz", "rank": 84, "points": 61.0, "continent": "Europe"},
+    {"club_name": "Le Havre AC", "rank": 85, "points": 37.5, "continent": "Europe"},
+    {"club_name": "Angers SCO", "rank": 86, "points": 14.0, "continent": "Europe"},
+    {"club_name": "FC Lorient", "rank": 87, "points": 790.5, "continent": "Europe"},
+    {"club_name": "Paris FC", "rank": 88, "points": 767.0, "continent": "Europe"},
+    {"club_name": "Stade Brestois 29", "rank": 89, "points": 743.5, "continent": "Europe"},
+    {"club_name": "Rayo Vallecano", "rank": 90, "points": 720.0, "continent": "Europe"},
+    {"club_name": "Levante UD", "rank": 91, "points": 696.5, "continent": "Europe"},
+    {"club_name": "CA Osasuna", "rank": 92, "points": 673.0, "continent": "Europe"},
+    {"club_name": "Getafe CF", "rank": 93, "points": 649.5, "continent": "Europe"},
+    {"club_name": "Deportivo Alaves", "rank": 94, "points": 626.0, "continent": "Europe"},
+    {"club_name": "Espanyol Barcelona", "rank": 95, "points": 602.5, "continent": "Europe"},
+    {"club_name": "Elche CF", "rank": 96, "points": 579.0, "continent": "Europe"},
+    {"club_name": "Sunderland", "rank": 97, "points": 555.5, "continent": "Europe"},
+    {"club_name": "Burnley", "rank": 98, "points": 532.0, "continent": "Europe"},
+    {"club_name": "Hamburger SV", "rank": 99, "points": 508.5, "continent": "Europe"},
+    {"club_name": "FC St. Pauli", "rank": 100, "points": 485.0, "continent": "Europe"},
 ]
 
 

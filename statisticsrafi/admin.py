@@ -1,14 +1,15 @@
 from django.contrib import admin
 from .models import (
-    Club, Player, PlayerStatistics, Award,
+    Player, PlayerStatistics, Award,
     UserWatchlist, Vote, PlayerComparison, ClubRanking
 )
+from club_directories.models import Club, League
 
 @admin.register(Club)
 class ClubAdmin(admin.ModelAdmin):
-    list_display = ['name', 'country', 'league', 'fifa_ranking']
-    list_filter = ['country', 'league']
-    search_fields = ['name', 'country']
+    list_display = ['name', 'league', 'founded_year']
+    list_filter = ['league']
+    search_fields = ['name', 'league__name']
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):

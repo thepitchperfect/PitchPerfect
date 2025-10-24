@@ -12,7 +12,7 @@
 
 <!-- Top Scorers Card -->
 <div class="card">
-    <div class="card-header">⚽ Top Goal Scorers (2024/25)</div>
+    <div class="card-header">⚽ Top Goal Scorers (2025/26)</div>
     {% if top_scorers %}
     <table>
         <thead>
@@ -50,7 +50,7 @@
 
 <!-- Top Assisters Card -->
 <div class="card">
-    <div class="card-header">🎯 Top Assist Providers (2024/25)</div>
+    <div class="card-header">🎯 Top Assist Providers (2025/26)</div>
     {% if top_assisters %}
     <table>
         <thead>
@@ -88,7 +88,7 @@
 
 <!-- Clean Sheets Card -->
 <div class="card">
-    <div class="card-header">🧤 Most Clean Sheets (2024/25)</div>
+    <div class="card-header">🧤 Most Clean Sheets (2025/26)</div>
     {% if most_clean_sheets %}
     <table>
         <thead>
@@ -132,6 +132,7 @@
         <thead>
             <tr>
                 <th>Rank</th>
+                <th>Logo</th>
                 <th>Club</th>
                 <th>Country</th>
                 <th>Continent</th>
@@ -142,8 +143,15 @@
             {% for ranking in club_rankings %}
             <tr>
                 <td><strong style="color: var(--color-orange-300);">#{{ ranking.rank }}</strong></td>
+                <td style="text-align: center;">
+                    {% if ranking.club.logo_url %}
+                        <img src="{{ ranking.club.logo_url }}" alt="{{ ranking.club.name }} logo" style="width: 35px; height: 35px; object-fit: contain;">
+                    {% else %}
+                        <span style="color: var(--color-gray-600);">-</span>
+                    {% endif %}
+                </td>
                 <td><strong>{{ ranking.club.name }}</strong></td>
-                <td>{{ ranking.club.country }}</td>
+                <td>{{ ranking.club.league.region }}</td>
                 <td>{{ ranking.continent }}</td>
                 <td>{{ ranking.points }}</td>
             </tr>

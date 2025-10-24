@@ -18,6 +18,7 @@
         <thead>
             <tr>
                 <th>Rank</th>
+                <th>Logo</th>
                 <th>Club</th>
                 <th>Country</th>
                 <th>League</th>
@@ -33,11 +34,18 @@
                 <td>
                     <strong style="color: var(--color-orange-300); font-size: 1.2rem;">#{{ ranking.rank }}</strong>
                 </td>
+                <td style="text-align: center;">
+                    {% if ranking.club.logo_url %}
+                        <img src="{{ ranking.club.logo_url }}" alt="{{ ranking.club.name }} logo" style="width: 40px; height: 40px; object-fit: contain;">
+                    {% else %}
+                        <span style="color: var(--color-gray-600);">-</span>
+                    {% endif %}
+                </td>
                 <td>
                     <strong>{{ ranking.club.name }}</strong>
                 </td>
-                <td>{{ ranking.club.country }}</td>
-                <td>{{ ranking.club.league }}</td>
+                <td>{{ ranking.club.league.region }}</td>
+                <td>{{ ranking.club.league.name }}</td>
                 <td>{{ ranking.continent }}</td>
                 <td><strong>{{ ranking.points }}</strong></td>
                 <td>
