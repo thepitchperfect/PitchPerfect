@@ -1,0 +1,158 @@
+Forum Detail Page
+.forum-detail {
+    max-width: 800px;
+    margin: 2rem auto; /* adds top and bottom space */
+    padding: 2rem 1.5rem;
+}
+
+/* Better spacing between elements */
+.forum-detail > *:not(:last-child) {
+    margin-bottom: 2rem; /* separates each block nicely */
+}
+
+/* Back Button */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 2rem;
+    color: #4a5568;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.back-button:hover {
+    color: #2d3748;
+    background: #f7fafc;
+    transform: translateX(-2px);
+}
+
+/* Post Card */
+.post-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2.5rem; /* adds extra gap after post */
+    padding: 2rem;
+}
+
+.post-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1.5rem;
+}
+
+.post-content {
+    padding: 1rem 0;
+    color: #4a5568;
+    line-height: 1.7;
+}
+
+/* Comments Section */
+.comments-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+}
+
+.comments-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Comment Form */
+.comment-form {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.comment-form textarea {
+    height: 80px;
+    min-height: 60px;
+    max-height: 150px;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    resize: vertical;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    transition: all 0.2s;
+    background-color: #f8fafc;
+}
+
+.comment-form textarea:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    outline: none;
+}
+
+/* Comments List */
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem; /* more space between comments */
+}
+
+.comment {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.comment:last-child {
+    border-bottom: none;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.comment-content {
+    color: #4a5568;
+    line-height: 1.7;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .forum-detail {
+        padding: 1.5rem 1rem;
+    }
+    
+    .post-card,
+    .comments-card {
+        padding: 1.5rem;
+    }
+
+    .forum-detail > *:not(:last-child) {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .forum-detail {
+        padding: 1rem;
+    }
+    
+    .post-card,
+    .comments-card {
+        padding: 1rem;
+    }
+
+    .forum-detail > *:not(:last-child) {
+        margin-bottom: 1rem;
+    }
+}

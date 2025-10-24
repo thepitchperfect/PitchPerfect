@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Post, PostImage, Comment
@@ -13,47 +13,40 @@ def forum_home(request):
     """
     Forum homepage with filtering capabilities
     - Viewable by everyone (logged in or not)
-    - Supports filtering by club, league, and hashtags
+    - Supports filtering by multiple clubs and league
+    - Shows news carousel at top, discussions below
     """
-    posts = Post.objects.select_related('author', 'club').prefetch_related('images').annotate(
+    # Base queryset - removed 'league' from select_related since it might not exist yet
+    all_posts = Post.objects.select_related('author').prefetch_related('clubs', 'images').annotate(
         comment_count=Count('comments')
     )
     
     # Get filter parameters
-    club_id = request.GET.get('club')
+    club_ids = request.GET.getlist('clubs')  # Multiple clubs
     league_id = request.GET.get('league')
-    league_tag = request.GET.get('league_tag')
-    club_tag = request.GET.get('club_tag')
-    post_type = request.GET.get('type')  # 'news' or 'discussion'
     search = request.GET.get('search')
     
-    # Apply filters
-    if club_id:
-        posts = posts.filter(club_id=club_id)
+    # Apply filters to all posts
+    filtered_posts = all_posts
+    
+    if club_ids:
+        filtered_posts = filtered_posts.filter(clubs__id__in=club_ids).distinct()
     
     if league_id:
-        # Filter by direct league tag OR club's league
-        posts = posts.filter(Q(league_id=league_id) | Q(club__league_id=league_id))
-    
-    if league_tag:
-        posts = posts.filter(league_tags__icontains=league_tag)
-    
-    if club_tag:
-        posts = posts.filter(club_tags__icontains=club_tag)
-    
-    if post_type:
-        posts = posts.filter(post_type=post_type)
+        filtered_posts = filtered_posts.filter( Q(clubs__league_id=league_id)).distinct()
     
     if search:
-        posts = posts.filter(
+        filtered_posts = filtered_posts.filter(
             Q(title__icontains=search) | 
-            Q(content__icontains=search) |
-            Q(league_tags__icontains=search) |
-            Q(club_tags__icontains=search)
+            Q(content__icontains=search)
         )
     
-    # Pagination
-    paginator = Paginator(posts, 15)
+    # Separate news and discussions
+    news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')[:3]  # Top 3 most recent news
+    discussion_posts = filtered_posts.filter(post_type='discussion')
+    
+    # Pagination for discussions only
+    paginator = Paginator(discussion_posts, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -61,42 +54,19 @@ def forum_home(request):
     clubs = Club.objects.select_related('league').all().order_by('name')
     leagues = League.objects.all().order_by('name')
     
-    # Get popular hashtags (extract from recent posts)
-    popular_league_tags = get_popular_tags('league_tags')
-    popular_club_tags = get_popular_tags('club_tags')
-    
     context = {
+        'news_posts': news_posts,
         'page_obj': page_obj,
         'clubs': clubs,
         'leagues': leagues,
-        'popular_league_tags': popular_league_tags,
-        'popular_club_tags': popular_club_tags,
         'current_filters': {
-            'club': club_id,
+            'clubs': club_ids,
             'league': league_id,
-            'league_tag': league_tag,
-            'club_tag': club_tag,
-            'type': post_type,
             'search': search,
         }
     }
     
     return render(request, 'forum/home.html', context)
-
-
-def get_popular_tags(field_name, limit=10):
-    """Extract popular hashtags from posts"""
-    posts = Post.objects.exclude(**{field_name: ''}).values_list(field_name, flat=True)[:100]
-    
-    tag_count = {}
-    for tags_string in posts:
-        tags = [tag.strip() for tag in tags_string.split(',') if tag.strip()]
-        for tag in tags:
-            tag_count[tag] = tag_count.get(tag, 0) + 1
-    
-    # Sort by count and return top tags
-    sorted_tags = sorted(tag_count.items(), key=lambda x: x[1], reverse=True)[:limit]
-    return [tag for tag, count in sorted_tags]
 
 
 def post_detail(request, pk):
@@ -106,17 +76,75 @@ def post_detail(request, pk):
     - Only logged-in users can see comment form
     """
     post = get_object_or_404(
-        Post.objects.select_related('author', 'club').prefetch_related('images', 'comments__author'),
+        Post.objects.select_related('author').prefetch_related('clubs', 'images', 'comments__author'),
         pk=pk
     )
     comments = post.comments.all()
     
+    # Get user's favorite clubs if logged in (for potential actions)
+    user_favorite_clubs = []
+    if request.user.is_authenticated:
+        user_favorite_clubs = Club.objects.filter(
+            favorited_by__user=request.user
+        ).select_related('league').order_by('name')
+    
     context = {
         'post': post,
         'comments': comments,
+        'user_favorite_clubs': user_favorite_clubs,
     }
     
     return render(request, 'forum/post_detail.html', context)
+
+
+@login_required
+@require_GET
+def get_post_data(request, pk):
+    """
+    API endpoint to fetch post data for editing
+    - Returns post data as JSON
+    - Only author or admin can access
+    """
+    try:
+        post = get_object_or_404(Post, pk=pk)
+        
+        # Check if user is the author or admin
+        if post.author != request.user and not request.user.is_staff:
+            return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+        
+        # Get post images
+        images = []
+        for img in post.images.all().order_by('order'):
+            images.append({
+                'url': img.image_url,
+                'caption': img.caption,
+                'order': img.order
+            })
+        
+        # Get tagged club IDs
+        club_ids = list(post.clubs.values_list('id', flat=True))
+        
+        # Get league_id if field exists
+        league_id = None
+        if hasattr(post, 'league') and post.league:
+            league_id = str(post.league.id)
+        
+        return JsonResponse({
+            'success': True,
+            'post': {
+                'id': post.id,
+                'title': post.title,
+                'content': post.content,
+                'post_type': post.post_type,
+                'club_ids': [str(club_id) for club_id in club_ids],
+                'league_id': league_id,
+                'images': images,
+            }
+        })
+    except Exception as e:
+        import traceback
+        print("Error in get_post_data:", traceback.format_exc())
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required
@@ -139,17 +167,18 @@ def create_post(request):
                 'error': 'Only admins can post official news'
             }, status=403)
         
-        # Create post
+        # Create post (without league field since it doesn't exist in DB)
         post = Post.objects.create(
             title=data.get('title'),
             content=data.get('content'),
             author=request.user,
             post_type=post_type,
-            club_id=data.get('club_id') if data.get('club_id') else None,
-            league_id=data.get('league_id') if data.get('league_id') else None,
-            league_tags=data.get('league_tags', ''),
-            club_tags=data.get('club_tags', ''),
         )
+        
+        # Add club tags (multiple clubs)
+        club_ids = data.get('club_ids', [])
+        if club_ids:
+            post.clubs.set(club_ids)
         
         # Add images if provided
         images_data = data.get('images', [])
@@ -179,11 +208,11 @@ def create_post(request):
 @login_required
 @require_http_methods(["PUT"])
 def update_post(request, pk):
-    """Update a post (AJAX) - author only"""
+    """Update a post (AJAX) - author or admin only"""
     post = get_object_or_404(Post, pk=pk)
     
-    # Check if user is the author
-    if post.author != request.user:
+    # Check if user is the author or admin
+    if post.author != request.user and not request.user.is_staff:
         return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
     
     try:
@@ -191,11 +220,17 @@ def update_post(request, pk):
         
         post.title = data.get('title', post.title)
         post.content = data.get('content', post.content)
-        post.club_id = data.get('club_id') if data.get('club_id') else None
-        post.league_id = data.get('league_id') if data.get('league_id') else None
-        post.league_tags = data.get('league_tags', post.league_tags)
-        post.club_tags = data.get('club_tags', post.club_tags)
         post.save()
+        
+        # Update league if field exists
+        if hasattr(Post, 'league'):
+            league_id = data.get('league_id')
+            post.league_id = league_id if league_id else None
+            post.save()
+        
+        # Update club tags (multiple clubs)
+        if 'club_ids' in data:
+            post.clubs.set(data.get('club_ids', []))
         
         # Update images if provided
         if 'images' in data:

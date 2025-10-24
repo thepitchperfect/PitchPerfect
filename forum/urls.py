@@ -8,6 +8,7 @@ urlpatterns = [
     
     # AJAX endpoints for posts (login required)
     path('api/post/create/', views.create_post, name='create_post'),
+    path('api/post/<int:pk>/data/', views.get_post_data, name='get_post_data'),  # NEW: Get post data for editing
     path('api/post/<int:pk>/update/', views.update_post, name='update_post'),
     path('api/post/<int:pk>/delete/', views.delete_post, name='delete_post'),
     

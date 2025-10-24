@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from club_directories.models import Club, League  
+from club_directories.models import Club, League  # Import from club_directories app
 
 class Post(models.Model):
     POST_TYPE_CHOICES = [
@@ -18,36 +18,22 @@ class Post(models.Model):
         help_text='Only admins can post Official News'
     )
     
-    # Optional club tag
-    club = models.ForeignKey(
-        Club, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+    clubs = models.ManyToManyField(
+        Club,
         blank=True,
-        related_name='forum_posts',
-        help_text='Tag a club (optional)'
+        related_name='tagged_posts',
+        help_text='Tag clubs (can select multiple)'
     )
     
-    # Hashtags for filtering (stored as comma-separated or use TaggableManager)
-    league_tags = models.CharField(
-        max_length=500, 
-        blank=True,
-        help_text='League hashtags (comma-separated, e.g., #PremierLeague, #LaLiga)'
-    )
-    club_tags = models.CharField(
-        max_length=500, 
-        blank=True,
-        help_text='Club hashtags (comma-separated, e.g., #ManchesterUnited, #Barcelona)'
-    )
+    # Remove hashtag fields - we'll use clubs ManyToMany for filtering
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-post_type', '-created_at']  # News first, then by date
         indexes = [
-            models.Index(fields=['-created_at']),
-            models.Index(fields=['club']),
+            models.Index(fields=['-post_type', '-created_at']),
             models.Index(fields=['post_type']),
         ]
 
@@ -55,18 +41,16 @@ class Post(models.Model):
         return f"[{self.get_post_type_display()}] {self.title}"
     
     def get_league(self):
-        """Helper method to get league from club or direct league tag"""
+        """Helper method to get league from clubs or direct league tag"""
         if self.league:
             return self.league
-        return self.club.league if self.club else None
+        # Get league from first club if exists
+        first_club = self.clubs.first()
+        return first_club.league if first_club else None
     
-    def get_league_tags_list(self):
-        """Return league tags as a list"""
-        return [tag.strip() for tag in self.league_tags.split(',') if tag.strip()]
-    
-    def get_club_tags_list(self):
-        """Return club tags as a list"""
-        return [tag.strip() for tag in self.club_tags.split(',') if tag.strip()]
+    def get_clubs_list(self):
+        """Return list of tagged clubs"""
+        return list(self.clubs.all())
     
     def is_official_news(self):
         """Check if post is official news"""

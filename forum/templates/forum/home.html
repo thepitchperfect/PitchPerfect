@@ -8,200 +8,269 @@
 {% endblock %}
 
 {% block content %}
-<div class="forum-container">
-    <div id="alert-container"></div>
+<div id="alert-container"></div>
 
-    <!-- Forum Header -->
-    <div class="forum-header">
-        <h1>⚽ Soccer Forum</h1>
-        {% if user.is_authenticated %}
-        <button class="btn btn-primary" onclick="openCreateModal()">
-            {% if user.is_staff %}📰 Create Post / News{% else %}✍️ Create Post{% endif %}
-        </button>
-        {% else %}
-        <p class="login-prompt">
-            <a href="{% url 'login' %}">Login</a> to create posts and join discussions
-        </p>
-        {% endif %}
-    </div>
-
-    <!-- Filter Section -->
-    <div class="filter-section">
-        <h3>🔍 Filter Discussions</h3>
+<div class="forum-layout">
+    <!-- Sidebar Filters -->
+    <aside class="forum-sidebar">
+        <h3 class="sidebar-title">FILTERS</h3>
         
-        <div class="filter-grid">
-            <!-- Club Filter -->
+        <form id="filterForm">
+            <!-- Clubs Multi-Select with Search (Only Favorite Clubs) -->
             <div class="filter-group">
-                <label>Filter by Club:</label>
-                <select id="clubFilter" onchange="applyFilters()">
-                    <option value="">All Clubs</option>
-                    {% for club in clubs %}
-                    <option value="{{ club.id }}" {% if current_filters.club == club.id|stringformat:"s" %}selected{% endif %}>
-                        {{ club.club_name }}
-                    </option>
-                    {% endfor %}
-                </select>
+                <label>Filter by Your Clubs:</label>
+                {% if user.is_authenticated %}
+                    {% if user_favorite_clubs %}
+                        <input type="text" id="clubSearch" class="club-search" placeholder="Search your clubs...">
+                        <div class="clubs-multiselect" id="clubsMultiselect">
+                            {% for club in user_favorite_clubs %}
+                            <div class="club-checkbox" data-club-name="{{ club.name|lower }}">
+                                <input type="checkbox" name="clubs" value="{{ club.id }}" 
+                                       id="club-{{ club.id }}"
+                                       {% if club.id|stringformat:"s" in current_filters.clubs %}checked{% endif %}>
+                                <label for="club-{{ club.id }}">{{ club.name }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p style="color: #666; font-size: 0.9rem; padding: 1rem; background: #ffd7aa30; border-radius: 8px;">
+                            You haven't added any favorite clubs yet. Go to your profile to add some!
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <p style="color: #666; font-size: 0.9rem; padding: 1rem; background: #ffd7aa30; border-radius: 8px;">
+                        🔐 <a href="{% url 'login' %}" style="color: #fe8800; font-weight: bold;">Login</a> to filter by your clubs
+                    </p>
+                {% endif %}
             </div>
 
-            <!-- League Filter -->
-            <div class="filter-group">
-                <label>Filter by League:</label>
-                <select id="leagueFilter" onchange="applyFilters()">
-                    <option value="">All Leagues</option>
-                    {% for league in leagues %}
-                    <option value="{{ league.id }}" {% if current_filters.league == league.id|stringformat:"s" %}selected{% endif %}>
-                        {{ league.name }} ({{ league.region }})
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
 
-            <!-- Post Type Filter -->
-            <div class="filter-group">
-                <label>Post Type:</label>
-                <select id="typeFilter" onchange="applyFilters()">
-                    <option value="">All Types</option>
-                    <option value="news" {% if current_filters.type == 'news' %}selected{% endif %}>📰 Official News</option>
-                    <option value="discussion" {% if current_filters.type == 'discussion' %}selected{% endif %}>💬 Discussion</option>
-                </select>
-            </div>
 
             <!-- Search -->
             <div class="filter-group">
                 <label>Search:</label>
-                <input type="text" id="searchInput" placeholder="Search posts..." 
-                       value="{{ current_filters.search|default:'' }}" 
-                       onkeyup="handleSearchKeyup(event)">
-            </div>
-        </div>
-
-        <!-- Popular Hashtags -->
-        <div class="hashtags-section">
-            {% if popular_league_tags %}
-            <div class="hashtag-group">
-                <strong>🏆 Popular League Tags:</strong>
-                {% for tag in popular_league_tags %}
-                <span class="hashtag" onclick="filterByTag('league', '{{ tag }}')">{{ tag }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% if popular_club_tags %}
-            <div class="hashtag-group">
-                <strong>⚽ Popular Club Tags:</strong>
-                {% for tag in popular_club_tags %}
-                <span class="hashtag" onclick="filterByTag('club', '{{ tag }}')">{{ tag }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-
-        <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear All Filters</button>
-    </div>
-
-    <!-- Posts List -->
-    <div class="posts-container">
-        {% for post in page_obj %}
-        <div class="post-card {% if post.is_official_news %}official-news{% endif %}" id="post-{{ post.id }}">
-            <!-- Post Type Badge -->
-            {% if post.is_official_news %}
-            <div class="badge badge-news">📰 Official News</div>
-            {% endif %}
-
-            <div class="post-header">
-                <div class="post-info">
-                    <h2 class="post-title">{{ post.title }}</h2>
-                    <div class="post-meta">
-                        <span class="author">👤 {{ post.author.username }}</span>
-                        <span class="date">📅 {{ post.created_at|date:"M d, Y H:i" }}</span>
-                        {% if post.club %}
-                        <span class="club-tag">
-                            {% if post.club.logo_url %}
-                            <img src="{{ post.club.logo_url }}" alt="{{ post.club.name }}" class="club-logo">
-                            {% endif %}
-                            {{ post.club.name }}
-                        </span>
-                        {% endif %}
-                        {% if post.league and not post.club %}
-                        <span class="league-badge">🏆 {{ post.league.name }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% if user == post.author or user.is_staff %}
-                <div class="post-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="openEditModal({{ post.id }})">✏️ Edit</button>
-                    <button class="btn btn-sm btn-danger" onclick="deletePost({{ post.id }})">🗑️ Delete</button>
-                </div>
-                {% endif %}
+                <input type="text" name="search" id="searchInput" 
+                       placeholder="Search posts..." 
+                       value="{{ current_filters.search|default:'' }}">
             </div>
 
-            <div class="post-content">
-                {{ post.content|truncatewords:50 }}
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary btn-sm btn-block">Apply Filters</button>
+                <button type="button" class="btn btn-secondary btn-sm btn-block" onclick="clearFilters()">
+                    Clear All
+                </button>
             </div>
+        </form>
+    </aside>
 
-            <!-- Post Images -->
-            {% if post.images.all %}
-            <div class="post-images">
-                {% for image in post.images.all|slice:":3" %}
-                <img src="{{ image.image_url }}" alt="{{ image.caption }}" class="post-image">
-                {% endfor %}
-                {% if post.images.count > 3 %}
-                <span class="more-images">+{{ post.images.count|add:"-3" }} more</span>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <!-- Hashtags -->
-            <div class="post-tags">
-                {% for tag in post.get_league_tags_list %}
-                <span class="tag league-tag">{{ tag }}</span>
-                {% endfor %}
-                {% for tag in post.get_club_tags_list %}
-                <span class="tag club-tag">{{ tag }}</span>
-                {% endfor %}
-            </div>
-
-            <div class="post-footer">
-                <span class="comment-count">💬 {{ post.comment_count }} comment{{ post.comment_count|pluralize }}</span>
-                <a href="{% url 'post_detail' post.id %}" class="btn btn-primary btn-sm">View Discussion →</a>
-            </div>
-        </div>
-        {% empty %}
-        <div class="empty-state">
-            <h3>📭 No posts found</h3>
-            <p>{% if current_filters.search or current_filters.club or current_filters.league %}
-                Try adjusting your filters or <a href="{% url 'forum_home' %}">view all posts</a>
+    <!-- Main Content -->
+    <main class="forum-main">
+        <!-- Forum Header -->
+        <div class="forum-header">
+            <h1 class="forum-title">PITCHPERFECT FORUM</h1>
+            {% if user.is_authenticated %}
+            <button class="btn btn-primary" onclick="openCreateModal()">
+                {% if user.is_staff %}CREATE POST{% else %}CREATE POST{% endif %}
+            </button>
             {% else %}
-                Be the first to start a discussion!
-            {% endif %}</p>
+            <p class="login-prompt">
+                <a href="{% url 'login' %}">Login</a> to create posts and join discussions
+            </p>
+            {% endif %}
         </div>
-        {% endfor %}
-    </div>
 
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <div class="pagination">
-        {% if page_obj.has_previous %}
-        <a href="?page=1{{ current_filters|urlencode }}" class="btn btn-sm">« First</a>
-        <a href="?page={{ page_obj.previous_page_number }}{{ current_filters|urlencode }}" class="btn btn-sm">‹ Previous</a>
+        <!-- News Carousel -->
+        {% if news_posts %}
+        <section class="news-carousel-section">
+            <div class="carousel-header">
+                <h2 class="carousel-title">Official News</h2>
+                <div class="carousel-controls">
+                    <button class="carousel-btn" id="prevBtn" onclick="prevSlide()">‹</button>
+                    <button class="carousel-btn" id="nextBtn" onclick="nextSlide()">›</button>
+                </div>
+            </div>
+
+            <div class="news-carousel">
+                <div class="carousel-track" id="carouselTrack">
+                    {% for news in news_posts %}
+                    {% if forloop.counter0|divisibleby:3 or forloop.first %}
+                    <div class="carousel-slide">
+                    {% endif %}
+                        
+                        {% with slide_index=forloop.counter0|add:"0"|divisibleby:3 %}
+                        {% with position=forloop.counter0|add:"0" %}
+                        
+                        <article class="news-card {% if position|divisibleby:3 %}large{% else %}small{% endif %}"
+                                 onclick="window.location.href='{% url 'post_detail' news.id %}'">
+                            <span class="news-badge">OFFICIAL</span>
+                            
+                            
+                            {% if news.images.first %}
+                            <img src="{{ news.images.first.image_url }}" alt="{{ news.title }}" class="news-image">
+                            {% else %}
+                            <div class="news-image"></div>
+                            {% endif %}
+                            
+                            <div class="news-content">
+
+                                <div class="news-clubs">
+                                    {% for club in news.clubs.all|slice:":2" %}
+                                    <span class="club-badge">
+                                        {% if club.logo_url %}
+                                        <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo">
+                                        {% endif %}
+                                        {{ club.name }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+
+                                <h3 class="news-title">{{ news.title }}</h3>
+                                
+                                <div class="news-meta">
+                                    <span>{{ news.author.username }}</span>
+                                    {% if news.updated_at > news.created_at %}
+                                    <span>{{ news.updated_at|date:"M d, Y" }} • <em>Edited</em></span>
+                                    {% else %}
+                                    <span>{{ news.created_at|date:"M d, Y" }}</span>
+                                    {% endif %}
+                                </div>
+                                
+
+                                <p class="news-excerpt">{{ news.content|truncatewords:30 }}</p>
+                                
+                                <div class="news-footer">
+                                    <span class="comment-count">{{ news.comments.count }} comments</span>
+                                    <span class="btn btn-primary btn-sm">Read More →</span>
+                                </div>
+                            </div>
+                        </article>
+                        
+                        {% endwith %}
+                        {% endwith %}
+                    
+                    {% if forloop.counter|divisibleby:3 or forloop.last %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="carousel-dots" id="carouselDots"></div>
+        </section>
         {% endif %}
-        
-        <span class="current-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{{ current_filters|urlencode }}" class="btn btn-sm">Next ›</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{{ current_filters|urlencode }}" class="btn btn-sm">Last »</a>
+
+        <!-- Discussion Posts -->
+        <div class="posts-container">
+            <h2 style="font-family: 'Orbitron', sans-serif; color: #fe8800; margin-bottom: 1rem; text-transform: uppercase;">
+                Discussions
+            </h2>
+            
+            {% for post in page_obj %}
+            <article class="post-card" id="post-{{ post.id }}">
+
+                <div class="post-header">
+                    <div class="post-info">
+                        <!-- Club and Tags -->
+                        <div class="post-clubs">
+                            {% for club in post.clubs.all %}
+                            <span class="club-badge">
+                                {% if club.logo_url %}
+                                <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo">
+                                {% endif %}
+                                {{ club.name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+
+                        <h2 class="post-title">
+                            <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a>
+                        </h2>
+                        
+                        <div class="post-meta">
+                            <span><strong>{{ post.author.username }}</strong></span>
+                            {% if post.updated_at|date:"U" > post.created_at|date:"U" %}
+                                <span>{{ post.updated_at|date:"M d, Y H:i" }} | <em>Edited</em></span>
+                            {% else %}
+                                <span>{{ post.created_at|date:"M d, Y H:i" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if user == post.author or user.is_staff %}
+                    <div class="post-actions">
+                        <a href="#" onclick="openEditModal({{ post.id }})" class="font-lato" >Edit | </a>
+                        <a href="#" onclick="deletePost({{ post.id }})" class="delete-link">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Post Images -->
+                {% if post.images.all %}
+                <div class="post-images">
+                    {% for image in post.images.all|slice:":4" %}
+                    <img src="{{ image.image_url }}" alt="{{ image.caption }}" class="post-image">
+                    {% endfor %}
+                    {% if post.images.count > 4 %}
+                    <div class="more-images">+{{ post.images.count|add:"-4" }} more</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="post-content">
+                    {{ post.content|truncatewords:50 }}
+                </div>
+
+                <div class="post-footer">
+                    <span class="comment-count">{{ post.comment_count }} comment{{ post.comment_count|pluralize }}</span>
+                    <!-- <a href="{% url 'post_detail' post.id %}" class="btn btn-primary btn-sm">
+                        View Discussion →
+                    </a> -->
+                </div>
+            </article>
+            {% empty %}
+            <div class="empty-state">
+                <h3>No Discussions Found</h3>
+                <p>
+                    {% if current_filters.search or current_filters.clubs or current_filters.league %}
+                        Try adjusting your filters or <a href="{% url 'forum_home' %}">view all posts</a>
+                    {% else %}
+                        Be the first to start a discussion!
+                    {% endif %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page=1&{{ request.GET.urlencode }}" class="btn btn-sm btn-secondary">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" 
+               class="btn btn-sm btn-secondary">‹ Previous</a>
+            {% endif %}
+            
+            <span class="current-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" 
+               class="btn btn-sm btn-secondary">Next ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" 
+               class="btn btn-sm btn-secondary">Last »</a>
+            {% endif %}
+        </div>
         {% endif %}
-    </div>
-    {% endif %}
+    </main>
 </div>
 
 <!-- Create/Edit Post Modal -->
 <div id="postModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2 id="modalTitle">Create Post</h2>
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Create Post</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        
         <form id="postForm">
             {% if user.is_staff %}
             <div class="form-group">
@@ -224,336 +293,32 @@
             </div>
 
             <div class="form-group">
-                <label>Tag a Club (optional):</label>
-                <select id="postClub">
-                    <option value="">No club tag</option>
-                    {% for club in clubs %}
-                    <option value="{{ club.id }}">{{ club.name }} - {{ club.league.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Tag a League (optional):</label>
-                <select id="postLeague">
-                    <option value="">No league tag</option>
-                    {% for league in leagues %}
-                    <option value="{{ league.id }}">{{ league.name }} ({{ league.region }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>League Hashtags (optional):</label>
-                <input type="text" id="leagueTags" placeholder="#PremierLeague, #UCL">
-                <small>Separate with commas</small>
-            </div>
-
-            <div class="form-group">
-                <label>Club Hashtags (optional):</label>
-                <input type="text" id="clubTags" placeholder="#ManUnited, #Barcelona">
-                <small>Separate with commas</small>
+                <label>Tag Clubs (up to 3):</label>
+                <div id="dynamicClubFields"></div>
+                <small>You can tag up to 3 clubs. Remove a tag to add another.</small>
             </div>
 
             <div class="form-group">
                 <label>Image URLs (optional):</label>
-                <div id="imagesContainer">
+                <div class="image-inputs" id="imagesContainer">
                     <div class="image-input">
                         <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
-                        <input type="text" class="image-caption" placeholder="Caption (optional)">
+                        <input type="text" class="image-caption" placeholder="Caption">
+                        <button type="button" class="btn-remove-image" onclick="removeImageInput(this)" style="display:none;">Remove Image</button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="addImageInput()">+ Add Image</button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="addImageInput()" style="margin-top: 0.5rem;">
+                    + Add Image
+                </button>
             </div>
 
             <div class="modal-actions">
-                <button type="submit" class="btn btn-primary">Submit</button>
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
     </div>
 </div>
-
-<style>
-    .forum-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    
-    .forum-header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        margin-bottom: 2rem; 
-        padding-bottom: 1rem;
-        border-bottom: 3px solid #2ecc71;
-    }
-    
-    .forum-header h1 { margin: 0; color: #2c3e50; }
-    
-    .login-prompt { color: #7f8c8d; }
-    .login-prompt a { color: #3498db; text-decoration: none; }
-    
-    .filter-section { 
-        background: #f8f9fa; 
-        padding: 1.5rem; 
-        border-radius: 8px; 
-        margin-bottom: 2rem; 
-    }
-    
-    .filter-section h3 { margin-top: 0; color: #2c3e50; }
-    
-    .filter-grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-        gap: 1rem; 
-        margin-bottom: 1rem; 
-    }
-    
-    .filter-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
-    
-    .filter-group select, 
-    .filter-group input { 
-        width: 100%; 
-        padding: 0.6rem; 
-        border: 1px solid #ddd; 
-        border-radius: 4px; 
-    }
-    
-    .hashtags-section { margin: 1rem 0; }
-    .hashtag-group { margin-bottom: 0.5rem; }
-    
-    .hashtag { 
-        display: inline-block; 
-        background: #3498db; 
-        color: white; 
-        padding: 0.3rem 0.8rem; 
-        border-radius: 15px; 
-        margin: 0.2rem; 
-        cursor: pointer; 
-        font-size: 0.9rem;
-        transition: background 0.2s;
-    }
-    
-    .hashtag:hover { background: #2980b9; }
-    
-    .post-card { 
-        background: white; 
-        padding: 1.5rem; 
-        border-radius: 8px; 
-        margin-bottom: 1.5rem; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        position: relative;
-    }
-    
-    .post-card.official-news { border-left: 4px solid #e74c3c; }
-    
-    .badge-news { 
-        position: absolute; 
-        top: 1rem; 
-        right: 1rem; 
-        background: #e74c3c; 
-        color: white; 
-        padding: 0.3rem 0.8rem; 
-        border-radius: 4px; 
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    
-    .post-header { 
-        display: flex; 
-        justify-content: space-between; 
-        margin-bottom: 1rem; 
-    }
-    
-    .post-title { 
-        font-size: 1.5rem; 
-        color: #2c3e50; 
-        margin: 0 0 0.5rem 0; 
-    }
-    
-    .post-meta { 
-        display: flex; 
-        gap: 1rem; 
-        flex-wrap: wrap; 
-        font-size: 0.9rem; 
-        color: #7f8c8d; 
-    }
-    
-    .club-tag { 
-        display: flex; 
-        align-items: center; 
-        gap: 0.5rem; 
-        background: #ecf0f1; 
-        padding: 0.2rem 0.6rem; 
-        border-radius: 4px; 
-    }
-    
-    .club-logo { width: 20px; height: 20px; object-fit: contain; }
-    
-    .post-actions { display: flex; gap: 0.5rem; }
-    
-    .post-content { 
-        color: #555; 
-        line-height: 1.6; 
-        margin-bottom: 1rem; 
-    }
-    
-    .post-images { 
-        display: flex; 
-        gap: 0.5rem; 
-        margin-bottom: 1rem; 
-        flex-wrap: wrap;
-    }
-    
-    .post-image { 
-        width: 150px; 
-        height: 150px; 
-        object-fit: cover; 
-        border-radius: 4px; 
-    }
-    
-    .more-images { 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        width: 150px; 
-        height: 150px; 
-        background: #ecf0f1; 
-        border-radius: 4px; 
-        font-weight: 600;
-        color: #7f8c8d;
-    }
-    
-    .post-tags { margin-bottom: 1rem; }
-    
-    .tag { 
-        display: inline-block; 
-        padding: 0.3rem 0.6rem; 
-        border-radius: 4px; 
-        margin-right: 0.5rem; 
-        font-size: 0.85rem; 
-    }
-    
-    .league-tag { background: #3498db; color: white; }
-    .club-tag { background: #2ecc71; color: white; }
-    
-    .post-footer { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        padding-top: 1rem; 
-        border-top: 1px solid #eee; 
-    }
-    
-    .empty-state { 
-        text-align: center; 
-        padding: 3rem; 
-        background: white; 
-        border-radius: 8px; 
-    }
-    
-    .pagination { 
-        display: flex; 
-        justify-content: center; 
-        gap: 0.5rem; 
-        margin-top: 2rem; 
-    }
-    
-    .current-page { 
-        padding: 0.5rem 1rem; 
-        background: #ecf0f1; 
-        border-radius: 4px; 
-    }
-    
-    /* Modal Styles */
-    .modal { 
-        display: none; 
-        position: fixed; 
-        z-index: 1000; 
-        left: 0; 
-        top: 0; 
-        width: 100%; 
-        height: 100%; 
-        background: rgba(0,0,0,0.5); 
-    }
-    
-    .modal-content { 
-        background: white; 
-        margin: 3% auto; 
-        padding: 2rem; 
-        border-radius: 8px; 
-        max-width: 700px; 
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    
-    .close { 
-        float: right; 
-        font-size: 2rem; 
-        cursor: pointer; 
-        color: #aaa; 
-        line-height: 1;
-    }
-    
-    .close:hover { color: #000; }
-    
-    .form-group { margin-bottom: 1.5rem; }
-    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
-    .form-group input, .form-group textarea, .form-group select { 
-        width: 100%; 
-        padding: 0.7rem; 
-        border: 1px solid #ddd; 
-        border-radius: 4px; 
-        font-family: inherit;
-    }
-    .form-group textarea { min-height: 150px; resize: vertical; }
-    .form-group small { color: #7f8c8d; font-size: 0.85rem; }
-    
-    .image-input { 
-        display: grid; 
-        grid-template-columns: 2fr 1fr; 
-        gap: 0.5rem; 
-        margin-bottom: 0.5rem; 
-    }
-    
-    .modal-actions { 
-        display: flex; 
-        gap: 0.5rem; 
-        justify-content: flex-end; 
-        margin-top: 1.5rem; 
-    }
-    
-    /* Button Styles */
-    .btn { 
-        padding: 0.6rem 1.2rem; 
-        border: none; 
-        border-radius: 4px; 
-        cursor: pointer; 
-        font-size: 0.95rem; 
-        text-decoration: none; 
-        display: inline-block;
-        transition: all 0.2s;
-    }
-    
-    .btn-primary { background: #3498db; color: white; }
-    .btn-primary:hover { background: #2980b9; }
-    
-    .btn-secondary { background: #95a5a6; color: white; }
-    .btn-secondary:hover { background: #7f8c8d; }
-    
-    .btn-danger { background: #e74c3c; color: white; }
-    .btn-danger:hover { background: #c0392b; }
-    
-    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
-    
-    /* Alert */
-    .alert { 
-        padding: 1rem; 
-        border-radius: 4px; 
-        margin-bottom: 1rem; 
-    }
-    
-    .alert-success { background: #d4edda; color: #155724; }
-    .alert-error { background: #f8d7da; color: #721c24; }
-</style>
 
 <script>
     function getCookie(name) {
@@ -574,6 +339,221 @@
     
     let editingPostId = null;
     
+    // Club Search Functionality
+    const clubSearch = document.getElementById('clubSearch');
+    if (clubSearch) {
+        clubSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const checkboxes = document.querySelectorAll('.club-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                const clubName = checkbox.getAttribute('data-club-name');
+                if (clubName.includes(searchTerm)) {
+                    checkbox.classList.remove('hidden');
+                } else {
+                    checkbox.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    // --- Dynamic club tagging (max 3) ---
+    const clubs = [
+        {% for club in clubs %}
+        {id: '{{ club.id }}', name: '{{ club.name }}', league: '{{ club.league.name }}'},
+        {% endfor %}
+    ];
+    const dynamicClubFields = document.getElementById('dynamicClubFields');
+    let clubTags = [];
+
+    function renderClubFields() {
+        dynamicClubFields.innerHTML = '';
+        // Render tags
+        clubTags.forEach((club, idx) => {
+            const tag = document.createElement('span');
+            tag.className = 'dynamic-club-tag';
+            tag.dataset.id = club.id;
+            // Add text node for club name
+            tag.appendChild(document.createTextNode(club.name + ' - ' + club.league));
+            // Remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.textContent = '×';
+            removeBtn.className = 'remove-club-btn';
+            removeBtn.onclick = function() {
+                clubTags = clubTags.filter((_, i) => i !== idx);
+                renderClubFields();
+            };
+            tag.appendChild(removeBtn);
+            dynamicClubFields.appendChild(tag);
+        });
+        // Render new input if less than 3
+        if (clubTags.length < 3) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Type to search clubs...';
+            input.setAttribute('list', 'clubsDatalist');
+            input.className = 'club-search-input';
+            input.autocomplete = 'off';
+            input.addEventListener('change', function(e) {
+                const val = input.value.trim();
+                if (!val) return;
+                const match = clubs.find(c => (c.name + ' - ' + c.league) === val);
+                if (match && !clubTags.some(t => t.id === match.id)) {
+                    clubTags.push(match);
+                    renderClubFields();
+                }
+                input.value = '';
+            });
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+            dynamicClubFields.appendChild(input);
+        }
+    }
+    // Datalist for club search
+    if (!document.getElementById('clubsDatalist')) {
+        const datalist = document.createElement('datalist');
+        datalist.id = 'clubsDatalist';
+        clubs.forEach(club => {
+            const opt = document.createElement('option');
+            opt.value = club.name + ' - ' + club.league;
+            opt.dataset.id = club.id;
+            datalist.appendChild(opt);
+        });
+        document.body.appendChild(datalist);
+    }
+    renderClubFields();
+
+    // For edit: prepopulate clubTags if editing
+    window.prefillClubTags = function(ids) {
+        clubTags = clubs.filter(c => ids.includes(c.id));
+        renderClubFields();
+    }
+    // Club search and tagging logic
+    const clubSearchInput = document.getElementById('clubSearchInput');
+    const clubsDatalist = document.getElementById('clubsDatalist');
+    const selectedClubsContainer = document.getElementById('selectedClubsContainer');
+    let selectedClubsSet = new Set();
+
+    if (clubSearchInput && clubsDatalist && selectedClubsContainer) {
+        clubSearchInput.addEventListener('change', function(e) {
+            const inputValue = clubSearchInput.value.trim();
+            if (!inputValue) return;
+            // Find the option with this value
+            const option = Array.from(clubsDatalist.options).find(opt => opt.value === inputValue);
+            if (option && !selectedClubsSet.has(option.dataset.id)) {
+                selectedClubsSet.add(option.dataset.id);
+                const span = document.createElement('span');
+                span.className = 'selected-club';
+                span.dataset.id = option.dataset.id;
+                span.textContent = option.value;
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.textContent = '×';
+                removeBtn.className = 'remove-club-btn';
+                removeBtn.onclick = function() {
+                    selectedClubsSet.delete(option.dataset.id);
+                    span.remove();
+                };
+                span.appendChild(removeBtn);
+                selectedClubsContainer.appendChild(span);
+                clubSearchInput.value = '';
+            }
+        });
+        // Optional: Add on Enter key
+        clubSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clubSearchInput.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+    
+    // Carousel functionality
+    let currentSlide = 0;
+    const totalSlides = Math.ceil({{ news_posts.count }} / 3) || 1;
+    let autoplayInterval;
+    
+    function updateCarousel() {
+        const track = document.getElementById('carouselTrack');
+        if (track) {
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            // Update dots
+            const dots = document.querySelectorAll('.carousel-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+    }
+    
+    function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+            currentSlide++;
+            updateCarousel();
+            resetAutoplay();
+        }
+    }
+    
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateCarousel();
+            resetAutoplay();
+        }
+    }
+    
+    function goToSlide(index) {
+        currentSlide = index;
+        updateCarousel();
+        resetAutoplay();
+    }
+    
+    function startAutoplay() {
+        autoplayInterval = setInterval(() => {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+            } else {
+                currentSlide = 0;
+            }
+            updateCarousel();
+        }, 5000); // Auto-advance every 5 seconds
+    }
+    
+    function resetAutoplay() {
+        clearInterval(autoplayInterval);
+        startAutoplay();
+    }
+    
+    // Initialize carousel
+    if (document.getElementById('carouselTrack')) {
+        // Create dots
+        const dotsContainer = document.getElementById('carouselDots');
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'carousel-dot';
+            if (i === 0) dot.classList.add('active');
+            dot.onclick = () => goToSlide(i);
+            dotsContainer.appendChild(dot);
+        }
+        
+        // Start autoplay
+        startAutoplay();
+        
+        // Pause on hover
+        const carousel = document.querySelector('.news-carousel');
+        carousel.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
+        carousel.addEventListener('mouseleave', () => startAutoplay());
+    }
+    
     function showAlert(message, type) {
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert alert-${type}`;
@@ -582,32 +562,28 @@
         setTimeout(() => alertDiv.remove(), 3000);
     }
     
-    // Filter functions
-    function applyFilters() {
-        const club = document.getElementById('clubFilter').value;
-        const league = document.getElementById('leagueFilter').value;
-        const type = document.getElementById('typeFilter').value;
-        const search = document.getElementById('searchInput').value;
+    // Filter handling
+    document.getElementById('filterForm').addEventListener('submit', (e) => {
+        e.preventDefault();
         
+        const formData = new FormData(e.target);
         const params = new URLSearchParams();
-        if (club) params.append('club', club);
+        
+        // Get all checked clubs
+        const clubs = [];
+        document.querySelectorAll('input[name="clubs"]:checked').forEach(cb => {
+            clubs.push(cb.value);
+        });
+        clubs.forEach(club => params.append('clubs', club));
+        
+        const league = formData.get('league');
+        const search = formData.get('search');
+        
         if (league) params.append('league', league);
-        if (type) params.append('type', type);
         if (search) params.append('search', search);
         
         window.location.href = '{% url "forum_home" %}?' + params.toString();
-    }
-    
-    function filterByTag(tagType, tag) {
-        const paramName = tagType === 'league' ? 'league_tag' : 'club_tag';
-        window.location.href = `{% url "forum_home" %}?${paramName}=${encodeURIComponent(tag)}`;
-    }
-    
-    function handleSearchKeyup(event) {
-        if (event.key === 'Enter') {
-            applyFilters();
-        }
-    }
+    });
     
     function clearFilters() {
         window.location.href = '{% url "forum_home" %}';
@@ -618,15 +594,104 @@
         document.getElementById('modalTitle').textContent = 'Create Post';
         document.getElementById('postForm').reset();
         editingPostId = null;
+        
+        // Reset image inputs
+        document.getElementById('imagesContainer').innerHTML = `
+            <div class="image-input">
+                <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
+                <input type="text" class="image-caption" placeholder="Caption">
+                <button type="button" class="btn-remove-image" onclick="removeImageInput(this)" style="display:none;">Remove Image</button>
+            </div>
+        `;
+        
         document.getElementById('postModal').style.display = 'block';
+        renderClubFields();
     }
     
     function openEditModal(postId) {
-        // You'll need to fetch post data via AJAX and populate form
         editingPostId = postId;
         document.getElementById('modalTitle').textContent = 'Edit Post';
-        document.getElementById('postModal').style.display = 'block';
-        // TODO: Fetch and populate post data
+        
+        // Fetch post data via AJAX
+        fetch(`/forum/api/post/${postId}/data/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const post = data.post;
+                
+                // Populate form fields
+                document.getElementById('postTitle').value = post.title;
+                document.getElementById('postContent').value = post.content;
+                
+                // Set post type if admin
+                {% if user.is_staff %}
+                if (document.getElementById('postType')) {
+                    document.getElementById('postType').value = post.post_type;
+                }
+                {% endif %}
+                
+                // Select clubs
+                const clubsSelect = document.getElementById('postClubs');
+                if (clubsSelect) {
+                    Array.from(clubsSelect.options).forEach(option => {
+                        option.selected = post.club_ids.includes(option.value);
+                    });
+                }
+                
+                // Select league
+                const leagueSelect = document.getElementById('postLeague');
+                if (leagueSelect) {
+                    leagueSelect.value = post.league_id || '';
+                }
+                
+                // Populate images
+                const imagesContainer = document.getElementById('imagesContainer');
+                imagesContainer.innerHTML = '';
+                
+                if (post.images && post.images.length > 0) {
+                    post.images.forEach(img => {
+                        const div = document.createElement('div');
+                        div.className = 'image-input';
+                        div.innerHTML = `
+                            <input type="url" class="image-url" placeholder="https://example.com/image.jpg" value="${img.url}">
+                            <input type="text" class="image-caption" placeholder="Caption" value="${img.caption || ''}">
+                            <button type="button" class="btn-remove-image" onclick="removeImageInput(this)">Remove Image</button>
+                        `;
+                        imagesContainer.appendChild(div);
+                    });
+                } else {
+                    // Add empty image input
+                    imagesContainer.innerHTML = `
+                        <div class="image-input">
+                            <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
+                            <input type="text" class="image-caption" placeholder="Caption">
+                            <button type="button" class="btn-remove-image" onclick="removeImageInput(this)" style="display:none;">Remove Image</button>
+                        </div>
+                    `;
+                }
+                
+                // Show modal
+                document.getElementById('postModal').style.display = 'block';
+                prefillClubTags(post.club_ids);
+                renderClubFields();
+            } else {
+                showAlert(data.error || 'Failed to load post data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Failed to load post data: ' + error.message, 'error');
+        });
     }
     
     function closeModal() {
@@ -639,15 +704,21 @@
         div.className = 'image-input';
         div.innerHTML = `
             <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
-            <input type="text" class="image-caption" placeholder="Caption (optional)">
+            <input type="text" class="image-caption" placeholder="Caption">
+            <button type="button" class="btn-remove-image" onclick="removeImageInput(this)">Remove Image</button>
         `;
         container.appendChild(div);
+    }
+    
+    function removeImageInput(btn) {
+        btn.closest('.image-input').remove();
     }
     
     // Form submission
     document.getElementById('postForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // Collect images
         const images = [];
         document.querySelectorAll('.image-input').forEach(input => {
             const url = input.querySelector('.image-url').value;
@@ -655,13 +726,16 @@
             if (url) images.push({ url, caption });
         });
         
+        // Collect selected clubs from dynamic fields
+        const selectedClubs = Array.from(document.querySelectorAll('.dynamic-club-tag'))
+            .map(el => el.dataset.id);
+    
+        
         const data = {
             title: document.getElementById('postTitle').value,
             content: document.getElementById('postContent').value,
-            club_id: document.getElementById('postClub').value || null,
-            league_id: document.getElementById('postLeague').value || null,
-            league_tags: document.getElementById('leagueTags').value,
-            club_tags: document.getElementById('clubTags').value,
+            club_ids: selectedClubs,
+            league_id: document.getElementById('postLeague') ? document.getElementById('postLeague').value : null,
             images: images
         };
         
@@ -719,9 +793,11 @@
             showAlert('An error occurred', 'error');
         }
     }
+    
     window.onclick = function(event) {
         const modal = document.getElementById('postModal');
         if (event.target == modal) closeModal();
     }
 </script>
+
 {% endblock %}
