@@ -25,10 +25,9 @@ body {
     position: sticky;
     top: 2rem;
     height: fit-content;
-    background: white;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(254, 136, 0, 0.1);
+
 }
 
 .sidebar-title {
@@ -204,7 +203,7 @@ body {
 
 .news-card {
     background: white;
-    border-radius: 12px;
+    border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(254, 136, 0, 0.15);
     transition: transform 0.3s, box-shadow 0.3s;
@@ -244,7 +243,7 @@ body {
     background: #fe8800;
     color: white;
     padding: 0.4rem 0.8rem;
-    border-radius: 20px;
+    border-radius: 4px;
     font-family: 'Tektur', sans-serif;
     font-size: 0.75rem;
     font-weight: 700;
@@ -339,7 +338,7 @@ body {
     text-align: center;
     padding: 3rem;
     background: white;
-    border-radius: 12px;
+    border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -397,7 +396,7 @@ body {
     display: flex;
     align-items: flex-start;
     background: white;
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 0.5rem 0.5rem 0.5rem 0.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s, box-shadow 0.2s;
@@ -422,7 +421,7 @@ body {
     background: #fe8800;
     color: white;
     padding: 0.4rem 1rem;
-    border-radius: 20px;
+    border-radius: 4px;
     font-family: 'Tektur', sans-serif;
     font-size: 0.85rem;
     font-weight: 700;
@@ -528,7 +527,7 @@ body {
     width: 120px;
     height: 200px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 4px;
     margin-right: 1rem;
     flex-shrink: 0;
     cursor: pointer;
@@ -545,7 +544,7 @@ body {
     justify-content: center;
     height: 200px;
     background: #ffd7aa;
-    border-radius: 8px;
+    border-radius: 4px;
     font-family: 'Tektur', sans-serif;
     font-weight: 700;
     color: #fe8800;
@@ -581,7 +580,7 @@ body {
 .btn {
     padding: 0.7rem 1.5rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     cursor: pointer;
     font-family: 'Tektur', sans-serif;
     font-size: 0.95rem;
@@ -636,7 +635,7 @@ body {
     text-align: center;
     padding: 4rem 2rem;
     background: white;
-    border-radius: 12px;
+    border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
