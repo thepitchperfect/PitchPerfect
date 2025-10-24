@@ -66,9 +66,9 @@
           <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">Win Probability</p>
           {% if match.votes.count > 0 %}
             <p class="text-sm text-gray-800 font-medium">
-              🏠 {{ match.vote_summary.home_win }}% &nbsp;|&nbsp;
-              ⚖️ {{ match.vote_summary.draw }}% &nbsp;|&nbsp;
-              🚀 {{ match.vote_summary.away_win }}%
+              H {{ match.vote_summary.home_win }}% &nbsp;|&nbsp;
+              D {{ match.vote_summary.draw }}% &nbsp;|&nbsp;
+              A {{ match.vote_summary.away_win }}%
             </p>
           {% else %}
             <p class="text-xs text-gray-400 italic">No votes yet</p>

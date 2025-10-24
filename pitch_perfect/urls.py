@@ -23,6 +23,8 @@ urlpatterns = [
     path('directory/', include('club_directories.urls')),
     path('', prediction_views.home, name='home'),
     path('predictions/', include('matchpredictions.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),  # ✅ This line fixes the login issue
+    path('predictions/', include('matchpredictions.urls')),
 ]
 
 

@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponse
 from .models import Match, Vote, League, Club
 from .forms import MatchForm
+from django.db.models import Q
+
 
 
 

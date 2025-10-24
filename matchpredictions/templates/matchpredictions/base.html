@@ -9,42 +9,66 @@
   <!-- 🌈 Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <!-- 🎨 Optional: your app-specific CSS -->
-  <link rel="stylesheet" href="{% static 'matchpredictions/css/main.css' %}">
+  <!-- 🧠 Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Tektur:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 
+  <!-- 🎨 Color Theme (matches group style) -->
+  <style>
+    :root {
+      --color-white: #ffffff;
+      --color-gray-100: #f9f9f9;
+      --color-gray-400: #bbbbbb;
+      --color-gray-600: #8e8e8e;
+      --color-gray-800: #606060;
+      --color-gray-1000: #2f2f2f;
+
+      --color-orange-100: #ffd7aa;
+      --color-orange-200: #ffb054;
+      --color-orange-300: #fe9800;
+      --color-orange-400: #c58900;
+
+      --font-header: 'Orbitron', sans-serif;
+      --font-subheader: 'Tektur', sans-serif;
+      --font-body: 'Lato', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-gray-100);
+      color: var(--color-gray-1000);
+      transition: background-color 0.3s ease;
+    }
+
+    footer {
+      background-color: var(--color-gray-1000);
+      color: var(--color-gray-400);
+      font-family: var(--font-body);
+      letter-spacing: 0.2px;
+    }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+
+  <link rel="stylesheet" href="{% static 'matchpredictions/css/main.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col">
+<body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
 
-  <!-- 🌟 Navbar/Header -->
-  <header class="bg-indigo-600 text-white py-4 shadow-md">
-    <div class="container mx-auto flex justify-between items-center px-6">
-      <h1 class="text-2xl font-bold">
-        <a href="{% url 'main' %}" class="hover:text-indigo-200 transition">⚽ PitchPerfect</a>
-      </h1>
+  <!-- 🌟 GLOBAL NAVBAR (shared across the whole site) -->
+  {% include 'navbar.html' %}
 
-      <nav class="space-x-4 text-sm">
-        <a href="{% url 'main' %}" class="hover:text-indigo-200 transition">Matches</a>
-        {% if user.is_authenticated %}
-          <span class="text-indigo-200">Hi, {{ user.username }}</span>
-          <a href="/logout/" class="hover:text-indigo-200 transition">Logout</a>
-        {% else %}
-          <a href="/login/" class="hover:text-indigo-200 transition">Login</a>
-        {% endif %}
-      </nav>
-    </div>
-  </header>
-
-  <!-- 🧩 Main Content Block -->
-  <main class="flex-grow container mx-auto px-6 py-10">
+  <!-- 🧩 Main Content -->
+  <main class="flex-grow container mx-auto px-6 py-10 mt-10">
     {% block content %}
     {% endblock %}
   </main>
 
   <!-- ⚓ Footer -->
-  <footer class="bg-gray-200 text-center text-sm text-gray-600 py-4">
-    &copy; {{ now.year }} PitchPerfect. All rights reserved.
+  <footer class="text-center text-sm py-6">
+    &copy; {{ now.year }} PitchPerfect. Built with ⚙️ Django & ❤️ Team Spirit.
   </footer>
 
   <!-- 📜 Scripts -->
@@ -53,3 +77,5 @@
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
+
+
