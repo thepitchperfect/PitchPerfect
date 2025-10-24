@@ -1,11 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{# This block puts all your <head> items into base.html #}
 {% block meta %}
     <title>Soccer Club Map Directory</title>
-    
-    <!-- Load Google Fonts -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Orbitron:wght@700&family=Tektur:wght@600&display=swap" rel="stylesheet">
@@ -13,152 +11,493 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
-        body {
-            font-family: 'Lato', sans-serif;
-            background-color: #f8f9fa; 
-        }
+        body { font-family: 'Lato', sans-serif; background-color: #f8f9fa; }
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .font-tektur { font-family: 'Tektur', sans-serif; }
         .font-lato { font-family: 'Lato', sans-serif; }
 
-        #map {
-            height: 500px;
-        }
+        #map { height: 450px; position: relative; z-index: 10; }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 165, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.7); transform: scale(1); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 165, 0, 0); transform: scale(1.05); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); transform: scale(1); }
         }
         .league-icon-div {
-            animation: pulse 2s infinite;
-            border: 2px solid white;
-            background-size: cover;
-            background-position: center;
-            border-radius: 50%;
-            cursor: pointer;
+            width: 52px; height: 52px; animation: pulse 2s infinite; border: 2px solid white;
+            border-radius: 10px; cursor: pointer; background-color: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
         }
+        .league-icon-div:hover { transform: scale(1.1); }
+
+        .leaflet-tooltip.league-tooltip {
+             font-family: 'Tektur', sans-serif; font-size: 1rem; font-weight: 600;
+             background-color: rgba(0, 0, 0, 0.7); color: white; border: none;
+             box-shadow: none; padding: 4px 8px; border-radius: 4px;
+        }
+
+         .champion-slot {
+             background-color: #ffffff; border: 2px dashed #d1d5db; border-radius: 0.75rem;
+             padding: 1.5rem; display: flex; flex-direction: column; align-items: center;
+             justify-content: center; text-align: center; color: #6b7280; cursor: pointer;
+             transition: all 0.2s ease-in-out; min-height: 160px; position: relative;
+             overflow: hidden; aspect-ratio: 4 / 3;
+         }
+         .champion-slot:hover { border-color: #fb923c; color: #f97316; }
+         .champion-slot img.selected-logo { max-width: 72px; max-height: 72px; object-fit: contain; margin-bottom: 0.75rem; }
+         .champion-slot .league-label {
+            position: absolute; top: 8px; right: 8px; background-color: rgba(251, 146, 60, 0.8);
+            color: white; font-size: 0.7rem; font-weight: bold; padding: 2px 6px;
+            border-radius: 9999px; font-family: 'Lato', sans-serif;
+         }
+         .champion-slot .select-text { font-family: 'Tektur', sans-serif; font-size: 1.1rem; font-weight: 600;}
+         .champion-slot .selected-club-name { font-family: 'Lato', sans-serif; font-size: 0.9rem; font-weight: 600; color: #1f2937; }
+
+        #clubSelectorModal {
+            position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); z-index: 100;
+            display: flex; align-items: center; justify-content: center; padding: 1rem;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out;
+        }
+        #clubSelectorModal.is-visible { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background-color: white; padding: 1.5rem; border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 90%; width: 600px; transform: scale(0.95);
+            transition: transform 0.3s ease-in-out; overflow: hidden;
+        }
+        #clubSelectorModal.is-visible .modal-content { transform: scale(1); }
+
+        .logo-scroll-outer-container {
+             position: relative; margin: 1rem 0; padding: 1rem 0;
+             border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;
+        }
+        .logo-scroll-outer-container::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70px; height: 70px; border: 2px solid #fb923c; border-radius: 8px;
+            pointer-events: none; box-shadow: 0 0 10px rgba(251, 146, 60, 0.5);
+            z-index: 1; opacity: 0; transition: opacity 0.3s ease;
+        }
+         #clubSelectorModal.is-visible .logo-scroll-outer-container::after { opacity: 1; }
+
+        .logo-scroll-container {
+            display: flex; overflow-x: auto; white-space: nowrap; padding: 1rem 50%;
+            gap: 1.5rem; min-height: 80px; align-items: center; scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+        }
+        .logo-scroll-container::-webkit-scrollbar { display: none; }
+
+        .logo-scroll-container .tooltip-anchor, .logo-scroll-container .none-option-container {
+             scroll-snap-align: center; flex: 0 0 auto; position: relative;
+        }
+        .logo-scroll-container img, .logo-scroll-container .none-option {
+            height: 60px; width: 60px; object-fit: contain; cursor: pointer;
+            transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease;
+            border: 3px solid transparent; border-radius: 8px; padding: 4px;
+            background-color: #f9fafb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center; color: #9ca3af;
+        }
+        .logo-scroll-container .none-option svg { width: 32px; height: 32px; }
+
+        .logo-scroll-container img.is-center, .logo-scroll-container .none-option.is-center {
+             transform: scale(1.15); border-color: #fb923c;
+             box-shadow: 0 4px 10px rgba(251, 146, 60, 0.4);
+         }
+         .logo-scroll-container .none-option.is-center { color: #fb923c; }
+
+         [data-tooltip]::before {
+            content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(-5px) scale(0.9);
+            background-color: #1f2937; color: white; padding: 5px 10px; border-radius: 5px;
+            font-size: 0.8rem; font-weight: 600; white-space: nowrap; margin-bottom: 8px;
+            z-index: 110; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+         .logo-scroll-container .tooltip-anchor:has(.is-center)[data-tooltip]::before,
+         .logo-scroll-container .none-option-container:has(.is-center)[data-tooltip]::before {
+             opacity: 1; transform: translateX(-50%) translateY(0) scale(1);
+         }
+
+        /* --- New Club Details Modal Styling --- */
+        #clubDetailsModal {
+            position: fixed; inset: 0; background-color: rgba(31, 41, 55, 0.8);
+            z-index: 150; display: flex; align-items: center; justify-content: center;
+            padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out;
+        }
+        #clubDetailsModal.is-visible { opacity: 1; pointer-events: auto; }
+
+        .details-modal-content {
+             background-color: #ffffff;
+             border-radius: 1rem;
+             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+             max-width: 90%; width: 640px;
+             transform: translateY(20px) scale(0.98);
+             transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+             opacity: 0;
+             overflow: hidden;
+             position: relative;
+        }
+         #clubDetailsModal.is-visible .details-modal-content { transform: translateY(0) scale(1); opacity: 1; }
+
+         .details-header {
+             background: linear-gradient(to right, #1f2937, #374151);
+             padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
+             position: relative; border-bottom: 4px solid #fb923c;
+         }
+         .details-header h3 { color: white; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-right: 40px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+         .details-close-btn { background: none; border: none; color: #d1d5db; transition: color 0.2s; cursor: pointer; }
+         .details-close-btn:hover { color: white; }
+
+        .details-body { padding: 1.5rem; background-color: #f9fafb; max-height: 70vh; overflow-y: auto; }
+        .details-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; }
+
+        .details-item { background-color: #ffffff; border-radius: 0.5rem; padding: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .details-item h4 { 
+            font-family: 'Tektur', sans-serif; font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem; 
+            text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; 
+        }
+        .details-item p, .details-item span { font-size: 1rem; color: #1f2937; font-weight: 600; word-wrap: break-word; }
         
-        .favorite-btn.is-favorited {
-            color: #f59e0b;
+        /* Specifics for the new layout */
+        .details-logo-box { grid-column: span 2 / span 2; display: flex; align-items: center; justify-content: center; }
+        .details-logo-box img { max-width: 100%; max-height: 120px; object-fit: contain; }
+        
+        .details-title-box { grid-column: span 4 / span 4; display: flex; flex-direction: column; justify-content: center; }
+        .details-title-box h2 { font-family: 'Tektur', sans-serif; font-size: 1.75rem; font-weight: 600; color: #1f2937; line-height: 1.2; }
+        .details-title-box .league-info { display: flex; align-items: center; margin-top: 0.5rem; }
+        .details-title-box .league-logo { height: 24px; width: auto; margin-right: 0.5rem; }
+        .details-title-box .league-name { font-size: 1rem; color: #4b5563; font-weight: 600; }
+        
+        .details-item.gc-2 { grid-column: span 2 / span 2; }
+        .details-item.gc-3 { grid-column: span 3 / span 3; }
+        .details-item.gc-4 { grid-column: span 4 / span 4; }
+        .details-item.gc-6 { grid-column: span 6 / span 6; }
+        
+        .info-text { font-size: 0.9rem; color: #4b5563; font-weight: normal; line-height: 1.6; max-height: 150px; overflow-y: auto; padding-right: 0.5rem; }
+
+        .details-loading { display: flex; justify-content: center; align-items: center; min-height: 250px; }
+        .details-error { color: #dc2626; text-align: center; padding: 2rem; font-weight: 600; }
+
+        .set-pick-button {
+             display: inline-flex; align-items: center; justify-content: center; width: 100%;
+             padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 700; 
+             font-family: 'Tektur', sans-serif; font-size: 1rem; letter-spacing: 0.05em;
+             transition: all 0.2s ease; cursor: pointer; border: 2px solid transparent;
+             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+         .set-pick-button.selected {
+             background-color: #fef9c3; color: #a16207; border-color: #facc15;
+             box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+         }
+         .set-pick-button.not-selected {
+              background-color: #fb923c; color: white; border-color: #f97316;
+         }
+         .set-pick-button:hover:not(.selected) { background-color: #f97316; }
+         .set-pick-button:hover.selected { background-color: #fef3c7; }
+         .set-pick-button:active { transform: scale(0.98); }
+         .set-pick-button svg { width: 1.25rem; height: 1.25rem; margin-right: 0.5rem; }
+
+         .club-stats-btn {
+             /* Styles for your friend's button */
+         }
+
     </style>
 {% endblock meta %}
 
-{# This block puts all your <body> items into base.html #}
 {% block content %}
-    {# We are intentionally leaving the navbar out for now #}
-
     <main class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-2">CHOOSE YOUR LEAGUE</h2>
-            <p class="text-center text-gray-600 mb-6">Click a league marker on the map to see its clubs.</p>
-            <div id="map" class="w-full rounded-xl shadow-lg border border-gray-300 mb-12 bg-gray-200"></div>
+            <header class="bg-white py-6 shadow-md mb-8 md:mb-12 rounded-lg border border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h1 class="font-orbitron text-4xl md:text-5xl font-bold text-center text-gray-900 tracking-wider">
+                        CLUB <span class="text-orange-500">DIRECTORY</span>
+                    </h1>
+                </div>
+            </header>
 
-            <div id="club-list-section">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 id="league-title" class="font-tektur text-4xl font-bold text-gray-900 text-center md:text-left">All Clubs</h2>
+            <section class="mb-12">
+                <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-2">CHOOSE YOUR LEAGUE</h2>
+                <p class="text-center text-gray-600 mb-6">Click a league marker on the map to see its clubs.</p>
+                <div id="map" class="w-full rounded-xl shadow-lg border border-gray-300 bg-gray-200"></div>
+            </section>
+
+            
+            {% if user.is_authenticated %}
+                <!-- LOGGED-IN VERSION: The original, functional section -->
+                <section id="champions-section" class="mb-12">
+                    <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-6">MY LEAGUE PICKS</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                        <!-- Slots will be populated by JS -->
+                    </div>
+                </section>
+            
+            {% else %}
+                <!-- LOGGED-OUT VERSION: Blurred placeholder with a login prompt -->
+                <section id="champions-section-logged-out" class="mb-12 relative">
+                    <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-6">MY LEAGUE PICKS</h2>
                     
-                    <div class="relative w-full md:w-auto">
-                        <label for="searchBar" class="sr-only">Search</label>
-                        <input type="text" id="searchBar" placeholder="Search this league..." class="font-lato rounded-lg border-2 border-gray-300 focus:border-orange-500 focus:ring-orange-500 shadow-sm transition-all duration-200 pl-10 pr-4 py-2 bg-white text-gray-900 w-full md:w-64 lg:w-80">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto filter blur-sm pointer-events-none">
+                        <div class="champion-slot !cursor-default"><span class="select-text">SELECT PICK</span><span class="league-label">LEAGUE 1</span></div>
+                        <div class="champion-slot !cursor-default"><span class="select-text">SELECT PICK</span><span class="league-label">LEAGUE 2</span></div>
+                        <div class="champion-slot !cursor-default"><span class="select-text">SELECT PICK</span><span class="league-label">LEAGUE 3</span></div>
+                    </div>
+                    
+                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/50 backdrop-blur-[2px] rounded-lg">
+                        <h3 class="font-tektur text-2xl font-bold text-gray-800 mb-4">Log in to Set Your Picks</h3>
+                        <a href="{% url 'main:login' %}" 
+                           class="px-6 py-2 bg-orange-500 text-white font-tektur rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+                            Log In
+                        </a>
+                    </div>
+                </section>
+            {% endif %}
+
+
+            <div id="clubSelectorModal">
+                <div class="modal-content">
+                    <h3 id="modalLeagueTitle" class="font-tektur text-2xl font-bold text-gray-900 mb-2">Select Club for [League]</h3>
+                    <p class="text-sm text-gray-600">Click a logo below to choose.</p>
+                    <div class="logo-scroll-outer-container">
+                        <div id="modalLogoScroll" class="logo-scroll-container">
+                             </div>
+                    </div>
+                    <button id="closeModalBtn" class="mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors">Close</button>
+                </div>
+            </div>
+
+             <div id="clubDetailsModal">
+                <div class="details-modal-content">
+                    <div class="details-header">
+                        <h3 id="detailsClubName" class="font-orbitron text-2xl font-bold">Club Details</h3>
+                        <div class="flex items-center space-x-4">
+                            <button class="club-stats-btn bg-orange-500 hover:bg-orange-600 text-white font-tektur text-xs font-bold py-1 px-3 rounded-md shadow transition-colors duration-200">
+                                Club Stats
+                            </button>
+                            <button id="detailsCloseBtn" class="details-close-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="detailsContent" class="details-body">
+                         <div class="details-loading p-8">
+                            <svg class="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                        </div>
+                         <p id="detailsError" class="details-error hidden">Could not load club details.</p>
+                        
+                         <div id="detailsBentoGrid" class="details-grid hidden">
+                            
+                            <!-- Header Info -->
+                            <div class="details-item details-logo-box">
+                                <img id="detailsLogo" src="" alt="Club Logo">
+                            </div>
+                            <div class="details-item details-title-box">
+                                <h2 id="detailsClubNameModal">Club Name</h2>
+                                <div class="league-info">
+                                    <img id="detailsLeagueLogo" src="" alt="League Logo" class="league-logo">
+                                    <p id="detailsLeagueName" class="league-name">League Name</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Quick Info Row -->
+                            <div class="details-item gc-2">
+                                <h4>Founded</h4>
+                                <p id="detailsFounded">----</p>
+                            </div>
+                            <div class="details-item gc-4">
+                                <h4>Manager</h4>
+                                <p id="detailsManager">N/A</p>
+                            </div>
+
+                            <!-- Stadium Info Row -->
+                            <div class="details-item gc-4">
+                                <h4>Stadium</h4>
+                                <p id="detailsStadium">N/A</p>
+                            </div>
+                            <div class="details-item gc-2">
+                                <h4>Capacity</h4>
+                                <p id="detailsCapacity">N/A</p>
+                            </div>
+
+                            <!-- Text Info -->
+                            <div class="details-item gc-6">
+                                <h4>Description</h4>
+                                <p id="detailsDescription" class="info-text">N/A</p>
+                            </div>
+                             <div class="details-item gc-6">
+                                <h4>History Summary</h4>
+                                <p id="detailsHistory" class="info-text">N/A</p>
+                            </div>
+
+                            <!-- Favorite Button -->
+                            {% if user.is_authenticated %}
+                                 <div class="details-item gc-6">
+                                     <button id="setLeaguePickBtn" class="set-pick-button not-selected" data-club-id="" data-club-name="" data-logo-url="" data-league-id="">
+                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.31h5.518a.563.563 0 0 1 .32.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-3.357a.562.562 0 0 0-.652 0l-4.725 3.357a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .32-.988h5.518a.563.563 0 0 0 .475-.31L11.48 3.5Z" /></svg>
+                                         <span id="setLeaguePickBtnText">Set as League Pick</span>
+                                     </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section id="club-list-section">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 id="league-title" class="font-tektur text-4xl font-bold text-gray-900 text-center md:text-left order-2 md:order-1">All Clubs</h2>
+                    <div class="relative w-full md:w-auto order-1 md:order-2">
+                         <label for="searchBar" class="sr-only">Search</label>
+                        <input type="text" id="searchBar" placeholder="Search this league..."
+                               class="font-lato rounded-lg border-2 border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-sm transition-all duration-200 pl-10 pr-4 py-2 bg-white text-gray-900 w-full md:w-64 lg:w-80 outline-none">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-gray-400">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                            </svg>
+                            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /> </svg>
                         </div>
                     </div>
                 </div>
 
                 <div id="clubGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {# Club cards will be injected here by JavaScript #}
-                </div>
+                     </div>
                  <p id="no-clubs-message" class="text-center text-gray-500 mt-8 hidden">No clubs found matching your search.</p>
-            </div>
+            </section>
         </div>
     </main>
 
-    {# We are intentionally leaving the footer out for now #}
-
     {{ leagues_data|json_script:"leagues-data" }}
-    {{ favorite_club_ids_list|json_script:"favorite-club-ids" }}
 
     <script>
-        const leagueData = JSON.parse(document.getElementById('leagues-data').textContent);
-        const favoriteClubIDs = new Set(JSON.parse(document.getElementById('favorite-club-ids').textContent));
-        
+        const rawLeagueData = JSON.parse(document.getElementById('leagues-data').textContent || '[]');
+        const leagueData = rawLeagueData.sort((a, b) => a.name.localeCompare(b.name));
+        let selectedChampions = JSON.parse(localStorage.getItem('selectedChampions') || '{}');
+
         const mapElement = document.getElementById('map');
         const clubGrid = document.getElementById('clubGrid');
         const leagueTitle = document.getElementById('league-title');
         const searchBar = document.getElementById('searchBar');
         const noClubsMessage = document.getElementById('no-clubs-message');
-        let allClubCards = []; 
-        let currentLeague = null; 
+        
+        const championsContainer = document.querySelector('#champions-section .grid'); 
+        
+        const modal = document.getElementById('clubSelectorModal');
+        const modalLeagueTitle = document.getElementById('modalLeagueTitle');
+        const modalLogoScroll = document.getElementById('modalLogoScroll');
+        const closeModalBtn = document.getElementById('closeModalBtn');
 
-        const map = L.map(mapElement).setView([48, 4], 4); 
+        const detailsModal = document.getElementById('clubDetailsModal');
+        const detailsCloseBtn = document.getElementById('detailsCloseBtn');
+        const detailsClubName = document.getElementById('detailsClubName'); // Header
+        const detailsContent = document.getElementById('detailsContent');
+        const detailsLoading = detailsContent.querySelector('.details-loading');
+        const detailsError = document.getElementById('detailsError');
+        const detailsBentoGrid = document.getElementById('detailsBentoGrid');
+        
+        // --- New Bento Grid Elements ---
+        const detailsLogo = document.getElementById('detailsLogo');
+        const detailsClubNameModal = document.getElementById('detailsClubNameModal'); // Inside bento
+        const detailsLeagueName = document.getElementById('detailsLeagueName');
+        const detailsLeagueLogo = document.getElementById('detailsLeagueLogo');
+        const detailsFounded = document.getElementById('detailsFounded');
+        const detailsManager = document.getElementById('detailsManager');
+        const detailsStadium = document.getElementById('detailsStadium');
+        const detailsCapacity = document.getElementById('detailsCapacity');
+        const detailsDescription = document.getElementById('detailsDescription');
+        const detailsHistory = document.getElementById('detailsHistory');
+        
+        const setLeaguePickBtn = document.getElementById('setLeaguePickBtn');
+        const setLeaguePickBtnText = document.getElementById('setLeaguePickBtnText');
 
+        let allClubCards = [];
+        let currentLeague = null;
+        let leagueMapById = {};
+        leagueData.forEach(l => leagueMapById[l.id] = l);
+        let currentSelectingLeagueId = null;
+        let scrollTimeout = null;
+        let currentDetailClub = null;
+
+        const map = L.map(mapElement).setView([48, 4], 4);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 18
+             attribution: '&copy; OpenStreetMap contributors &copy; CARTO', subdomains: 'abcd', maxZoom: 18
         }).addTo(map);
 
         function createClubCard(club, leagueName) {
-            const logo = club.logo_url || `https://placehold.co/100x100/EFEFEF/333333?text=${club.name.substring(0,3)}`;
-            const isFavorited = favoriteClubIDs.has(club.id); // Check against the Set
-            const favoritedClass = isFavorited ? 'is-favorited' : '';
-            
+            const initialsFallback = `https://placehold.co/100x100/EFEFEF/333333?text=${encodeURIComponent(club.name.substring(0,3).toUpperCase())}`;
+            const logo = club.logo_url || initialsFallback;
+            const onErrorScript = `if (this.src !== '${initialsFallback}') { this.src='${initialsFallback}'; this.onerror=null; }`;
+
             return `
-                <div class="club-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/50 flex flex-col" data-league="${leagueName}" data-club-id="${club.id}">
-                    <img src="${logo}" alt="${club.name} Logo" class="w-20 h-20 mx-auto mt-5 object-contain" onerror="this.src='https://placehold.co/100x100/EFEFEF/333333?text=Logo'; this.onerror=null;">
+                <div class="club-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col relative" data-league="${leagueName}" data-club-id="${club.id}">
+                    <img src="${logo}" alt="${club.name} Logo" class="w-20 h-20 mx-auto mt-5 object-contain" onerror="${onErrorScript}">
                     <div class="p-5 flex flex-col flex-grow">
                         <h2 class="club-name font-tektur text-xl font-bold text-gray-900 text-center truncate" title="${club.name}">${club.name}</h2>
                         <span class="bg-orange-500 text-white text-xs font-bold uppercase rounded-full px-3 py-1 self-center my-3 font-lato">${leagueName}</span>
                         <p class="font-lato text-gray-600 text-sm text-center flex-grow mb-4">${club.desc}</p>
-                        
                         <div class="mt-auto flex items-center justify-center space-x-3">
-                            <button 
-                                data-club-id="${club.id}" 
-                                class="favorite-btn p-2 rounded-full text-gray-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all duration-200 ${favoritedClass}"
-                                aria-label="Favorite ${club.name}">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 pointer-events-none">
-                                    <path d="M16.5 18.75h-9a2.25 2.25 0 0 0-2.25 2.25v.01c0 .114.094.205.21.205h12.08c.116 0 .21-.09.21-.205v-.01a2.25 2.25 0 0 0-2.25-2.25Z" />
-                                    <path fill-rule="evenodd" d="M12 2.25c-2.39 0-4.451 1.22-5.704 3.028a.75.75 0 0 0 .832 1.036A3.74 3.74 0 0 1 12 4.5c1.23 0 2.35.53 3.12 1.385a.75.75 0 0 0 1.1-.986C15.13 3.32 13.637 2.25 12 2.25ZM9.879 15.043c.091-.453.331-.874.654-1.216l.243-.253a.75.75 0 0 0-.968-1.14l-.242.253a3.738 3.738 0 0 0-.654 1.216.75.75 0 1 0 1.44.288Zm.75-2.825a.75.75 0 0 0-1.06 1.06l.243.253c.323.342.563.763.654 1.216a.75.75 0 0 0 1.44-.288 3.738 3.738 0 0 0-.654-1.216l-.243-.253Zm2.742 2.825c-.091-.453-.331-.874-.654-1.216l-.243-.253a.75.75 0 0 0-.968 1.14l.242.253c.323.342.563.763.654 1.216a.75.75 0 1 0 1.44-.288Z" clip-rule="evenodd" />
-                                    <path d="M12 6.75a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75Z" />
-                                    <path d="M8.25 10.5a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75h-.01a.75.75 0 0 1-.75-.75v-.01ZM14.25 10.5a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75h-.01a.75.75 0 0 1-.75-.75v-.01Z" />
-                                </svg>
-                            </button>
-                            <a href="#" class="view-club-btn bg-gradient-to-r from-orange-500 to-orange-400 text-white font-tektur text-sm font-bold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 text-center">VIEW CLUB</a>
+                            <button class="view-club-btn bg-gradient-to-r from-orange-500 to-orange-400 text-white font-tektur text-sm font-bold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 text-center">VIEW DETAILS</button>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
+        }
+        
+        function showAllClubs() {
+             currentLeague = null;
+             clubGrid.innerHTML = '';
+             leagueTitle.textContent = "All Clubs";
+             allClubCards = [];
+             noClubsMessage.classList.add('hidden');
+
+             if (!leagueData || leagueData.length === 0) {
+                  clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No clubs available.</p>';
+                  return;
+             }
+
+             let clubCount = 0;
+             leagueData.forEach(league => {
+                 if (league.clubs && league.clubs.length > 0) {
+                     league.clubs.forEach(club => {
+                        const cardHTML = createClubCard(club, league.name);
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = cardHTML.trim();
+                        const cardElement = tempDiv.firstElementChild;
+                        if (cardElement instanceof HTMLElement) {
+                            clubGrid.appendChild(cardElement);
+                            allClubCards.push(cardElement);
+                            clubCount++;
+                        }
+                    });
+                 }
+             });
+             
+             if (clubCount === 0) {
+                 clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No clubs found in any league.</p>';
+             }
+
+             searchBar.value = '';
+             filterClubs();
         }
 
         function showClubs(league) {
-            currentLeague = league; 
-            clubGrid.innerHTML = ''; 
-            leagueTitle.textContent = league.name; 
-            allClubCards = []; 
-            noClubsMessage.classList.add('hidden'); 
+             currentLeague = league;
+             clubGrid.innerHTML = '';
+             leagueTitle.textContent = league.name;
+             allClubCards = [];
+             noClubsMessage.classList.add('hidden');
 
-            if (!league || !league.clubs || league.clubs.length === 0) {
-                 clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No clubs available for this league.</p>';
-                 return;
-            }
+             if (!league || !league.clubs || league.clubs.length === 0) {
+                  clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No clubs available for this league.</p>';
+                  return;
+             }
 
-            league.clubs.forEach(club => {
+             league.clubs.forEach(club => {
                 const cardHTML = createClubCard(club, league.name);
                 const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = cardHTML.trim(); 
-                const cardElement = tempDiv.firstChild;
-                if (cardElement) {
-                    clubGrid.appendChild(cardElement); 
-                    allClubCards.push(cardElement); 
+                tempDiv.innerHTML = cardHTML.trim();
+                const cardElement = tempDiv.firstElementChild;
+                if (cardElement instanceof HTMLElement) {
+                    clubGrid.appendChild(cardElement);
+                    allClubCards.push(cardElement);
                 }
             });
-
             searchBar.value = '';
             filterClubs();
         }
@@ -166,27 +505,294 @@
         function filterClubs() {
             const searchTerm = searchBar.value.toLowerCase().trim();
             let visibleCount = 0;
-            
             allClubCards.forEach(card => {
-                const cardNameElement = card.querySelector('.club-name'); 
-                if (!cardNameElement) return; 
-
+                if (!(card instanceof HTMLElement)) return;
+                const cardNameElement = card.querySelector('h2.club-name');
+                if (!cardNameElement) return;
                 const cardName = cardNameElement.textContent.toLowerCase();
                 const nameMatch = cardName.includes(searchTerm);
-                
-                if (nameMatch) {
-                    card.classList.remove('hidden');
-                    card.classList.add('flex'); 
-                    visibleCount++;
-                } else {
-                    card.classList.add('hidden');
-                    card.classList.remove('flex');
+                card.classList.toggle('hidden', !nameMatch);
+                card.classList.toggle('flex', nameMatch);
+                if(nameMatch) visibleCount++;
+            });
+            noClubsMessage.classList.toggle('hidden', visibleCount > 0 || allClubCards.length === 0);
+        }
+
+        function createChampionSlotHTML(league) {
+            const champion = selectedChampions[league.id];
+            let contentHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 mb-2"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /> </svg>
+                <span class="select-text">SELECT ${league.short_id || 'PICK'}</span>`;
+
+            if (champion) {
+                 const initialsFallback = `https://placehold.co/64x64/EFEFEF/333333?text=${encodeURIComponent(champion.clubName.substring(0,3).toUpperCase())}`;
+                 const logo = champion.logoUrl || initialsFallback;
+                 const onErrorScript = `if (this.src !== '${initialsFallback}') { this.src='${initialsFallback}'; this.onerror=null; }`;
+                 contentHTML = `
+                     <img src="${logo}" alt="${champion.clubName}" class="selected-logo" onerror="${onErrorScript}">
+                     <span class="selected-club-name">${champion.clubName}</span>`;
+            }
+
+            return `
+                <div id="champion-slot-${league.id}" class="champion-slot" data-league-id="${league.id}">
+                    ${contentHTML}
+                    <span class="league-label">${league.name}</span>
+                </div>`;
+        }
+
+        function updateChampionSlotDisplay(leagueId) {
+            const slotElement = document.getElementById(`champion-slot-${leagueId}`);
+            if (!slotElement) return;
+
+            const league = leagueMapById[leagueId];
+            if (!league) return;
+
+            const champion = selectedChampions[leagueId];
+            let contentHTML = `
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 mb-2"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /> </svg>
+                 <span class="select-text">SELECT ${league.short_id || 'PICK'}</span>`;
+
+            if (champion) {
+                 const initialsFallback = `https://placehold.co/64x64/EFEFEF/333333?text=${encodeURIComponent(champion.clubName.substring(0,3).toUpperCase())}`;
+                 const logo = champion.logoUrl || initialsFallback;
+                 const onErrorScript = `if (this.src !== '${initialsFallback}') { this.src='${initialsFallback}'; this.onerror=null; }`;
+                 contentHTML = `
+                     <img src="${logo}" alt="${champion.clubName}" class="selected-logo" onerror="${onErrorScript}">
+                     <span class="selected-club-name">${champion.clubName}</span>`;
+            }
+            const leagueLabelHTML = `<span class="league-label">${league.name}</span>`;
+            slotElement.innerHTML = contentHTML + leagueLabelHTML;
+        }
+
+        function populateChampionSlots() {
+            if (!championsContainer) return;
+            championsContainer.innerHTML = '';
+            const topLeagues = leagueData.slice(0, 6);
+            topLeagues.forEach(league => {
+                championsContainer.innerHTML += createChampionSlotHTML(league);
+            });
+        }
+
+         function handleModalScroll() {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                highlightCenterItem();
+            }, 100);
+        }
+
+        function highlightCenterItem() {
+            const container = modalLogoScroll;
+            if (!container) return;
+            const containerRect = container.getBoundingClientRect();
+            const containerCenter = containerRect.left + containerRect.width / 2;
+
+            let closestItem = null;
+            let minDistance = Infinity;
+
+            const items = container.querySelectorAll('img.modal-logo-item, div.none-option');
+            items.forEach(item => {
+                const itemRect = item.getBoundingClientRect();
+                const itemCenter = itemRect.left + itemRect.width / 2;
+                const distance = Math.abs(containerCenter - itemCenter);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestItem = item;
                 }
+                item.classList.remove('is-center');
+                const tooltipAnchor = item.closest('.tooltip-anchor, .none-option-container');
             });
 
-            noClubsMessage.classList.toggle('hidden', visibleCount > 0);
+            if (closestItem) {
+                closestItem.classList.add('is-center');
+                const tooltipAnchor = closestItem.closest('.tooltip-anchor, .none-option-container');
+            }
+        }
+
+        function openClubSelector(leagueId) {
+            const league = leagueMapById[leagueId];
+            if (!league) return;
+
+            currentSelectingLeagueId = leagueId;
+            modalLeagueTitle.textContent = `Select Pick for ${league.name}`;
+            modalLogoScroll.innerHTML = '';
+
+            const noneOptionContainer = document.createElement('div');
+            noneOptionContainer.classList.add('none-option-container');
+            noneOptionContainer.setAttribute('data-tooltip', 'Clear Selection');
+            noneOptionContainer.innerHTML = `
+                <div class="none-option modal-logo-item" data-club-id="NONE">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" /> </svg>
+                </div>`;
+            modalLogoScroll.appendChild(noneOptionContainer);
+
+            if (!league.clubs || league.clubs.length === 0) {
+                 setTimeout(highlightCenterItem, 50);
+            } else {
+                league.clubs.forEach(club => {
+                    const initialsFallback = `https://placehold.co/60x60/EFEFEF/333333?text=${encodeURIComponent(club.name.substring(0,3).toUpperCase())}`;
+                    const logo = club.logo_url || initialsFallback;
+                    const onErrorScript = `if (this.src !== '${initialsFallback}') { this.src='${initialsFallback}'; this.onerror=null; }`;
+
+                    const imgContainer = document.createElement('div');
+                    imgContainer.classList.add('tooltip-anchor');
+                    imgContainer.setAttribute('data-tooltip', club.name);
+                    imgContainer.innerHTML = `
+                        <img src="${logo}"
+                             alt="${club.name}"
+                             class="modal-logo-item"
+                             data-club-id="${club.id}"
+                             data-club-name="${club.name}"
+                             data-logo-url="${club.logo_url || ''}"
+                             onerror="${onErrorScript}">`;
+                    modalLogoScroll.appendChild(imgContainer);
+                });
+
+                 const currentlySelected = selectedChampions[currentSelectingLeagueId];
+                 let targetElement = noneOptionContainer.querySelector('.none-option');
+                 if (currentlySelected) {
+                     const selectedImg = modalLogoScroll.querySelector(`img[data-club-id="${currentlySelected.clubId}"]`);
+                     if (selectedImg) {
+                         targetElement = selectedImg;
+                     }
+                 }
+                 if(targetElement) {
+                     setTimeout(() => scrollToItem(targetElement), 50);
+                 } else {
+                      setTimeout(highlightCenterItem, 50);
+                 }
+
+            }
+            modalLogoScroll.removeEventListener('scroll', handleModalScroll);
+            modalLogoScroll.addEventListener('scroll', handleModalScroll);
+            modal.classList.add('is-visible');
+        }
+
+        function closeClubSelector() {
+            modalLogoScroll.removeEventListener('scroll', handleModalScroll);
+            modal.classList.remove('is-visible');
+            currentSelectingLeagueId = null;
+        }
+
+        function selectChampion(leagueId, clubId, clubName, logoUrl) {
+             if (!leagueId) return;
+
+             if (clubId === 'NONE' || clubId === null) {
+                 delete selectedChampions[leagueId];
+             } else {
+                 selectedChampions[leagueId] = { clubId, clubName, logoUrl: logoUrl || null };
+             }
+
+            localStorage.setItem('selectedChampions', JSON.stringify(selectedChampions));
+            updateChampionSlotDisplay(leagueId);
+            updatePickButtonState(leagueId);
+            if (currentSelectingLeagueId === leagueId) {
+                closeClubSelector();
+            }
+        }
+
+        function scrollToItem(itemElement) {
+             if (!itemElement) return;
+             itemElement.scrollIntoView({
+                 behavior: 'smooth',
+                 block: 'nearest',
+                 inline: 'center'
+             });
+             setTimeout(() => highlightCenterItem(), 50);
+        }
+
+        // --- Club Details Modal Functions ---
+        function showDetailsModal() {
+            detailsModal.classList.add('is-visible');
+        }
+        function hideDetailsModal() {
+             detailsModal.classList.remove('is-visible');
+             currentDetailClub = null;
+        }
+
+        function updatePickButtonState(leagueId = null) {
+            if (!setLeaguePickBtn) return;
+            
+            if (!currentDetailClub || (leagueId && currentDetailClub.league_id !== leagueId)) {
+                return;
+            }
+            const currentPick = selectedChampions[currentDetailClub.league_id];
+            const isSelected = currentPick && currentPick.clubId === currentDetailClub.id;
+
+            if (isSelected) {
+                setLeaguePickBtnText.textContent = 'Selected as League Pick';
+                setLeaguePickBtn.classList.remove('not-selected');
+                setLeaguePickBtn.classList.add('selected');
+            } else {
+                setLeaguePickBtnText.textContent = 'Set as League Pick';
+                setLeaguePickBtn.classList.add('not-selected');
+                setLeaguePickBtn.classList.remove('selected');
+            }
+            setLeaguePickBtn.dataset.clubId = currentDetailClub.id;
+            setLeaguePickBtn.dataset.clubName = currentDetailClub.name;
+            setLeaguePickBtn.dataset.logoUrl = currentDetailClub.logo_url || '';
+            setLeaguePickBtn.dataset.leagueId = currentDetailClub.league_id;
+            setLeaguePickBtn.dataset.isSelected = isSelected;
+        }
+
+        async function fetchAndShowClubDetails(clubId) {
+             showDetailsModal();
+             detailsLoading.classList.remove('hidden');
+             detailsBentoGrid.classList.add('hidden');
+             detailsError.classList.add('hidden');
+             detailsClubName.textContent = 'Loading...';
+             currentDetailClub = null;
+
+             const url = `/directory/club/${clubId}/`;
+
+             try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                currentDetailClub = data;
+
+                // --- Populate Bento Grid ---
+                detailsClubName.textContent = data.name || 'Club Details'; // Header
+                detailsClubNameModal.textContent = data.name || 'Club Name'; // Bento
+                
+                const initialsFallback = `https://placehold.co/100x100/EFEFEF/333333?text=${encodeURIComponent((data.name || '?').substring(0,3).toUpperCase())}`;
+                detailsLogo.src = data.logo_url || initialsFallback;
+                detailsLogo.alt = `${data.name || 'Club'} Logo`;
+                detailsLogo.onerror = function() { if (this.src !== initialsFallback) { this.src=initialsFallback; this.onerror=null; }};
+
+                detailsLeagueName.textContent = data.league_name || 'N/A';
+                const leagueLogoPath = data.league_logo_path ? `{% static '' %}${data.league_logo_path.replace(/\\/g, '/')}` : '';
+                const leagueLogoFallback = `https://placehold.co/40x24/CCCCCC/333333?text=L`;
+                detailsLeagueLogo.src = leagueLogoPath || leagueLogoFallback;
+                detailsLeagueLogo.alt = `${data.league_name || 'League'} Logo`;
+                detailsLeagueLogo.onerror = function() { if (this.src !== leagueLogoFallback) { this.src=leagueLogoFallback; this.onerror=null; }};
+                detailsLeagueLogo.classList.toggle('hidden', !leagueLogoPath && !data.league_name);
+
+                detailsFounded.textContent = data.founded_year || '----';
+                detailsManager.textContent = data.manager_name || 'N/A';
+                detailsStadium.textContent = data.stadium_name || 'N/A';
+                detailsCapacity.textContent = data.stadium_capacity_str || 'N/A';
+                detailsDescription.textContent = data.description || 'No description available.';
+                detailsHistory.textContent = data.history_summary || 'No history summary available.';
+
+                if (setLeaguePickBtn) {
+                    updatePickButtonState();
+                }
+                
+                detailsLoading.classList.add('hidden');
+                detailsBentoGrid.classList.remove('hidden');
+
+             } catch (error) {
+                 console.error("Error fetching club details:", error);
+                 detailsLoading.classList.add('hidden');
+                 detailsError.classList.remove('hidden');
+                 detailsClubName.textContent = 'Error Loading Details';
+             }
         }
         
+        // Helper function (if not already defined)
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -201,68 +807,119 @@
             }
             return cookieValue;
         }
-        const csrftoken = getCookie('csrftoken');
 
-        leagueData.forEach(league => {
-            const logoStaticPath = league.logo_path ? `{% static '' %}${league.logo_path}` : 'https://placehold.co/48x48/f0f0f0/999999?text=L'; 
+
+        // --- INITIALIZATION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
             
-            const leagueIcon = L.divIcon({
-                className: 'league-icon-div', 
-                html: `<div style="background-image: url('${logoStaticPath}'); background-size: contain; background-repeat: no-repeat; background-position: center;" class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg"></div>`,
-                iconSize: [48, 48],
-                iconAnchor: [24, 24] 
+            if (championsContainer) {
+                populateChampionSlots();
+                
+                championsContainer.addEventListener('click', (e) => {
+                    const slot = e.target.closest('.champion-slot');
+                    if (slot) {
+                        const leagueId = slot.dataset.leagueId;
+                        if(leagueId) openClubSelector(leagueId);
+                    }
+                });
+                
+                closeModalBtn.addEventListener('click', closeClubSelector);
+
+                modalLogoScroll.addEventListener('click', (e) => {
+                     const clickedItem = e.target.closest('img.modal-logo-item, div.none-option');
+                     if (clickedItem) {
+                         if (clickedItem.classList.contains('is-center')) {
+                             if (clickedItem.classList.contains('none-option')) {
+                                 selectChampion(currentSelectingLeagueId, 'NONE', null, null);
+                             } else {
+                                 const clubId = clickedItem.dataset.clubId;
+                                 const clubName = clickedItem.dataset.clubName;
+                                 const logoUrl = clickedItem.dataset.logoUrl;
+                                 if(clubId && clubName) selectChampion(currentSelectingLeagueId, clubId, clubName, logoUrl);
+                             }
+                         } else {
+                             scrollToItem(clickedItem);
+                         }
+                     }
+                });
+                modal.addEventListener('click', (e) => { if (e.target === modal) closeClubSelector(); });
+            }
+
+
+            leagueData.forEach(league => {
+                 const logoStaticPath = league.logo_path ? `{% static '' %}${league.logo_path.replace(/\\/g, '/')}` : `https://placehold.co/48x48/CCCCCC/333333?text=${league.short_id || 'L'}`;
+                 const mapMarkerFallbackUrl = `https://placehold.co/48x48/CCCCCC/333333?text=${league.short_id || 'L'}`;
+
+                const leagueIcon = L.divIcon({
+                    className: '',
+                     html: `<div class="league-icon-div" title="${league.name}" style="background-image: url('${logoStaticPath}');"
+                                onerror="this.style.backgroundImage='url(${mapMarkerFallbackUrl})'; this.onerror=null;">
+                            </div>`,
+                    iconSize: [52, 52],
+                    iconAnchor: [26, 26]
+                });
+
+                L.marker(league.coords, { icon: leagueIcon }).addTo(map)
+                    .on('click', () => {
+                        showClubs(league);
+                        map.setView(league.coords, 6);
+                    })
+                    .bindTooltip(league.name, {
+                        permanent: false, direction: 'top', offset: [0, -26],
+                        className: 'league-tooltip'
+                    });
             });
 
-            L.marker(league.coords, { icon: leagueIcon })
-                .addTo(map)
-                .on('click', () => {
-                    showClubs(league); 
-                    map.setView(league.coords, 6); 
-                })
-                .bindTooltip(league.name, {
-                    permanent: false, 
-                    direction: 'top', 
-                    offset: [0, -24], 
-                    className: 'font-tektur text-lg bg-white bg-opacity-80 rounded px-2 py-1 border border-gray-300 shadow' 
-                });
-        });
+            searchBar.addEventListener('input', filterClubs);
 
-        searchBar.addEventListener('input', filterClubs);
-
-        clubGrid.addEventListener('click', function(e) {
-            const favButton = e.target.closest('.favorite-btn');
-            if (favButton) {
-                const clubId = favButton.dataset.clubId;
-                console.log("Favorite button clicked for club ID:", clubId); 
-                const isCurrentlyFavorited = favButton.classList.contains('is-favorited');
-                
-                 favButton.classList.toggle('is-favorited', !isCurrentlyFavorited);
-                 if (!isCurrentlyFavorited) {
-                     favoriteClubIDs.add(clubId);
-                 } else {
-                     favoriteClubIDs.delete(clubId);
+            clubGrid.addEventListener('click', (e) => {
+                 const viewButton = e.target.closest('button.view-club-btn');
+                 // Removed favButton check
+                 
+                 if (viewButton) {
+                     e.preventDefault();
+                     const card = viewButton.closest('.club-card');
+                     if (card) {
+                         const clubId = card.dataset.clubId;
+                         if (clubId) {
+                             fetchAndShowClubDetails(clubId);
+                         } else {
+                              console.error("Could not find club ID on card.");
+                         }
+                     }
                  }
-            }
+            });
+
+             detailsCloseBtn.addEventListener('click', hideDetailsModal);
+             detailsModal.addEventListener('click', (e) => { if (e.target === detailsModal) hideDetailsModal(); });
+
             
-            const viewButton = e.target.closest('.view-club-btn');
-            if (viewButton) {
-                 e.preventDefault(); 
-                 const clubCard = viewButton.closest('.club-card');
-                 const clubId = clubCard ? clubCard.dataset.clubId : null;
-                 if (clubId) {
-                    console.log("View club button clicked for club ID:", clubId);
-                 }
+             if (setLeaguePickBtn) {
+                 setLeaguePickBtn.addEventListener('click', () => {
+                     const clubId = setLeaguePickBtn.dataset.clubId;
+                     const clubName = setLeaguePickBtn.dataset.clubName;
+                     const logoUrl = setLeaguePickBtn.dataset.logoUrl;
+                     const leagueId = setLeaguePickBtn.dataset.leagueId;
+                     const isSelected = setLeaguePickBtn.dataset.isSelected === 'true';
+
+                     if (leagueId && clubId && clubName) {
+                         selectChampion(leagueId, isSelected ? 'NONE' : clubId, isSelected ? null : clubName, isSelected ? null : logoUrl);
+                     } else {
+                          console.error("Missing data on pick button to set/unset champion.");
+                     }
+                 });
+             }
+
+
+            if (leagueData && leagueData.length > 0) {
+                showAllClubs();
+            } else {
+                leagueTitle.textContent = "No Leagues Available";
+                clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">Could not load club data.</p>';
+                noClubsMessage.classList.remove('hidden');
             }
         });
-
-        if (leagueData && leagueData.length > 0) {
-            showClubs(leagueData[0]);
-        } else {
-             leagueTitle.textContent = "No Leagues Available";
-             clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">The directory is currently empty.</p>';
-             noClubsMessage.classList.remove('hidden');
-        }
 
     </script>
 {% endblock content %}
-
