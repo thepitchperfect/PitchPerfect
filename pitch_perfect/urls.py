@@ -20,6 +20,7 @@ from matchpredictions import views as prediction_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('directory/', include('club_directories.urls')),
     path('', prediction_views.home, name='home'),
     path('predictions/', include('matchpredictions.urls')),
 ]
