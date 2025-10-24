@@ -1,0 +1,134 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}Style Guide - PitchPerfect{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>Design System Style Guide</h1>
+    <p>Color Palette & Typography Reference</p>
+</div>
+
+<!-- Typography Section -->
+<div class="card">
+    <div class="card-header">Typography</div>
+    
+    <h1>H1 Header - Orbitron Font (Main Titles)</h1>
+    <h2>H2 Subheader - Tektur Font (Section Headers)</h2>
+    <h3>H3 Subheader - Tektur Font (Subsection Headers)</h3>
+    <p>This is a paragraph using Lato font. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+    <p><strong>Bold paragraph text</strong> and <a href="#">link text example</a>.</p>
+</div>
+
+<!-- Color Palette Section -->
+<div class="card">
+    <div class="card-header">Grayscale Color Palette</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <div style="text-align: center;">
+            <div style="background: #ffffff; border: 1px solid #333; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem;"><strong>White</strong><br>#ffffff</p>
+        </div>
+        <div style="text-align: center;">
+            <div style="background: #bbbbbb; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem;"><strong>Gray 400</strong><br>#bbbbbb</p>
+        </div>
+        <div style="text-align: center;">
+            <div style="background: #8e8e8e; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem;"><strong>Gray 600</strong><br>#8e8e8e</p>
+        </div>
+        <div style="text-align: center;">
+            <div style="background: #606060; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem; color: white;"><strong>Gray 800</strong><br>#606060</p>
+        </div>
+        <div style="text-align: center;">
+            <div style="background: #333333; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem; color: white;"><strong>Gray 1000</strong><br>#333333</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Orange Accent Colors</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <div style="text-align: center;">
+            <div style="background: #ffd7aa; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem;"><strong>Orange 100</strong><br>#ffd7aa</p>
+        </div>
+        <div style="text-align: center;">
+            <div style="background: #ffb054; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem;"><strong>Orange 200</strong><br>#ffb054</p>
+        </div>
+        <div style="text-align: center;">
+            <div style="background: #fe9800; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem;"><strong>Orange 300</strong><br>#fe9800</p>
+        </div>
+        <div style="text-align: center;">
+            <div style="background: #c58900; height: 100px; border-radius: 5px;"></div>
+            <p style="margin-top: 0.5rem; color: white;"><strong>Orange 400</strong><br>#c58900</p>
+        </div>
+    </div>
+</div>
+
+<!-- Buttons Section -->
+<div class="card">
+    <div class="card-header">Button Styles</div>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+        <button class="btn btn-primary">Primary Button</button>
+        <button class="btn btn-secondary">Secondary Button</button>
+        <a href="#" class="btn btn-primary">Link Button</a>
+    </div>
+</div>
+
+<!-- Table Example -->
+<div class="card">
+    <div class="card-header">Table Style Example</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Header 1</th>
+                <th>Header 2</th>
+                <th>Header 3</th>
+                <th>Header 4</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Row 1 Cell 1</td>
+                <td>Row 1 Cell 2</td>
+                <td>Row 1 Cell 3</td>
+                <td>Row 1 Cell 4</td>
+            </tr>
+            <tr>
+                <td>Row 2 Cell 1</td>
+                <td>Row 2 Cell 2</td>
+                <td>Row 2 Cell 3</td>
+                <td>Row 2 Cell 4</td>
+            </tr>
+            <tr>
+                <td>Row 3 Cell 1</td>
+                <td>Row 3 Cell 2</td>
+                <td>Row 3 Cell 3</td>
+                <td>Row 3 Cell 4</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Alerts Section -->
+<div class="card">
+    <div class="card-header">Alert Messages</div>
+    <div class="alert alert-success">
+        This is a success message!
+    </div>
+    <div class="alert alert-error">
+        This is an error message!
+    </div>
+    <div class="alert alert-info">
+        This is an info message!
+    </div>
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-primary">Back to Home</a>
+</div>
+{% endblock %}
+

@@ -1,0 +1,470 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}{{ club.name}} - Team Statistics{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Override base styles for full-page layout */
+    body {
+        background-color: #1a1a2e;
+        color: #ffffff;
+        overflow-x: hidden;
+    }
+    
+    main.container {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .team-layout {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 0;
+        width: 100vw;
+        min-height: calc(100vh - 80px); /* Account for navbar height */
+        margin: 0;
+        position: relative;
+    }
+    
+    .team-sidebar {
+        background: linear-gradient(180deg, var(--color-orange-300) 0%, var(--color-orange-400) 100%);
+        padding: 3rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        min-height: 100%;
+        position: sticky;
+        top: 0;
+    }
+    
+    .team-logo-section {
+        text-align: left;
+    }
+    
+    .team-logo {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+        margin-bottom: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+    }
+    
+    .team-name {
+        font-family: var(--font-header);
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+    
+    .team-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+    }
+    
+    .team-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .sidebar-section {
+        margin-top: 2rem;
+    }
+    
+    .sidebar-section h3 {
+        color: white;
+        font-family: var(--font-subheader);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .sidebar-button {
+        display: block;
+        width: 100%;
+        padding: 0.9rem 1.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50px;
+        color: white;
+        text-decoration: none;
+        text-align: center;
+        font-family: var(--font-subheader);
+        font-weight: 500;
+        margin-bottom: 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar-button:hover {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+    }
+    
+    .team-content {
+        background: #1a1a2e;
+        padding: 3rem;
+        overflow-y: auto;
+        min-height: 100%;
+        width: 100%;
+    }
+    
+    .stats-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .season-selector {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-family: var(--font-subheader);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .main-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 12px;
+        text-align: left;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+        font-family: var(--font-paragraph);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 3rem;
+        font-weight: 800;
+        font-family: var(--font-header);
+        color: white;
+        line-height: 1;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3rem;
+    }
+    
+    .stats-column h2 {
+        font-family: var(--font-header);
+        font-size: 1.8rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stat-row:last-child {
+        border-bottom: none;
+    }
+    
+    .stat-name {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        font-family: var(--font-paragraph);
+    }
+    
+    .stat-number {
+        font-size: 1.3rem;
+        font-weight: 700;
+        font-family: var(--font-subheader);
+        color: white;
+    }
+    
+    .back-button {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 1rem 2rem;
+        background: var(--color-orange-300);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-family: var(--font-subheader);
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(254, 152, 0, 0.4);
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
+    
+    .back-button:hover {
+        background: var(--color-orange-400);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(254, 152, 0, 0.5);
+    }
+    
+    @media (max-width: 968px) {
+        .team-layout {
+            grid-template-columns: 1fr;
+            width: 100vw;
+        }
+        
+        .team-sidebar {
+            padding: 2rem 1.5rem;
+            position: relative;
+            min-height: auto;
+        }
+        
+        .team-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .main-stats {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="team-layout">
+
+    <!-- Left Sidebar -->
+    <div class="team-sidebar">
+        <div class="team-logo-section">
+            {% if club.logo_url %}
+                <img src="{{ club.logo_url }}" alt="{{ club.name }} logo" class="team-logo">
+            {% else %}
+                <div class="team-logo" style="display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+                    ⚽
+                </div>
+            {% endif %}
+            
+            <h1 class="team-name">{{ club.name }}</h1>
+            
+            <div class="team-info">
+                {% if club.founded_year %}
+                <div class="team-info-item">
+                    <span>📅</span>
+                    <span>Est. {{ club.founded_year }}</span>
+                </div>
+                {% endif %}
+                {% if club.stadium %}
+                <div class="team-info-item">
+                    <span>🏟️</span>
+                    <span>{{ club.stadium }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>Visit {{ club.name }} Website</h3>
+            {% if club.website %}
+            <a href="{{ club.website }}" target="_blank" class="sidebar-button">
+                Official Website 🔗
+            </a>
+            {% endif %}
+            {% if player_stats.0 %}
+            <a href="{% url 'statisticsrafi:player_detail' player_stats.0.player.id %}" class="sidebar-button">
+                View Top Player
+            </a>
+            {% endif %}
+            <a href="{% url 'statisticsrafi:club_rankings' %}" class="sidebar-button">
+                Club Rankings
+            </a>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>Team Information</h3>
+            <a href="{% url 'statisticsrafi:home' %}" class="sidebar-button">
+                Back to Statistics Hub
+            </a>
+            {% if club.league %}
+            <a href="#" class="sidebar-button">
+                {{ club.league.name }}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right Content Area -->
+    <div class="team-content">
+        <div class="stats-header">
+            <div class="season-selector">
+                {{ team_stats.season|default:"2025/26" }}
+            </div>
+        </div>
+        
+        {% if team_stats %}
+        <!-- Main Stats Cards -->
+        <div class="main-stats">
+            <div class="stat-card">
+                <div class="stat-label">Games Played</div>
+                <div class="stat-value">{{ team_stats.matches_played }}</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Goals</div>
+                <div class="stat-value">
+                    {% widthratio team_stats.scored_per_match 1 team_stats.matches_played %}
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Goals Conceded</div>
+                <div class="stat-value">
+                    {% widthratio team_stats.conceded_per_match 1 team_stats.matches_played %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Statistics Grid -->
+        <div class="stats-grid">
+            <!-- Attack Column -->
+            <div class="stats-column">
+                <h2>Attack</h2>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Goals</div>
+                    <div class="stat-number">
+                        {% widthratio team_stats.scored_per_match 1 team_stats.matches_played %}
+                    </div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">XG</div>
+                    <div class="stat-number">
+                        {% widthratio team_stats.xg_for_per_match 1 team_stats.matches_played %}
+                    </div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Shots</div>
+                    <div class="stat-number">
+                        {% widthratio team_stats.shots_taken_per_match 1 team_stats.matches_played %}
+                    </div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Shots per Match</div>
+                    <div class="stat-number">{{ team_stats.shots_taken_per_match }}</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Shots Conversion Rate</div>
+                    <div class="stat-number">{{ team_stats.shots_conversion_rate }}%</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Goals per Match</div>
+                    <div class="stat-number">{{ team_stats.scored_per_match }}</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Failed to Score</div>
+                    <div class="stat-number">{{ team_stats.failed_to_score_percentage }}%</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Penalties Won</div>
+                    <div class="stat-number">{{ team_stats.penalties_won|default:"-" }}</div>
+                </div>
+            </div>
+            
+            <!-- Defence Column -->
+            <div class="stats-column">
+                <h2>Defence</h2>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Goals Conceded</div>
+                    <div class="stat-number">
+                        {% widthratio team_stats.conceded_per_match 1 team_stats.matches_played %}
+                    </div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Goals Conceded per Match</div>
+                    <div class="stat-number">{{ team_stats.conceded_per_match }}</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Clean Sheets</div>
+                    <div class="stat-number">{{ team_stats.clean_sheets_percentage }}%</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">XG Against</div>
+                    <div class="stat-number">
+                        {% widthratio team_stats.xg_against_per_match 1 team_stats.matches_played %}
+                    </div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Fouls Committed per Match</div>
+                    <div class="stat-number">{{ team_stats.fouls_committed_per_match }}</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Fouled Against per Match</div>
+                    <div class="stat-number">{{ team_stats.fouled_against_per_match }}</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Penalties Conceded</div>
+                    <div class="stat-number">{{ team_stats.penalties_conceded|default:"-" }}</div>
+                </div>
+                
+                <div class="stat-row">
+                    <div class="stat-name">Possession Average</div>
+                    <div class="stat-number">{{ team_stats.possession_avg }}%</div>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <div style="text-align: center; padding: 4rem; color: rgba(255, 255, 255, 0.6);">
+            <h2>No statistics available for this team yet.</h2>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Floating Back Button -->
+<a href="{% url 'statisticsrafi:home' %}" class="back-button">
+    ← Back to Home
+</a>
+
+{% endblock %}
+

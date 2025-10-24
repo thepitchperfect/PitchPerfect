@@ -1,0 +1,146 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}Most Awards - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>🏆 Club & Player Awards</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        All-time award winners and trophy achievements
+    </p>
+</div>
+
+<!-- Club Awards Section -->
+<div class="card">
+    <div class="card-header">🏆 Club Trophy Cabinet</div>
+    
+    {% if club_awards %}
+    <div style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; padding: 1rem; background: var(--color-gray-800); border-left: 4px solid var(--color-orange-500); color: var(--color-orange-300); font-weight: 600;">
+            Clubs with Most Awards
+        </h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Logo</th>
+                    <th>Club</th>
+                    <th>League</th>
+                    <th>Total Awards</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for club in clubs %}
+                <tr>
+                    <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                    <td style="text-align: center;">
+                        {% if club.logo_url %}
+                            <img src="{{ club.logo_url }}" alt="{{ club.name }} logo" style="width: 35px; height: 35px; object-fit: contain;">
+                        {% else %}
+                            <span style="color: var(--color-gray-600);">-</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ club.name }}</strong></td>
+                    <td>{{ club.league.name }}</td>
+                    <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.2rem;">{{ club.award_count }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <h3 style="margin-bottom: 1rem; padding: 1rem; background: var(--color-gray-800); border-left: 4px solid var(--color-orange-500); color: var(--color-orange-300); font-weight: 600;">
+            Recent Club Awards & Trophies
+        </h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Club</th>
+                    <th>Logo</th>
+                    <th>Trophy</th>
+                    <th>Season</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for award in club_awards %}
+                <tr>
+                    <td><strong>{{ award.club.name }}</strong></td>
+                    <td style="text-align: center;">
+                        {% if award.club.logo_url %}
+                            <img src="{{ award.club.logo_url }}" alt="{{ award.club.name }} logo" style="width: 30px; height: 30px; object-fit: contain;">
+                        {% else %}
+                            <span style="color: var(--color-gray-600);">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: var(--color-orange-200);">{{ award.title }}</strong>
+                    </td>
+                    <td><span style="color: var(--color-orange-300);">{{ award.season }}</span></td>
+                    <td style="color: var(--color-gray-400);">{{ award.date_awarded|date:"M d, Y" }}</td>
+                    <td style="color: var(--color-gray-500); font-size: 0.9rem;">{{ award.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 3rem;">
+        No club awards have been added yet. Add some awards in the admin panel!
+    </p>
+    {% endif %}
+</div>
+
+<!-- Player Awards Section -->
+<div class="card">
+    <div class="card-header">⭐ Player Award Winners Leaderboard</div>
+    
+    {% if players %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Club</th>
+                <th>Position</th>
+                <th>Total Awards</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in players %}
+            <tr>
+                <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                <td>
+                    <strong>{{ player.name }}</strong>
+                    <br>
+                    <small style="color: var(--color-gray-600);">{{ player.nationality }}</small>
+                </td>
+                <td>{{ player.club.name }}</td>
+                <td>{{ player.get_position_display }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.2rem;">{{ player.award_count }}</span></td>
+                <td>
+                    <a href="{% url 'statisticsrafi:player_detail' player.id %}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">View Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 3rem;">
+        No awards have been added yet. Add some awards in the admin panel!
+    </p>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+
+

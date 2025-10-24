@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Pitch Perfect - Register</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="w-full min-h-screen flex items-center justify-center p-8 md:p-10">
+    <div class="max-w-md w-full">
+        <div class="form-style">
+            <h1 class="font-orbitron text-2xl md:text-3xl text-center font-bold text-gray-900 mb-6 md:mb-8">Register
+            </h1>
+
+            <form id="registerForm" class="space-y-8 md:space-y-10" method="POST">
+                <div class="space-y-4 md:space-y-6">
+                    <div>
+                        <label for="username"
+                            class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Username</label>
+                        <input id="username" name="username" type="text" required
+                            class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                            placeholder="Enter your username">
+                    </div>
+
+                    <div>
+                        <label for="full_name"
+                            class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Full
+                            Name</label>
+                        <input id="full_name" name="full_name" type="text" required
+                            class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                            placeholder="Enter your full name">
+                    </div>
+
+                    <div>
+                        <label for="email"
+                            class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Email</label>
+                        <input id="email" name="email" type="email" required
+                            class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                            placeholder="Enter your email">
+                    </div>
+
+                    <div>
+                        <label for="password1"
+                            class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Password</label>
+                        <input id="password1" name="password1" type="password" required
+                            class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                            placeholder="Enter your password">
+                    </div>
+
+                    <div>
+                        <label for="password2"
+                            class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Confirm
+                            Password</label>
+                        <input id="password2" name="password2" type="password" required
+                            class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                            placeholder="Confirm your password">
+                    </div>
+                </div>
+
+                <button type="submit" id="submitRegister" form="registerForm"
+                    class="flex w-full py-[3px] lg:py-1 px-4 lg:px-5 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base lg:text-lg not-italic font-extrabold">
+                    Create Account
+                </button>
+            </form>
+
+            <!-- Container for success/error messages -->
+            <div id="message-container" class="mt-8 hidden"></div>
+
+            <p class="font-lato text-xs md:text-base font-normal text-gray-500 mt-4 md:mt-6">
+                Already have an account?
+                <a href="{% url 'main:login' %}" class="text-[#FE8800] font-medium">
+                    Log In
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("registerForm");
+        const messageContainer = document.getElementById("message-container");
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const postURL = "{% url 'main:register' %}";
+
+            fetch(postURL, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: new FormData(form),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    messageContainer.classList.remove("hidden");
+                    messageContainer.innerHTML = "";
+
+                    if (data.status === 'success') {
+                        messageContainer.innerHTML = `<div class="px-4 py-3 rounded-md text-sm border bg-green-50 border-green-200 text-green-700">
+                        ${data.message || "Register successfully!"}
+                    </div>`;
+
+                        // showToast(data.message || "Register Successfully!", "", "success"); // Commented out - showToast is not defined
+
+                        // Redirect using the URL from the server's response
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 800);
+
+                    } else if (data.errors) {
+                        const errorsHTML = Object.entries(data.errors)
+                            .map(([field, messages]) => `<div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700 mb-2">
+                            <strong>${field === '__all__' ? 'Error' : field}:</strong> ${messages.join(" ")}
+                        </div>`)
+                            .join("");
+                        messageContainer.innerHTML = errorsHTML;
+                    } else {
+                        messageContainer.innerHTML = `<div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700">
+                        ${data.message || "Register failed. Please try again."}
+                    </div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    messageContainer.classList.remove("hidden");
+                    messageContainer.innerHTML = `<div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700">
+                    An unexpected network error occurred. Please try again.
+                </div>`;
+                });
+        });
+    });
+</script>
+{% endblock content %}

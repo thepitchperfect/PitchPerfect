@@ -1,0 +1,187 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}Home - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>Football Statistics Hub</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        Track, compare, and analyze the best players and clubs in football
+    </p>
+</div>
+
+<!-- Top Scorers Card -->
+<div class="card">
+    <div class="card-header">⚽ Top Goal Scorers (2025/26)</div>
+    {% if top_scorers %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Club</th>
+                <th>Goals</th>
+                <th>Assists</th>
+                <th>Appearances</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in top_scorers %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ stat.player.name }}</strong></td>
+                <td>{{ stat.player.club.name }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold;">{{ stat.goals }}</span></td>
+                <td>{{ stat.assists }}</td>
+                <td>{{ stat.appearances }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 2rem;">
+        No statistics available yet. Add some data in the admin panel!
+    </p>
+    {% endif %}
+    <div class="mt-2 text-center">
+        <a href="{% url 'statisticsrafi:top_scorers' %}" class="btn btn-primary">View All Top Scorers</a>
+    </div>
+</div>
+
+<!-- Top Assisters Card -->
+<div class="card">
+    <div class="card-header">🎯 Top Assist Providers (2025/26)</div>
+    {% if top_assisters %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Club</th>
+                <th>Assists</th>
+                <th>Goals</th>
+                <th>Appearances</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in top_assisters %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ stat.player.name }}</strong></td>
+                <td>{{ stat.player.club.name }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold;">{{ stat.assists }}</span></td>
+                <td>{{ stat.goals }}</td>
+                <td>{{ stat.appearances }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 2rem;">
+        No statistics available yet. Add some data in the admin panel!
+    </p>
+    {% endif %}
+    <div class="mt-2 text-center">
+        <a href="{% url 'statisticsrafi:top_assisters' %}" class="btn btn-primary">View All Assist Leaders</a>
+    </div>
+</div>
+
+<!-- Clean Sheets Card -->
+<div class="card">
+    <div class="card-header">🧤 Most Clean Sheets (2025/26)</div>
+    {% if most_clean_sheets %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Club</th>
+                <th>Position</th>
+                <th>Clean Sheets</th>
+                <th>Appearances</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in most_clean_sheets %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ stat.player.name }}</strong></td>
+                <td>{{ stat.player.club.name }}</td>
+                <td>{{ stat.player.get_position_display }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold;">{{ stat.clean_sheets }}</span></td>
+                <td>{{ stat.appearances }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 2rem;">
+        No statistics available yet. Add some data in the admin panel!
+    </p>
+    {% endif %}
+    <div class="mt-2 text-center">
+        <a href="{% url 'statisticsrafi:clean_sheets' %}" class="btn btn-primary">View All Clean Sheet Leaders</a>
+    </div>
+</div>
+
+<!-- Club Rankings Card -->
+<div class="card">
+    <div class="card-header">🏆 FIFA Club World Rankings</div>
+    {% if club_rankings %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Logo</th>
+                <th>Club</th>
+                <th>Country</th>
+                <th>Continent</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ranking in club_rankings %}
+            <tr>
+                <td><strong style="color: var(--color-orange-300);">#{{ ranking.rank }}</strong></td>
+                <td style="text-align: center;">
+                    {% if ranking.club.logo_url %}
+                        <img src="{{ ranking.club.logo_url }}" alt="{{ ranking.club.name }} logo" style="width: 35px; height: 35px; object-fit: contain;">
+                    {% else %}
+                        <span style="color: var(--color-gray-600);">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'statisticsrafi:team_detail' ranking.club.id %}" style="color: var(--color-orange-300); font-weight: bold;">
+                        {{ ranking.club.name }}
+                    </a>
+                </td>
+                <td>{{ ranking.club.league.region }}</td>
+                <td>{{ ranking.continent }}</td>
+                <td>{{ ranking.points }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 2rem;">
+        No rankings available yet. Add some data in the admin panel!
+    </p>
+    {% endif %}
+    <div class="mt-2 text-center">
+        <a href="{% url 'statisticsrafi:club_rankings' %}" class="btn btn-primary">View Full Rankings</a>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="text-center mt-2">
+    <h2>Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
+        <a href="{% url 'statisticsrafi:compare_players' %}" class="btn btn-primary">Compare Players</a>
+        <a href="{% url 'statisticsrafi:most_awards' %}" class="btn btn-secondary">View Awards</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'statisticsrafi:my_watchlist' %}" class="btn btn-secondary">My Watchlist</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

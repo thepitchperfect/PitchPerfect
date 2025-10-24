@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PitchPerfect Statistics{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Orbitron:wght@700&family=Tektur:wght@600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Color Palette Variables */
+        :root {
+            /* Grayscale */
+            --color-white: #ffffff;
+            --color-gray-100: #ffffff;
+            --color-gray-400: #bbbbbb;
+            --color-gray-600: #8e8e8e;
+            --color-gray-800: #606060;
+            --color-gray-1000: #333333;
+            
+            /* Orange Accent Colors */
+            --color-orange-100: #ffd7aa;
+            --color-orange-200: #ffb054;
+            --color-orange-300: #fe9800;
+            --color-orange-400: #c58900;
+            
+            /* Typography */
+            --font-header: 'Orbitron', sans-serif;
+            --font-subheader: 'Tektur', sans-serif;
+            --font-paragraph: 'Lato', sans-serif;
+        }
+        
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-paragraph);
+            background-color: var(--color-white);
+            color: var(--color-gray-1000);
+            line-height: 1.6;
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-header);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: var(--color-gray-1000);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            font-family: var(--font-subheader);
+            color: var(--color-gray-800);
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            font-family: var(--font-subheader);
+            color: var(--color-gray-800);
+        }
+        
+        p {
+            font-family: var(--font-paragraph);
+            margin-bottom: 1rem;
+            color: var(--color-gray-800);
+        }
+        
+        a {
+            color: var(--color-orange-300);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        a:hover {
+            color: var(--color-orange-400);
+        }
+        
+        /* Header/Navigation */
+        header {
+            background: linear-gradient(135deg, var(--color-gray-1000) 0%, var(--color-gray-800) 100%);
+            color: var(--color-white);
+            padding: 1.5rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-family: var(--font-header);
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--color-orange-200);
+            white-space: nowrap;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+        
+        .nav-links li {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            color: var(--color-gray-400);
+            font-family: var(--font-subheader);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: block;
+            white-space: nowrap;
+        }
+        
+        .nav-links a:hover {
+            background-color: var(--color-orange-300);
+            color: var(--color-white);
+        }
+        
+        /* Responsive navbar */
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .nav-links {
+                width: 100%;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .nav-links a {
+                width: 100%;
+            }
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--color-white);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--color-orange-300);
+        }
+        
+        .card-header {
+            font-family: var(--font-subheader);
+            font-size: 1.5rem;
+            color: var(--color-gray-1000);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--color-gray-400);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-family: var(--font-subheader);
+            font-weight: 600;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-orange-300);
+            color: var(--color-white);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-orange-400);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(254, 152, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: var(--color-gray-600);
+            color: var(--color-white);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--color-gray-800);
+        }
+        
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-family: var(--font-paragraph);
+        }
+        
+        thead {
+            background-color: var(--color-gray-1000);
+            color: var(--color-white);
+            font-family: var(--font-subheader);
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-gray-400);
+        }
+        
+        tbody tr:hover {
+            background-color: var(--color-orange-100);
+            transition: background-color 0.2s ease;
+        }
+        
+        /* Messages/Alerts */
+        .messages {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 0 2rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            font-family: var(--font-paragraph);
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .alert-info {
+            background-color: var(--color-orange-100);
+            color: var(--color-orange-400);
+            border-left: 4px solid var(--color-orange-300);
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--color-gray-1000);
+            color: var(--color-gray-400);
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+            font-family: var(--font-paragraph);
+        }
+        
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 1rem; }
+        .mt-2 { margin-top: 2rem; }
+        .mb-1 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 2rem; }
+        
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    {% include 'navbar.html' %}
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 PitchPerfect Statistics. All rights reserved.</p>
+        <p>Built with Django & ❤️</p>
+    </footer>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

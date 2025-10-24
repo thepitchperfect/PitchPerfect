@@ -1,0 +1,82 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}My Watchlist - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>⭐ My Watchlist</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        Your favorite players to track
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-header">Watchlist Players</div>
+    
+    {% if watchlist %}
+    <table>
+        <thead>
+            <tr>
+                <th>Player</th>
+                <th>Club</th>
+                <th>Position</th>
+                <th>Added Date</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in watchlist %}
+            <tr>
+                <td>
+                    <strong>{{ item.player.name }}</strong>
+                    <br>
+                    <small style="color: var(--color-gray-600);">{{ item.player.nationality }}</small>
+                </td>
+                <td>{{ item.player.club.name }}</td>
+                <td>{{ item.player.get_position_display }}</td>
+                <td>{{ item.added_date|date:"M d, Y" }}</td>
+                <td>
+                    {% if item.notes %}
+                        <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            {{ item.notes|truncatewords:10 }}
+                        </div>
+                    {% else %}
+                        <em style="color: var(--color-gray-600);">No notes</em>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'statisticsrafi:player_detail' item.player.id %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View</a>
+                        <a href="{% url 'statisticsrafi:update_watchlist_notes' item.id %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Edit Notes</a>
+                        <a href="{% url 'statisticsrafi:remove_from_watchlist' item.id %}" 
+                           class="btn btn-secondary" 
+                           style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background-color: #dc3545;"
+                           onclick="return confirm('Are you sure you want to remove {{ item.player.name }} from your watchlist?');">
+                           Remove
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 3rem;">
+        <p style="color: var(--color-gray-600); font-size: 1.1rem; margin-bottom: 1rem;">
+            Your watchlist is empty. Start adding your favorite players!
+        </p>
+        <a href="{% url 'statisticsrafi:top_scorers' %}" class="btn btn-primary">Browse Players</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+
+

@@ -1,0 +1,92 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}FIFA Club Rankings - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>🌍 FIFA Club World Rankings</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        Official FIFA club rankings by points
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-header">Global Club Rankings</div>
+    
+    {% if rankings %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Logo</th>
+                <th>Club</th>
+                <th>Country</th>
+                <th>League</th>
+                <th>Continent</th>
+                <th>Points</th>
+                <th>Previous Rank</th>
+                <th>Change</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ranking in rankings %}
+            <tr>
+                <td>
+                    <strong style="color: var(--color-orange-300); font-size: 1.2rem;">#{{ ranking.rank }}</strong>
+                </td>
+                <td style="text-align: center;">
+                    {% if ranking.club.logo_url %}
+                        <img src="{{ ranking.club.logo_url }}" alt="{{ ranking.club.name }} logo" style="width: 40px; height: 40px; object-fit: contain;">
+                    {% else %}
+                        <span style="color: var(--color-gray-600);">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'statisticsrafi:team_detail' ranking.club.id %}" style="color: var(--color-orange-300); font-weight: bold;">
+                        {{ ranking.club.name }}
+                    </a>
+                </td>
+                <td>{{ ranking.club.league.region }}</td>
+                <td>{{ ranking.club.league.name }}</td>
+                <td>{{ ranking.continent }}</td>
+                <td><strong>{{ ranking.points }}</strong></td>
+                <td>
+                    {% if ranking.previous_rank %}
+                        #{{ ranking.previous_rank }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if ranking.previous_rank %}
+                        {% if ranking.previous_rank > ranking.rank %}
+                            <span style="color: green;">▲ {{ ranking.previous_rank|add:"-"|add:ranking.rank|cut:"-" }}</span>
+                        {% elif ranking.previous_rank < ranking.rank %}
+                            <span style="color: red;">▼ {{ ranking.rank|add:"-"|add:ranking.previous_rank|cut:"-" }}</span>
+                        {% else %}
+                            <span style="color: var(--color-gray-600);">-</span>
+                        {% endif %}
+                    {% else %}
+                        <span style="color: var(--color-gray-600);">NEW</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 3rem;">
+        No club rankings available yet. Add some rankings in the admin panel!
+    </p>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+
+
