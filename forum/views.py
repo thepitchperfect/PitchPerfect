@@ -16,10 +16,10 @@ def forum_home(request):
     - Supports filtering by multiple clubs and league
     - Shows news carousel at top, discussions below
     """
-    # Base queryset - removed 'league' from select_related since it might not exist yet
+    # Base queryset
     all_posts = Post.objects.select_related('author').prefetch_related('clubs', 'images').annotate(
         comment_count=Count('comments')
-    )
+    ).order_by('-created_at')
     
     # Get filter parameters
     club_ids = request.GET.getlist('clubs')  # Multiple clubs
@@ -47,7 +47,7 @@ def forum_home(request):
         user_favorite_clubs = Club.objects.filter(favorited_by__user=request.user)
 
     # Separate news and discussions
-    news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')[:3]  # Top 3 most recent news
+    news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')
     discussion_posts = filtered_posts.filter(post_type='discussion')
     
     # Pagination for discussions only

@@ -10,266 +10,377 @@
 {% block content %}
 <div id="alert-container"></div>
 
-<div class="forum-layout">
+<div class="forum-layout mt-2">
+    <!-- MOBILE FILTER TOGGLE -->
+    <div class="lg:hidden w-full flex justify-start mb-4 px-4">
+        <button
+            id="toggleFilterBtn"
+            class="py-2 px-4 bg-[#fe8800] text-white rounded-md font-['Tektur'] font-semibold uppercase text-sm hover:bg-[#ffb054] transition"
+        >
+            Filters ▾
+        </button>
+    </div>
+
     <!-- Sidebar Filters -->
-    <aside class="forum-sidebar">
-        <h3 class="text-gray-900 sidebar-title">FILTERS</h3>
-        
-        <form id="filterForm">
-            <!-- Clubs Multi-Select with Search (Only Favorite Clubs) -->
-            <div class="filter-group">
-                <label>Filter by Your Clubs:</label>
+    <div id="filterSidebar" class="hidden lg:block">
+        <aside class="lg:sticky lg:top-8 lg:h-[calc(100vh-2rem)] lg:w-56 w-full bg-white rounded-xl p-4 shadow-sm border border-[#ffd7aa] overflow-y-auto">
+            <h3 class="font-['Tektur'] text-[#fe8800] text-lg font-bold mb-4 pb-3 border-b-4 border-[#ffd7aa]">FILTERS</h3>
+
+            <form id="filterForm" class="space-y-4">
+                <!-- Clubs Multi-Select with Search (Only Favorite Clubs) -->
+                <div class="filter-group">
+                <label class="block text-sm font-['Tektur'] font-semibold text-gray-700 mb-2">Filter by Your Clubs:</label>
+
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
-                        <input type="text" id="clubSearch" class="club-search" placeholder="Search clubs...">
-                        <div class="clubs-multiselect" id="clubsMultiselect">
-                            {% for club in clubs %}
-                            <div class="club-checkbox" data-club-name="{{ club.name|lower }}">
-                                <input type="checkbox" name="clubs" value="{{ club.id }}"
-                                    id="club-{{ club.id }}"
-                                    {% if club.id|stringformat:"s" in current_filters.clubs %}checked{% endif %}>
-                                <label for="club-{{ club.id }}">{{ club.name }}</label>
-                            </div>
+                    <input type="text" id="clubSearch" class="club-search w-full rounded-md border-2 border-[#ffd7aa] px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fe8800]" placeholder="Search clubs...">
+                    <div id="clubsMultiselect" class="clubs-multiselect mt-2 max-h-44 overflow-y-auto rounded-md border-2 border-[#ffd7aa] p-2">
+                        {% for club in clubs %}
+                        <div class="club-checkbox flex items-center gap-2 p-2 rounded hover:bg-[#fff6ea] cursor-pointer" data-club-name="{{ club.name|lower }}">
+                            <input type="checkbox" name="clubs" value="{{ club.id }}" id="club-{{ club.id }}" class="w-4 h-4 text-[#fe8800] focus:ring-[#fe8800]" {% if club.id|stringformat:"s" in current_filters.clubs %}checked{% endif %}>
+                            <label for="club-{{ club.id }}" class="text-sm text-gray-700">{{ club.name }}</label>
+                        </div>
                         {% endfor %}
-                        </div>
+                    </div>
+
                     {% elif user_favorite_clubs %}
-                        <input type="text" id="clubSearch" class="club-search" placeholder="Search your clubs...">
-                        <div class="clubs-multiselect" id="clubsMultiselect">
-                            {% for club in user_favorite_clubs %}
-                            <div class="club-checkbox" data-club-name="{{ club.name|lower }}">
-                                <input type="checkbox" name="clubs" value="{{ club.id }}" 
-                                       id="club-{{ club.id }}"
-                                       {% if club.id|stringformat:"s" in current_filters.clubs %}checked{% endif %}>
-                                <label for="club-{{ club.id }}">{{ club.name }}</label>
-                            </div>
-                            {% endfor %}
+                    <input type="text" id="clubSearch" class="club-search w-full rounded-md border-2 border-[#ffd7aa] px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fe8800]" placeholder="Search your clubs...">
+                    <div id="clubsMultiselect" class="clubs-multiselect mt-2 max-h-44 overflow-y-auto rounded-md border-2 border-[#ffd7aa] p-2">
+                        {% for club in user_favorite_clubs %}
+                        <div class="club-checkbox flex items-center gap-2 p-2 rounded hover:bg-[#fff6ea] cursor-pointer" data-club-name="{{ club.name|lower }}">
+                            <input type="checkbox" name="clubs" value="{{ club.id }}" id="club-{{ club.id }}" class="w-4 h-4 text-[#fe8800] focus:ring-[#fe8800]" {% if club.id|stringformat:"s" in current_filters.clubs %}checked{% endif %}>
+                            <label for="club-{{ club.id }}" class="text-sm text-gray-700">{{ club.name }}</label>
                         </div>
+                        {% endfor %}
+                    </div>
+
                     {% else %}
-                        <p style="color: #666; font-size: 0.9rem; padding: 1rem; background: #ffd7aa30; border-radius: 8px;">
-                            You haven't added any favorite clubs yet. Go to your Club Directory to add some!
-                        </p>
+                    <p class="text-sm text-gray-600 p-3 bg-[#ffd7aa30] rounded-md">
+                        You haven't added any favorite clubs yet. Go to your Club Directory to add some!
+                    </p>
                     {% endif %}
                 {% else %}
-                    <p style="color: #666; font-size: 0.9rem; padding: 1rem; background: #ffd7aa30; border-radius: 8px;">
-                        <a href="{% url 'main:login' %}" style="color: #fe8800; font-weight: bold;">Login</a> to filter by your clubs
+                    <p class="text-sm text-gray-600 p-3 bg-[#ffd7aa30] rounded-md">
+                    <a href="{% url 'main:login' %}" class="font-semibold text-[#fe8800]">Login</a> to filter by your clubs
                     </p>
                 {% endif %}
             </div>
 
             <!-- Search -->
             <div class="filter-group">
-                <label>Search:</label>
-                <input type="text" name="search" id="searchInput" 
-                       placeholder="Search posts..." 
-                       value="{{ current_filters.search|default:'' }}">
+            <label class="block text-sm font-['Tektur'] font-semibold text-gray-700 mb-2">Search:</label>
+            <input type="text" name="search" id="searchInput" value="{{ current_filters.search|default:'' }}" placeholder="Search posts..." class="w-full rounded-md border-2 border-[#ffd7aa] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#fe8800]">
             </div>
 
-            <div class="filter-actions">
-                <button type="submit" class="btn btn-primary btn-sm btn-block">Apply Filters</button>
-                <button type="button" class="btn btn-secondary btn-sm btn-block" onclick="clearFilters()">
-                    Clear All
-                </button>
+            <!-- Filter actions -->
+            <div class="filter-actions flex flex-col gap-2 mt-2">
+            <button type="submit" class="btn btn-primary w-full py-2 rounded-md bg-gradient-to-br from-[#fe8800] to-[#ffb054] text-white font-['Tektur'] font-semibold uppercase text-sm hover:opacity-95 transition">
+                Apply Filters
+            </button>
+            <button type="button" onclick="clearFilters()" class="btn btn-secondary w-full py-2 rounded-md bg-[#ffd7aa] text-[#333] font-['Tektur'] font-semibold uppercase text-sm hover:bg-[#ffb054] hover:text-white transition">
+                Clear All
+            </button>
             </div>
         </form>
-    </aside>
+
+            <!-- small spacer for bottom -->
+            <div class="mt-4"></div>
+        </aside>
+    </div>
+
 
     <!-- Main Content -->
-    <main class="forum-main">
-        <!-- Forum Header -->
-        <div class="forum-header">
-            <h1 class="forum-title"> <span class="text-gray-900"> DISCUSSION</span> FORUM</h1>
+    <main class="flex-1 px-4 md:px-8 py-8 font-['Lato'] bg-[#fff6ea] min-h-screen">
+        <!-- FORUM HEADER -->
+        <div class="forum-header w-full mb-6 border-b-4 border-[#fe8800] pb-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h1 class="forum-title font-['Orbitron'] text-[#fe8800] text-3xl sm:text-4xl font-extrabold uppercase tracking-wider">
+            <span class="text-gray-900">DISCUSSION</span> FORUM
+            </h1>
+
             {% if user.is_authenticated %}
-            <button class="btn btn-primary" onclick="openCreateModal()">
-                {% if user.is_staff %}CREATE POST{% else %}CREATE POST{% endif %}
-            </button>
+            <div class="flex items-center gap-3">
+                <button
+                type="button"
+                onclick="openCreateModal()"
+                class="inline-flex items-center px-4 py-2 rounded-md font-['Tektur'] text-sm font-semibold uppercase bg-gradient-to-br from-[#fe8800] to-[#ffb054] text-white shadow-sm hover:opacity-95 transition"
+                >
+                CREATE POST
+                </button>
+            </div>
             {% else %}
-            <p class="login-prompt">
-                <a href="{% url 'main:login' %}">Login</a> to create posts and join discussions
+            <p class="login-prompt text-sm text-gray-600">
+                <a href="{% url 'main:login' %}" class="font-semibold text-[#fe8800] underline">Login</a>
+                to create posts and join discussions
             </p>
             {% endif %}
         </div>
+        </div>
 
-        <!-- News Carousel -->
         {% if news_posts %}
-        <section class="news-carousel-section">
-            <div class="carousel-header">
-                <h2 class="carousel-title">Official News</h2>
-                <div class="carousel-controls">
-                    <button class="carousel-btn" id="prevBtn" onclick="prevSlide()">‹</button>
-                    <button class="carousel-btn" id="nextBtn" onclick="nextSlide()">›</button>
-                </div>
-            </div>
+        <section class="news-carousel-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div class="carousel-header flex items-center justify-between mb-4">
+            <h2 class="carousel-title font-['Orbitron'] text-[#fe8800] text-2xl sm:text-3xl font-bold uppercase tracking-wide">
+            Official News
+            </h2>
 
-            <div class="news-carousel">
-                <div class="carousel-track" id="carouselTrack">
-                    {% for news in news_posts %}
-                    {% if forloop.counter0|divisibleby:3 or forloop.first %}
-                    <div class="carousel-slide">
+            <div class="carousel-controls flex items-center gap-2">
+            <button id="prevBtn" class="carousel-btn flex items-center justify-center w-10 h-10 rounded-full bg-[#fe8800] text-white shadow-sm hover:scale-105 transition disabled:opacity-50" onclick="prevSlide()">‹</button>
+            <button id="nextBtn" class="carousel-btn flex items-center justify-center w-10 h-10 rounded-full bg-[#fe8800] text-white shadow-sm hover:scale-105 transition disabled:opacity-50" onclick="nextSlide()">›</button>
+            </div>
+        </div>
+
+        <div class="news-carousel relative overflow-hidden bg-transparent rounded-lg">
+            <div id="carouselTrack" class="carousel-track flex transition-transform duration-500 ease-in-out">
+            {% for news in news_posts %}
+                {% if forloop.first or forloop.counter0|divisibleby:3 %}
+                <!-- start slide: grid with left large (2-row) + right column (2 stacked items) -->
+                <div class="carousel-slide flex-shrink-0 w-full grid grid-cols-3 gap-4">
+                {% endif %}
+
+                {% comment %}
+                Rendering logic per item in group of 3:
+                    - first item (forloop.counter0 % 3 == 0) => large left (col-span-2 row-span-2)
+                    - second item (else) => right-top (col-span-1)
+                    - third item (forloop.counter % 3 == 0) => right-bottom (col-span-1)
+                {% endcomment %}
+
+                {% if forloop.counter0|divisibleby:3 %}
+                <!-- LARGE LEFT CARD (spans two rows) -->
+                <article
+                    class="news-card large col-span-2 row-span-2 flex flex-col bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition cursor-pointer"
+                    onclick="window.location.href='{% url 'forum:post_detail' news.id %}'"
+                >
+                    {% if news.images.first %}
+                    <img src="{{ news.images.first.image_url }}" alt="{{ news.title }}" class="w-full h-72 md:h-96 object-cover">
+                    {% else %}
+                    <div class="w-full h-72 md:h-96 bg-gradient-to-br from-[#ffd7aa] to-[#ffb054]"></div>
                     {% endif %}
-                        
-                        {% with slide_index=forloop.counter0|add:"0"|divisibleby:3 %}
-                        {% with position=forloop.counter0|add:"0" %}
-                        
-                        <article class="news-card {% if position|divisibleby:3 %}large{% else %}small{% endif %}"
-                                 onclick="window.location.href='{% url 'post_detail' news.id %}'">
-                            <span class="news-badge">OFFICIAL</span>
-                            
-                            
-                            {% if news.images.first %}
-                            <img src="{{ news.images.first.image_url }}" alt="{{ news.title }}" class="news-image">
-                            {% else %}
-                            <div class="news-image"></div>
+
+                    <div class="p-4 flex flex-col gap-2 h-full">
+                    <div class="news-clubs flex flex-wrap gap-2 mb-1">
+                        {% for club in news.clubs.all %}
+                        <span class="club-badge inline-flex items-center gap-2 bg-white px-2 py-1 rounded-md text-xs font-['Tektur']">
+                            {% if club.logo_url %}
+                            <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo w-4 h-4 object-contain">
                             {% endif %}
-                            
-                            <div class="news-content">
-
-                                <div class="news-clubs">
-                                    {% for club in news.clubs.all|slice:":2" %}
-                                    <span class="club-badge">
-                                        {% if club.logo_url %}
-                                        <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo">
-                                        {% endif %}
-                                        {{ club.name }}
-                                    </span>
-                                    {% endfor %}
-                                </div>
-
-                                <h3 class="news-title">{{ news.title }}</h3>
-                                
-                                <div class="news-meta">
-                                    <span>{{ news.author.username }}</span>
-                                    {% if news.updated_at > news.created_at %}
-                                    <span>{{ news.updated_at|date:"M d, Y" }} • <em>Edited</em></span>
-                                    {% else %}
-                                    <span>{{ news.created_at|date:"M d, Y" }}</span>
-                                    {% endif %}
-                                </div>
-                                
-
-                                <p class="news-excerpt">{{ news.content|truncatewords:30 }}</p>
-                                
-                                <div class="news-footer">
-                                    <span class="comment-count">{{ news.comments.count }} comments</span>
-                                    <span class="btn btn-primary btn-sm">Read More →</span>
-                                </div>
-                            </div>
-                        </article>
-                        
-                        {% endwith %}
-                        {% endwith %}
-                    
-                    {% if forloop.counter|divisibleby:3 or forloop.last %}
+                            {{ club.name }}
+                        </span>
+                        {% endfor %}
                     </div>
+
+                    <h3 class="news-title font-['Orbitron'] text-lg md:text-2xl font-bold text-gray-800 mb-1 leading-snug">
+                        {{ news.title }}
+                    </h3>
+
+                    <div class="news-meta text-sm text-gray-500 flex flex-wrap gap-2 mb-2">
+                        <span>Written by {{ news.author.username }}  | </span>
+                        {% if news.updated_at and news.created_at and news.updated_at|date:'U' > news.created_at|date:'U' %}
+                        <span>{{ news.updated_at|date:"M d, Y" }} | <em>Edited</em></span>
+                        {% elif news.created_at %}
+                        <span>{{ news.created_at|date:"M d, Y" }}</span>
+                        {% else %}
+                        <span>Unknown date</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="news-excerpt text-sm text-gray-700 line-clamp-4 md:line-clamp-6 text-justify">
+                        {{ news.content|truncatewords:60 }}
+                    </p>
+
+                    <div class="news-footer mt-auto pt-3 border-t border-[#ffd7aa] flex items-center justify-between text-sm">
+                        <span class="comment-count text-gray-600">{{ news.comments.count }} comments</span>
+                        <span class="inline-flex items-center px-3 py-1 bg-gradient-to-br from-[#fe8800] to-[#ffb054] text-white rounded text-sm font-semibold">Read More →</span>
+                    </div>
+                    </div>
+                </article>
+
+                {% elif forloop.counter|divisibleby:3 %}
+                <!-- RIGHT BOTTOM SMALL CARD -->
+                <article
+                    class="news-card small col-span-1 flex flex-col bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition cursor-pointer"
+                    onclick="window.location.href='{% url 'forum:post_detail' news.id %}'"
+                >
+                    {% if news.images.first %}
+                    <img src="{{ news.images.first.image_url }}" alt="{{ news.title }}" class="w-full h-36 object-cover">
+                    {% else %}
+                    <div class="w-full h-36 bg-gradient-to-br from-[#ffd7aa] to-[#ffb054]"></div>
                     {% endif %}
+
+                    <div class="p-3 flex flex-col gap-2 h-full">
+                        <div class="news-clubs flex flex-wrap gap-2">
+                        {% for club in news.clubs.all|slice:":2" %}
+                            <span class="club-badge inline-flex items-center gap-1 bg-[#fffdfa] px-2 py-0.5 rounded text-[11px] font-['Tektur'] text-gray-700">
+                            {% if club.logo_url %}
+                                <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo w-4 h-4 object-contain">
+                            {% endif %}
+                            {{ club.name }}
+                            </span>
+                        {% endfor %}
+                        </div>
+                        <h4 class="font-['Orbitron'] text-sm font-bold text-gray-800">{{ news.title }}</h4>
+                        <p class="news-excerpt text-xs text-gray-600 line-clamp-3 text-justify">{{ news.content|truncatewords:20 }}</p>
+                        <div class="news-footer mt-auto pt-2 border-t border-[#ffd7aa] flex items-center justify-between text-xs">
+                            <span class="comment-count text-gray-600">{{ news.comments.count }} comments</span>
+                            <span class="text-[#fe8800] font-semibold text-xs">Read →</span>
+                        </div>
+                    </div>
+                </article>
+
+                {% else %}
+                <!-- RIGHT TOP SMALL CARD (with club badge) -->
+                <article
+                class="news-card small col-span-1 flex flex-col bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition cursor-pointer"
+                onclick="window.location.href='{% url 'forum:post_detail' news.id %}'"
+                >
+                {% if news.images.first %}
+                    <img src="{{ news.images.first.image_url }}" alt="{{ news.title }}" class="w-full h-36 object-cover">
+                {% else %}
+                    <div class="w-full h-36 bg-gradient-to-br from-[#ffd7aa] to-[#ffb054]"></div>
+                {% endif %}
+
+                <div class="p-3 flex flex-col gap-2 h-full">
+                    <div class="news-clubs flex flex-wrap gap-2">
+                    {% for club in news.clubs.all|slice:":2" %}
+                        <span class="club-badge inline-flex items-center gap-1 bg-[#fffdfa] px-2 py-0.5 rounded text-[11px] font-['Tektur'] text-gray-700">
+                        {% if club.logo_url %}
+                            <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo w-4 h-4 object-contain">
+                        {% endif %}
+                        {{ club.name }}
+                        </span>
                     {% endfor %}
+                    </div>
+                    <h4 class="font-['Orbitron'] text-sm font-bold text-gray-800">{{ news.title }}</h4>
+                    <p class="news-excerpt text-xs text-gray-600 line-clamp-3 text-justify">{{ news.content|truncatewords:18 }}</p>
+                    <div class="news-footer mt-auto pt-2 border-t border-[#ffd7aa] flex items-center justify-between text-xs">
+                    <span class="comment-count text-gray-600">{{ news.comments.count }} comments</span>
+                    <span class="text-[#fe8800] font-semibold text-xs">Read →</span>
+                    </div>
                 </div>
+                </article>
+
+                {% endif %}
+
+                {% if forloop.counter|divisibleby:3 or forloop.last %}
+                </div> <!-- end slide -->
+                {% endif %}
+            {% endfor %}
             </div>
-            
-            <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+
+        <div id="carouselDots" class="carousel-dots mt-4 flex justify-center gap-2"></div>
         </section>
         {% endif %}
 
-        <!-- Discussion Posts -->
-        <div class="posts-container">
-            <h2 style="font-family: 'Orbitron', sans-serif; color: gray-900; font-weight: 900; margin-bottom: 0.5rem; text-transform: uppercase;">
-                Discussions
-            </h2>
-            
+        <!-- LATEST DISCUSSIONS  -->
+        <section class="forum-posts max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-[#fff6ea] rounded-xl">
+        <h2 class="text-2xl sm:text-3xl font-['Orbitron'] text-[#fe8800] font-bold uppercase tracking-wide mb-6">
+            Latest Discussions
+        </h2>
+
+        <div class="flex flex-col gap-6">
             {% for post in page_obj %}
-            <article class="post-card" id="post-{{ post.id }}">
-
-                <div class="post-header">
-                    <div class="post-info">
-                        <!-- Club and Tags -->
-                        <div class="post-clubs">
-                            {% for club in post.clubs.all %}
-                            <span class="club-badge">
-                                {% if club.logo_url %}
-                                <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo">
-                                {% endif %}
-                                {{ club.name }}
-                            </span>
-                            {% endfor %}
-                        </div>
-
-                        <h2 class="post-title">
-                            <a href="{% url 'forum:post_detail' post.id %}">{{ post.title }}</a>
-                        </h2>
-                        
-                        <div class="post-meta">
-                            <span><strong>{{ post.author.username }}</strong></span>
-                            {% if post.updated_at|date:"U" > post.created_at|date:"U" %}
-                                <span>{{ post.updated_at|date:"M d, Y H:i" }} | <em>Edited</em></span>
-                            {% else %}
-                                <span>{{ post.created_at|date:"M d, Y H:i" }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% if user == post.author or user.is_staff %}
-                    <div class="post-actions">
-                        <a href="#" onclick="openEditModal({{ post.id }})" class="font-lato" >Edit | </a>
-                        <a href="#" onclick="deletePost({{ post.id }})" class="delete-link">Delete</a>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Post Images -->
-                {% if post.images.all %}
-                <div class="post-images">
-                    {% for image in post.images.all|slice:":4" %}
-                    <img src="{{ image.image_url }}" alt="{{ image.caption }}" class="post-image">
+            <article class="bg-white border border-[#ffd7aa] rounded-xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                <div class="flex flex-col md:flex-row p-5 gap-4 md:gap-6">
+                
+                <!-- Left Content -->
+                <div class="flex-1 flex flex-col">
+                    <!-- Club badges -->
+                    <div class="flex flex-wrap gap-2 mb-2">
+                    {% for club in post.clubs.all %}
+                        <span class="inline-flex items-center gap-1 bg-[#fffdfa] px-2 py-0.5 rounded text-xs font-['Tektur'] text-gray-700">
+                        {% if club.logo_url %}
+                            <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="w-4 h-4 object-contain">
+                        {% endif %}
+                        {{ club.name }}
+                        </span>
                     {% endfor %}
-                    {% if post.images.count > 4 %}
-                    <div class="more-images">+{{ post.images.count|add:"-4" }} more</div>
+                    </div>
+
+                    <!-- Title -->
+                    <h3 class="text-lg sm:text-xl font-['Tektur'] font-semibold text-[#fe8800] leading-snug mb-1">
+                    <a href="{% url 'forum:post_detail' post.id %}" class="hover:underline">
+                        {{ post.title }}
+                    </a>
+                    </h3>
+
+                    <!-- Author & date -->
+                    <div class="text-xs text-gray-500 mb-3">
+                            <span>{{ post.author.username }} | </span>
+                            {% if post.updated_at and post.created_at and post.updated_at|date:'U' > post.created_at|date:'U' %}
+                            <span>{{ post.updated_at|date:"M d, Y" }} | <em>Edited</em></span>
+                            {% elif post.created_at %}
+                            <span>{{ post.created_at|date:"M d, Y" }}</span>
+                            {% else %}
+                            <span>Unknown date</span>
+                            {% endif %}
+                    </div>
+
+                    <!-- Image (mobile only) -->
+                    {% if post.images.first %}
+                    <div class="md:hidden w-full flex justify-center mb-3">
+                        <img src="{{ post.images.first.image_url }}" alt="{{ post.title }}"
+                            class="rounded-md w-full sm:w-3/4 object-cover border border-[#ffd7aa]" />
+                    </div>
                     {% endif %}
+
+                    <!-- Content -->
+                    <p class="text-gray-700 text-sm leading-relaxed mb-2 line-clamp-4 text-justify">
+                    {{ post.content|truncatewords:60 }}
+                    </p>
                 </div>
+
+                <!-- Right Image (desktop only) -->
+                {% if post.images.first %}
+                    <div class="hidden md:flex md:items-start md:justify-end md:w-64 lg:w-72 pr-3">
+                    <img src="{{ post.images.first.image_url }}" alt="{{ post.title }}"
+                        class="rounded-md w-full object-cover border border-[#ffd7aa]" />
+                    </div>
                 {% endif %}
-
-                <div class="post-content">
-                    {{ post.content|truncatewords:50 }}
                 </div>
 
-                <div class="post-footer">
-                    <span class="comment-count">{{ post.comment_count }} comment{{ post.comment_count|pluralize }}</span>
-                    <!-- <a href="{% url 'forum:post_detail' post.id %}" class="btn btn-primary btn-sm">
-                        View Discussion →
-                    </a> -->
+                <!-- Footer -->
+                <footer class="px-5 py-2 border-t border-[#ffd7aa] flex justify-between items-center text-sm text-gray-600 bg-[#fffdfa]"><!-- ↓ smaller py -->
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comment text-[#fe8800]"></i>
+                    <span>{{ post.comment_count }} comments</span>
                 </div>
+                <a href="{% url 'forum:post_detail' post.id %}"
+                    class="text-[#fe8800] font-semibold hover:underline">
+                    Read more →
+                </a>
+                </footer>
             </article>
             {% empty %}
-            <div class="empty-state">
-                <h3>No Discussions Found</h3>
-                <p>
-                    {% if current_filters.search or current_filters.clubs or current_filters.league %}
-                        Try adjusting your filters or <a href="{% url 'forum:forum_home' %}">view all posts</a>
-                    {% else %}
-                        Be the first to start a discussion!
-                    {% endif %}
-                </p>
-            </div>
+            <p class="text-center text-gray-500 py-8">No discussions found.</p>
             {% endfor %}
         </div>
 
         <!-- Pagination -->
         {% if page_obj.has_other_pages %}
-        <div class="pagination">
+            <div class="pagination flex justify-center items-center mt-8 gap-2 font-['Tektur']">
             {% if page_obj.has_previous %}
-            <a href="?page=1&{{ request.GET.urlencode }}" class="btn btn-sm btn-secondary">« First</a>
-            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" 
-               class="btn btn-sm btn-secondary">‹ Previous</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded-md bg-[#ffd7aa] text-[#333] hover:bg-[#ffb054] transition">« Prev</a>
+            {% else %}
+                <span class="px-3 py-1 rounded-md bg-gray-200 text-gray-400 cursor-not-allowed">« Prev</span>
             {% endif %}
-            
-            <span class="current-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-3 py-1 rounded-md bg-[#fe8800] text-white font-semibold">{{ num }}</span>
+                {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}
+                <a href="?page={{ num }}" class="px-3 py-1 rounded-md bg-[#ffd7aa] text-[#333] hover:bg-[#ffb054] transition">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" 
-               class="btn btn-sm btn-secondary">Next ›</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" 
-               class="btn btn-sm btn-secondary">Last »</a>
+                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded-md bg-[#ffd7aa] text-[#333] hover:bg-[#ffb054] transition">Next »</a>
+            {% else %}
+                <span class="px-3 py-1 rounded-md bg-gray-200 text-gray-400 cursor-not-allowed">Next »</span>
             {% endif %}
-        </div>
+            </div>
         {% endif %}
+        </section>
     </main>
 </div>
 
@@ -331,6 +442,15 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggleFilterBtn');
+        const sidebar = document.getElementById('filterSidebar');
+
+        toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        sidebar.classList.toggle('block');
+        });
+    });
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -535,7 +655,7 @@
                 currentSlide = 0;
             }
             updateCarousel();
-        }, 5000); // Auto-advance every 5 seconds
+        }, 8000); // Auto-advance every 5 seconds
     }
     
     function resetAutoplay() {

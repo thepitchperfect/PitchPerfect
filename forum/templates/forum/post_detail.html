@@ -4,114 +4,176 @@
 {% block title %}{{ post.title }} - Forum{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
-<link rel="stylesheet" href="{% static 'forum/css/forum-detail.css' %}">
+<link rel="stylesheet" href="{% static 'forum/css/forum_detail.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="forum-detail">
-    <!-- Back Button -->
-    <a href="{% url 'forum:forum_home' %}" class="back-button">← Back to Forum</a>
+<div id="alert-container"></div>
 
-    <!-- Post Content -->
-    <article class="post-card margin-bottom 4" >
-        <header class="post-header">
-            <div class="post-meta">
-                <span class="post-type-badge {% if post.is_official_news %}news{% else %}discussion{% endif %}">
-                    {{ post.get_post_type_display }}
-                </span>
-                <h1 class="post-title">{{ post.title }}</h1>
-            </div>
+<div class="detail-container">
+    <a href="{% url 'forum:forum_home' %}" class="back-link">
+        ← Back to Forum
+    </a>
 
-            <div class="post-info">
-                <span class="author">{{ post.author.username }} | </span>
-                <span class="date">{{ post.created_at|date:"F j, Y g:i A" }}</span>
-            </div>
-
-            <!-- Club Tags -->
-            {% if post.clubs.exists %}
-            <div class="club-tags">
-                {% for club in post.clubs.all %}
-                <span class="club-tag">{{ club.name }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% if user == post.author or user.is_staff %}
-            <div class="post-actions" style="position: absolute; top: 1em; right: 1em;">
-                <a href="#" onclick="openEditModal({{ post.id }})" class="font-lato">Edit | </a>
-                <a href="#" onclick="deletePost({{ post.id }})" class="delete-link">Delete</a>
-            </div>
-            {% endif %}
-        </header>
-
-        <!-- Post Body -->
-        <div class="post-content">
-            {{ post.content|linebreaks }}
-        </div>
-
-        <!-- Post Images -->
-        {% if post.images.exists %}
-        <div class="post-images">
-            {% for image in post.images.all %}
-            <figure class="image-container">
-                <img src="{{ image.image_url }}" alt="{{ image.caption|default:post.title }}" loading="lazy">
-                {% if image.caption %}
-                <figcaption>{{ image.caption }}</figcaption>
+    <!-- DEBUG: Show if user is staff -->
+    <div style="color:red; font-weight:bold;">is_staff: {{ user.is_staff }}</div>
+    
+    <article class="post-detail {% if post.is_official_news %}official-news{% endif %}">
+        <!-- Image Section with Navigation -->
+        <div class="post-image-section">
+            
+            {% if post.images.all %}
+                <img id="mainImage" 
+                     src="{{ post.images.first.image_url }}" 
+                     alt="{{ post.title }}" 
+                     class="post-main-image">
+                
+                {% if post.images.count > 1 %}
+                <div class="image-navigation">
+                    <button class="image-nav-btn" id="prevImageBtn" onclick="changeImage(-1)">‹</button>
+                    <span class="image-counter">
+                        <span id="currentImageIndex">1</span> / {{ post.images.count }}
+                    </span>
+                    <button class="image-nav-btn" id="nextImageBtn" onclick="changeImage(1)">›</button>
+                </div>
                 {% endif %}
-            </figure>
-            {% endfor %}
+            {% else %}
+                <div class="no-image-placeholder">
+                    {{ post.title|truncatewords:5 }}
+                </div>
+            {% endif %}
         </div>
-        {% endif %}
-    </article>
-
-    <!-- Comments Section -->
-    <section class="comments-card">
-        <h2 class="comments-title">Comments ({{ comments|length }})</h2>
-
-        {% if user.is_authenticated %}
-        <!-- Comment Form -->
-        <form id="commentForm" class="comment-form" data-post-id="{{ post.id }}">
-            <div class="form-group">
-                <textarea 
-                    name="content" 
-                    id="commentContent" 
-                    rows="2" 
-                    placeholder="Share your thoughts..."
-                    required></textarea>
+        
+        <!-- Content Section -->
+        <div class="post-content-section">
+            <div class="post-header">
+                <div class="post-title-row">
+                    <h1 class="post-title">{{ post.title }}</h1>
+                    
+                    {% if user == post.author or user.is_staff %}
+                    <div class="post-actions">
+                        {% if user == post.author %}
+                            <a href="#" onclick="openEditModal({{ post.id }})" class="font-lato">Edit | </a>
+                        {% endif %}
+                        {% if user == post.author or user.is_staff %}
+                            <a href="#" onclick="deletePost({{ post.id }})" class="delete-link">Delete</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="post-meta">
+                    <span class="post-meta-item">
+                        <strong>{{ post.author.username }}</strong>
+                    </span>
+                    <span class="post-meta-item">
+                        {% if post.updated_at > post.created_at %}
+                        {{ post.updated_at|date:"F d, Y H:i" }} • <em>Edited</em>
+                        {% else %}
+                        {{ post.created_at|date:"F d, Y H:i" }}
+                        {% endif %}
+                    </span>
+                    <span class="post-meta-item">
+                        {{ comments.count }} comment{{ comments.count|pluralize }}
+                    </span>
+                </div>
+                
+                {% if post.clubs.all %}
+                <div class="post-clubs">
+                    {% for club in post.clubs.all %}
+                    <span class="club-badge">
+                        {% if club.logo_url %}
+                        <img src="{{ club.logo_url }}" alt="{{ club.name }}" class="club-logo">
+                        {% endif %}
+                        {{ club.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
-            <button type="submit" class="btn btn-primary">Post Comment</button>
-        </form>
+            
+            <div class="post-body">{{ post.content }}</div>
+        </div>
+    </article>
+    
+    <!-- Comments Section -->
+    <section class="comments-section">
+        <h2 class="comments-title">Comments ({{ comments.count }})</h2>
+        
+        {% if user.is_authenticated %}
+        <div class="comment-form">
+            <h3 class="comment-form-title">Add Your Comment</h3>
+            <form id="commentForm">
+                <textarea id="commentContent" 
+                          class="comment-textarea" 
+                          placeholder="Share your thoughts..." 
+                          required></textarea>
+                <div class="comment-form-actions">
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                </div>
+            </form>
+        </div>
         {% else %}
         <div class="login-prompt">
-            <p><a href="{% url 'login' %}">Log in</a> to post comments.</p>
+            <p><a href="{% url 'login' %}">Login</a> to join the discussion</p>
         </div>
         {% endif %}
-
-        <!-- Comments List -->
-        <div class="comments-list" id="commentsList">
-            {% for comment in comments %}
-            <div class="comment">
-                <div class="comment-header">
-                    <span class="comment-author">👤 {{ comment.author.username }}</span>
-                    <span class="comment-date">{{ comment.created_at|date:"F j, Y g:i A" }}</span>
+        
+        <div id="commentsContainer">
+            {% if comments %}
+                {% for comment in comments %}
+                <div class="comment" id="comment-{{ comment.id }}">
+                    <div class="comment-top">
+                        <div class="comment-author">
+                            <div class="comment-avatar">{{ comment.author.username|first|upper }}</div>
+                            <div>
+                                <div class="comment-author-name">{{ comment.author.username }}</div>
+                                <div class="comment-date">
+                                    {% if comment.updated_at > comment.created_at %}
+                                    {{ comment.updated_at|date:"M d, Y H:i" }} • Edited
+                                    {% else %}
+                                    {{ comment.created_at|date:"M d, Y H:i" }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if user == comment.author or user.is_staff %}
+                        <div class="comment-actions">
+                            <button class="btn btn-sm btn-secondary" 
+                                    onclick="editComment({{ comment.id }})"></button>
+                            <button class="btn btn-sm btn-danger" 
+                                    onclick="deleteComment({{ comment.id }})"></button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="comment-text" id="text-{{ comment.id }}">{{ comment.content }}</div>
+                    
+                    <div class="comment-edit-form" id="edit-{{ comment.id }}">
+                        <textarea id="content-{{ comment.id }}" class="comment-textarea">{{ comment.content }}</textarea>
+                        <div class="comment-form-actions">
+                            <button class="btn btn-sm btn-primary" onclick="saveComment({{ comment.id }})">Save</button>
+                            <button class="btn btn-sm btn-secondary" onclick="cancelEdit({{ comment.id }})">Cancel</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="comment-content">
-                    {{ comment.content|linebreaks }}
-                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-comments">
+                <div class="empty-icon"></div>
+                <p>No comments yet. Be the first!</p>
             </div>
-            {% empty %}
-            <p class="no-comments">No comments yet. Be the first to share your thoughts!</p>
-            {% endfor %}
+            {% endif %}
         </div>
     </section>
 </div>
 
-<!-- Create/Edit Post Modal -->
+<!-- Edit Post Modal -->
 <div id="postModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 class="modal-title" id="modalTitle">Create Post</h2>
+            <h2 class="modal-title">Edit Post</h2>
             <span class="close" onclick="closeModal()">&times;</span>
         </div>
         
@@ -120,384 +182,231 @@
             <div class="form-group">
                 <label>Post Type:</label>
                 <select id="postType">
-                    <option value="discussion">💬 Discussion</option>
-                    <option value="news">📰 Official News</option>
+                    <option value="discussion">Discussion</option>
+                    <option value="news">Official News</option>
                 </select>
             </div>
             {% endif %}
 
             <div class="form-group">
                 <label>Title:</label>
-                <input type="text" id="postTitle" required placeholder="Enter post title">
+                <input type="text" id="postTitle" required>
             </div>
 
             <div class="form-group">
                 <label>Content:</label>
-                <textarea id="postContent" required placeholder="Share your thoughts..."></textarea>
+                <textarea id="postContent" required></textarea>
             </div>
 
             <div class="form-group">
-                <label>Tag Clubs (up to 3):</label>
-                <div id="dynamicClubFields"></div>
-                <small>You can tag up to 3 clubs. Remove a tag to add another.</small>
+                <label>Tag Clubs:</label>
+                <select id="postClubs" multiple size="6">
+                    {% for club in user_favorite_clubs %}
+                    <option value="{{ club.id }}">{{ club.name }}</option>
+                    {% endfor %}
+                </select>
+                <small>Hold Ctrl/Cmd to select multiple</small>
             </div>
 
             <div class="form-group">
-                <label>Image URLs (optional):</label>
-                <div class="image-inputs" id="imagesContainer">
-                    <div class="image-input">
-                        <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
-                        <input type="text" class="image-caption" placeholder="Caption">
-                        <button type="button" class="btn-remove-image" onclick="removeImageInput(this)" style="display:none;">Remove Image</button>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="addImageInput()" style="margin-top: 0.5rem;">
-                    + Add Image
-                </button>
+                <label>Images:</label>
+                <div id="imagesContainer"></div>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="addImage()">+ Add Image</button>
             </div>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary">Update</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Success Toast -->
-<div id="successToast" class="toast success hidden">
-    <span class="toast-icon">✓</span>
-    <span class="toast-message"></span>
-</div>
-
-<!-- Error Toast -->
-<div id="errorToast" class="toast error hidden">
-    <span class="toast-icon">⚠</span>
-    <span class="toast-message"></span>
-</div>
-
-{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const commentForm = document.getElementById('commentForm');
-    if (commentForm) {
-        commentForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const content = document.getElementById('commentContent').value;
-            const postId = this.dataset.postId;
-            
-            try {
-                const response = await fetch(`/forum/api/post/${postId}/comment/create/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({ content })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    const commentsList = document.getElementById('commentsList');
-                    const noCommentsMsg = commentsList.querySelector('.no-comments');
-                    if (noCommentsMsg) noCommentsMsg.remove();
-                    
-                    const newComment = document.createElement('div');
-                    newComment.className = 'comment';
-                    newComment.innerHTML = `
-                        <div class="comment-header">
-                            <span class="comment-author">👤 ${data.comment.author}</span>
-                            <span class="comment-date">${data.comment.created_at}</span>
-                        </div>
-                        <div class="comment-content">
-                            ${data.comment.content.replace(/\n/g, '<br>')}
-                        </div>
-                    `;
-                    commentsList.insertBefore(newComment, commentsList.firstChild);
-                    document.getElementById('commentContent').value = '';
-                    showToast('success', 'Comment posted successfully!');
-                } else {
-                    showToast('error', data.error || 'Failed to post comment');
-                }
-            } catch (error) {
-                showToast('error', 'An error occurred. Please try again.');
-            }
-        });
-    }
+    const csrftoken = '{{ csrf_token }}';
+    const postId = {{ post.id }};
     
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    
-    function showToast(type, message) {
-        const toast = document.getElementById(`${type}Toast`);
-        const messageElement = toast.querySelector('.toast-message');
-        messageElement.textContent = message;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3000);
-    }
-});
-
-
-    const csrftoken = getCookie('csrftoken');
-    let editingPostId = null;
-
-    // --- Dynamic club tagging (max 3) ---
-    const clubs = [
-        {% for club in clubs %}
-        {id: '{{ club.id }}', name: '{{ club.name }}', league: '{{ club.league.name }}'}{% if not forloop.last %},{% endif %}
+    // Image data
+    const images = [
+        {% for img in post.images.all %}
+        { url: '{{ img.image_url }}', caption: '{{ img.caption|escapejs }}' }{% if not forloop.last %},{% endif %}
         {% endfor %}
     ];
-    const dynamicClubFields = document.getElementById('dynamicClubFields');
-    let clubTags = [];
-
-    function renderClubFields() {
-        dynamicClubFields.innerHTML = '';
-        // Render tags
-        clubTags.forEach((club, idx) => {
-            const tag = document.createElement('span');
-            tag.className = 'dynamic-club-tag';
-            tag.dataset.id = club.id;
-            tag.appendChild(document.createTextNode(club.name + ' - ' + club.league));
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.textContent = '×';
-            removeBtn.className = 'remove-club-btn';
-            removeBtn.onclick = function() {
-                clubTags = clubTags.filter((_, i) => i !== idx);
-                renderClubFields();
-            };
-            tag.appendChild(removeBtn);
-            dynamicClubFields.appendChild(tag);
-        });
-        // Render new input if less than 3
-        if (clubTags.length < 3) {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = 'Type to search clubs...';
-            input.setAttribute('list', 'clubsDatalist');
-            input.className = 'club-search-input';
-            input.autocomplete = 'off';
-            input.addEventListener('change', function(e) {
-                const val = input.value.trim();
-                if (!val) return;
-                const match = clubs.find(c => (c.name + ' - ' + c.league) === val);
-                if (match && !clubTags.some(t => t.id === match.id)) {
-                    clubTags.push(match);
-                    renderClubFields();
-                }
-                input.value = '';
-            });
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    input.dispatchEvent(new Event('change'));
-                }
-            });
-            dynamicClubFields.appendChild(input);
-        }
+    let currentImageIdx = 0;
+    
+    function changeImage(direction) {
+        currentImageIdx += direction;
+        if (currentImageIdx < 0) currentImageIdx = images.length - 1;
+        if (currentImageIdx >= images.length) currentImageIdx = 0;
+        
+        document.getElementById('mainImage').src = images[currentImageIdx].url;
+        document.getElementById('currentImageIndex').textContent = currentImageIdx + 1;
+        
+        document.getElementById('prevImageBtn').disabled = false;
+        document.getElementById('nextImageBtn').disabled = false;
     }
-    // Datalist for club search
-    if (!document.getElementById('clubsDatalist')) {
-        const datalist = document.createElement('datalist');
-        datalist.id = 'clubsDatalist';
-        clubs.forEach(club => {
-            const opt = document.createElement('option');
-            opt.value = club.name + ' - ' + club.league;
-            opt.dataset.id = club.id;
-            datalist.appendChild(opt);
-        });
-        document.body.appendChild(datalist);
+    
+    function showAlert(msg, type) {
+        const div = document.createElement('div');
+        div.className = `alert alert-${type}`;
+        div.textContent = msg;
+        document.getElementById('alert-container').appendChild(div);
+        setTimeout(() => div.remove(), 3000);
     }
-    renderClubFields();
-
-    // For edit: prepopulate clubTags if editing
-    window.prefillClubTags = function(ids) {
-        clubTags = clubs.filter(c => ids.includes(c.id));
-        renderClubFields();
-    }
-
-    function openCreateModal() {
-        document.getElementById('modalTitle').textContent = 'Create Post';
-        document.getElementById('postForm').reset();
-        editingPostId = null;
-        document.getElementById('imagesContainer').innerHTML = `
-            <div class="image-input">
-                <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
-                <input type="text" class="image-caption" placeholder="Caption">
-                <button type="button" class="btn-remove-image" onclick="removeImageInput(this)" style="display:none;">Remove Image</button>
-            </div>
-        `;
-        document.getElementById('postModal').style.display = 'block';
-        renderClubFields();
-    }
-
-    function openEditModal(postId) {
-        editingPostId = postId;
-        document.getElementById('modalTitle').textContent = 'Edit Post';
+    
+    // Edit/Delete Post
+    function openEditModal() {
         fetch(`/forum/api/post/${postId}/data/`, {
-            method: 'GET',
-            headers: {
-                'X-CSRFToken': csrftoken
-            }
+            headers: { 'X-CSRFToken': csrftoken }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                const post = data.post;
-                document.getElementById('postTitle').value = post.title;
-                document.getElementById('postContent').value = post.content;
-                var isStaff = "{{ user.is_staff|yesno:'true,false' }}" === "true";
-                if (isStaff && document.getElementById('postType')) {
-                    document.getElementById('postType').value = post.post_type;
-                }
-                // Populate images
-                const imagesContainer = document.getElementById('imagesContainer');
-                imagesContainer.innerHTML = '';
-                if (post.images && post.images.length > 0) {
-                    post.images.forEach(img => {
-                        const div = document.createElement('div');
-                        div.className = 'image-input';
-                        div.innerHTML = `
-                            <input type="url" class="image-url" placeholder="https://example.com/image.jpg" value="${img.url}">
-                            <input type="text" class="image-caption" placeholder="Caption" value="${img.caption || ''}">
-                            <button type="button" class="btn-remove-image" onclick="removeImageInput(this)">Remove Image</button>
-                        `;
-                        imagesContainer.appendChild(div);
-                    });
-                } else {
-                    imagesContainer.innerHTML = `
-                        <div class="image-input">
-                            <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
-                            <input type="text" class="image-caption" placeholder="Caption">
-                            <button type="button" class="btn-remove-image" onclick="removeImageInput(this)" style="display:none;">Remove Image</button>
-                        </div>
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                document.getElementById('postTitle').value = d.post.title;
+                document.getElementById('postContent').value = d.post.content;
+                {% if user.is_staff %}
+                document.getElementById('postType').value = d.post.post_type;
+                {% endif %}
+                
+                Array.from(document.getElementById('postClubs').options).forEach(o => {
+                    o.selected = d.post.club_ids.includes(o.value);
+                });
+                
+                const container = document.getElementById('imagesContainer');
+                container.innerHTML = '';
+                d.post.images.forEach(img => {
+                    const div = document.createElement('div');
+                    div.className = 'image-input';
+                    div.innerHTML = `
+                        <input type="url" class="image-url" value="${img.url}">
+                        <input type="text" class="image-caption" value="${img.caption}">
+                        <button type="button" class="btn-remove-image" onclick="this.parentElement.remove()">×</button>
                     `;
-                }
+                    container.appendChild(div);
+                });
+                
                 document.getElementById('postModal').style.display = 'block';
-                prefillClubTags(post.club_ids);
-                renderClubFields();
-            } else {
-                alert(data.error || 'Failed to load post data');
             }
-        })
-        .catch(error => {
-            alert('Failed to load post data: ' + error.message);
         });
     }
-
+    
     function closeModal() {
         document.getElementById('postModal').style.display = 'none';
     }
-
-    function addImageInput() {
-        const container = document.getElementById('imagesContainer');
+    
+    function addImage() {
         const div = document.createElement('div');
         div.className = 'image-input';
         div.innerHTML = `
-            <input type="url" class="image-url" placeholder="https://example.com/image.jpg">
+            <input type="url" class="image-url" placeholder="Image URL">
             <input type="text" class="image-caption" placeholder="Caption">
-            <button type="button" class="btn-remove-image" onclick="removeImageInput(this)">Remove Image</button>
+            <button type="button" class="btn-remove-image" onclick="this.parentElement.remove()">×</button>
         `;
-        container.appendChild(div);
+        document.getElementById('imagesContainer').appendChild(div);
     }
-
-    function removeImageInput(btn) {
-        btn.closest('.image-input').remove();
-    }
-
+    
     document.getElementById('postForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const images = [];
-        document.querySelectorAll('.image-input').forEach(input => {
-            const url = input.querySelector('.image-url').value;
-            const caption = input.querySelector('.image-caption').value;
+        document.querySelectorAll('.image-input').forEach(inp => {
+            const url = inp.querySelector('.image-url').value;
+            const caption = inp.querySelector('.image-caption').value;
             if (url) images.push({ url, caption });
         });
-        const selectedClubs = Array.from(document.querySelectorAll('.dynamic-club-tag'))
-            .map(el => el.dataset.id);
+        
         const data = {
             title: document.getElementById('postTitle').value,
             content: document.getElementById('postContent').value,
-            club_ids: selectedClubs,
-            league_id: document.getElementById('postLeague') ? document.getElementById('postLeague').value : null,
-            images: images
+            club_ids: Array.from(document.getElementById('postClubs').selectedOptions).map(o => o.value),
+            images
         };
-        var isStaff = "{{ user.is_staff|yesno:'true,false' }}" === "true";
-        if (isStaff) {
-            data.post_type = document.getElementById('postType').value;
-        }
-        const url = editingPostId 
-            ? `/forum/api/post/${editingPostId}/update/`
-            : '/forum/api/post/create/';
-        const method = editingPostId ? 'PUT' : 'POST';
-        try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify(data)
-            });
-            const result = await response.json();
-            if (result.success) {
-                alert(editingPostId ? 'Post updated!' : 'Post created!');
-                closeModal();
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                alert(result.error || 'An error occurred');
-            }
-        } catch (error) {
-            alert('An error occurred');
+        
+        {% if user.is_staff %}
+        data.post_type = document.getElementById('postType').value;
+        {% endif %}
+        
+        const r = await fetch(`/forum/api/post/${postId}/update/`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await r.json();
+        if (result.success) {
+            showAlert('Post updated!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert(result.error, 'error');
         }
     });
-
-    async function deletePost(id) {
-        if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    async function deletePost() {
+        if (!confirm('Delete this post and all comments?')) return;
         
-        try {
-            const response = await fetch(`/forum/api/post/${id}/delete/`, {
-                method: 'DELETE',
-                headers: { 'X-CSRFToken': csrftoken }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                showAlert('Post deleted!', 'success');
-                document.getElementById(`post-${id}`).remove();
-            } else {
-                showAlert(result.error || 'An error occurred', 'error');
-            }
-        } catch (error) {
-            showAlert('An error occurred', 'error');
+        const r = await fetch(`/forum/api/post/${postId}/delete/`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': csrftoken }
+        });
+        
+        if ((await r.json()).success) {
+            showAlert('Post deleted!', 'success');
+            setTimeout(() => window.location.href = '/forum/', 1000);
         }
     }
-
-    window.onclick = function(event) {
-        const modal = document.getElementById('postModal');
-        if (event.target == modal) closeModal();
+    
+    // Comments
+    document.getElementById('commentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const r = await fetch(`/forum/api/post/${postId}/comment/create/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            body: JSON.stringify({ content: document.getElementById('commentContent').value })
+        });
+        
+        if ((await r.json()).success) {
+            showAlert('Comment posted!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    });
+    
+    function editComment(id) {
+        document.getElementById(`text-${id}`).style.display = 'none';
+        document.getElementById(`edit-${id}`).style.display = 'block';
     }
-
+    
+    function cancelEdit(id) {
+        document.getElementById(`text-${id}`).style.display = 'block';
+        document.getElementById(`edit-${id}`).style.display = 'none';
+    }
+    
+    async function saveComment(id) {
+        const content = document.getElementById(`content-${id}`).value;
+        const r = await fetch(`/forum/api/comment/${id}/update/`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            body: JSON.stringify({ content })
+        });
+        
+        if ((await r.json()).success) {
+            showAlert('Comment updated!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    }
+    
+    async function deleteComment(id) {
+        if (!confirm('Delete this comment?')) return;
+        
+        const r = await fetch(`/forum/api/comment/${id}/delete/`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': csrftoken }
+        });
+        
+        if ((await r.json()).success) {
+            document.getElementById(`comment-${id}`).remove();
+            showAlert('Comment deleted!', 'success');
+        }
+    }
 </script>
 {% endblock %}
-{% endblock content %}

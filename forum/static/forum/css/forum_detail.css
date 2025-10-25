@@ -1,0 +1,415 @@
+/* Soccer Forum Styles with Design System */
+/* Fonts: Orbitron (headings), Tektur (subheadings), Lato (article) */
+/* Colors: #fe8800 #ffb054 #ffd7aa */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Tektur:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap');
+
+/* Base */
+body {
+    font-family: 'Lato', sans-serif;
+    background: #f5f5f5;
+}
+
+.detail-container {
+     max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+    
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fe8800;
+    text-decoration: none;
+    font-family: 'Tektur', sans-serif;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    transition: all 0.2s;
+}
+    
+.back-link:hover {
+    transform: translateX(-5px);
+    color: #ffb054;
+}
+    
+/* Post Detail */
+.post-detail {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+    
+.post-detail.official-news {
+    border: 3px solid #fe8800;
+}
+    
+/* Image Section */
+.post-image-section {
+    position: relative;
+    background: #f5f5f5;
+}
+    
+    .post-main-image {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .no-image-placeholder {
+        width: 100%;
+        height: 500px;
+        background: linear-gradient(135deg, #ffd7aa 0%, #ffb054 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .image-navigation {
+        position: absolute;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+    
+    .image-nav-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .image-nav-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .image-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    
+    .image-counter {
+        display: flex;
+        align-items: center;
+        padding: 0 0.75rem;
+        color: white;
+        font-family: 'Tektur', sans-serif;
+        font-weight: 600;
+    }
+    
+    .post-badges {
+        position: absolute;
+        top: 1.5rem;
+        left: 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        z-index: 10;
+    }
+    
+    .badge-official {
+        background: #fe8800;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-family: 'Tektur', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        box-shadow: 0 2px 8px rgba(254, 136, 0, 0.4);
+    }
+    
+    .badge-league {
+        background: white;
+        padding: 0.4rem;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .badge-league img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    
+    /* Post Content */
+    .post-content-section {
+        padding: 2.5rem;
+    }
+    
+    .post-header {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 3px solid #ffd7aa;
+    }
+    
+    .post-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .post-title {
+        padding-right: 2rem;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #2c3e50;
+        line-height: 1.2;
+        flex: 1;
+    }
+    
+    .post-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+    
+    .post-meta {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        font-family: 'Lato', sans-serif;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+    
+    .post-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .post-clubs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .post-body {
+        font-family: 'Lato', sans-serif;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #333;
+        white-space: pre-wrap;
+    }
+    
+    /* Comments */
+    .comments-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .comments-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fe8800;
+        margin-bottom: 2rem;
+        text-transform: uppercase;
+    }
+    
+    .comment-form {
+        background: linear-gradient(135deg, #ffd7aa20 0%, #ffb05420 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        border: 2px solid #ffd7aa;
+    }
+    
+    .comment-form-title {
+        font-family: 'Tektur', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+    
+    .comment-textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 1rem;
+        border: 2px solid #ffd7aa;
+        border-radius: 8px;
+        font-family: 'Lato', sans-serif;
+        font-size: 1rem;
+        resize: vertical;
+        transition: border-color 0.2s;
+    }
+    
+    .comment-textarea:focus {
+        outline: none;
+        border-color: #fe8800;
+    }
+    
+    .comment-form-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    
+    .login-prompt {
+        text-align: center;
+        padding: 2rem;
+        background: #ffd7aa20;
+        border-radius: 12px;
+        border: 2px dashed #ffd7aa;
+    }
+    
+    .login-prompt p {
+        font-family: 'Lato', sans-serif;
+        font-size: 1.05rem;
+        color: #666;
+    }
+    
+    .login-prompt a {
+        color: #fe8800;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    
+    .login-prompt a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Comment Card */
+    .comment {
+        background: #fafafa;
+        border: 2px solid #f0f0f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .comment:hover {
+        border-color: #ffd7aa;
+        background: white;
+    }
+    
+    .comment-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .comment-author {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .comment-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fe8800 0%, #ffb054 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .comment-author-name {
+        font-family: 'Tektur', sans-serif;
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: #2c3e50;
+    }
+    
+    .comment-date {
+        font-size: 0.85rem;
+        color: #999;
+    }
+    
+    .comment-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .comment-text {
+        font-family: 'Lato', sans-serif;
+        line-height: 1.7;
+        color: #444;
+        white-space: pre-wrap;
+    }
+    
+    .comment-edit-form {
+        display: none;
+        margin-top: 1rem;
+    }
+    
+    .empty-comments {
+        text-align: center;
+        padding: 3rem;
+        color: #999;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 1rem;
+        }
+        
+        .post-main-image,
+        .no-image-placeholder {
+            height: 300px;
+        }
+        
+        .post-content-section {
+            padding: 1.5rem;
+        }
+        
+        .post-title {
+            font-size: 1.6rem;
+        }
+        
+        .post-title-row {
+            flex-direction: column;
+        }
+        
+        .post-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        
+        .comments-section {
+            padding: 1.5rem;
+        }
+    }
