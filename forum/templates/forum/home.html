@@ -34,12 +34,12 @@
                         </div>
                     {% else %}
                         <p style="color: #666; font-size: 0.9rem; padding: 1rem; background: #ffd7aa30; border-radius: 8px;">
-                            You haven't added any favorite clubs yet. Go to your profile to add some!
+                            You haven't added any favorite clubs yet. Go to your Club Directory to add some!
                         </p>
                     {% endif %}
                 {% else %}
                     <p style="color: #666; font-size: 0.9rem; padding: 1rem; background: #ffd7aa30; border-radius: 8px;">
-                        🔐 <a href="{% url 'login' %}" style="color: #fe8800; font-weight: bold;">Login</a> to filter by your clubs
+                        <a href="{% url 'login' %}" style="color: #fe8800; font-weight: bold;">Login</a> to filter by your clubs
                     </p>
                 {% endif %}
             </div>
@@ -183,7 +183,7 @@
                         </div>
 
                         <h2 class="post-title">
-                            <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a>
+                            <a href="{% url 'forum:post_detail' post.id %}">{{ post.title }}</a>
                         </h2>
                         
                         <div class="post-meta">
@@ -222,7 +222,7 @@
 
                 <div class="post-footer">
                     <span class="comment-count">{{ post.comment_count }} comment{{ post.comment_count|pluralize }}</span>
-                    <!-- <a href="{% url 'post_detail' post.id %}" class="btn btn-primary btn-sm">
+                    <!-- <a href="{% url 'forum:post_detail' post.id %}" class="btn btn-primary btn-sm">
                         View Discussion →
                     </a> -->
                 </div>
@@ -232,7 +232,7 @@
                 <h3>No Discussions Found</h3>
                 <p>
                     {% if current_filters.search or current_filters.clubs or current_filters.league %}
-                        Try adjusting your filters or <a href="{% url 'forum_home' %}">view all posts</a>
+                        Try adjusting your filters or <a href="{% url 'forum:forum_home' %}">view all posts</a>
                     {% else %}
                         Be the first to start a discussion!
                     {% endif %}
@@ -582,11 +582,11 @@
         if (league) params.append('league', league);
         if (search) params.append('search', search);
         
-        window.location.href = '{% url "forum_home" %}?' + params.toString();
+        window.location.href = '{% url "forum:forum_home" %}?' + params.toString();
     });
     
     function clearFilters() {
-        window.location.href = '{% url "forum_home" %}';
+        window.location.href = '{% url "forum:forum_home" %}';
     }
     
     // Modal functions

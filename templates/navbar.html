@@ -15,7 +15,7 @@
             {# Link to your club directory - THIS IS ACTIVE #}
             <a href="{% url 'club_directories:show_club_directory' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Directory </a>
             {# Placeholder links for other modules #}
-            <a href="#" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Forum </a>
+            <a href="{% url 'forum:forum_home' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Forum </a>
             <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Match Prediction </a>
             <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Statistic </a>
         </div>  
@@ -92,7 +92,7 @@
             {# Link to your club directory - THIS IS ACTIVE #}
             <a href="{% url 'club_directories:show_club_directory' %}" class="font-tektur text-base not-italic font-normal"> Club Directory </a>
              {# Placeholder links for other modules #}
-            <a href="#" class="font-tektur text-base not-italic font-normal"> Forum </a>
+            <a href="{% url 'forum:forum_home' %}" class="font-tektur text-base not-italic font-normal"> Forum </a>
             <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-base not-italic font-normal"> Match Prediction </a>
             <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-base not-italic font-normal"> Club Statistic </a>
         </div>

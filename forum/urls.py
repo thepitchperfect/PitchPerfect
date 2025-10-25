@@ -1,10 +1,14 @@
 from django.urls import path
 from . import views
+from main.views import login_user
+
+app_name = 'forum'
 
 urlpatterns = [
     # Page views (viewable by everyone)
     path('', views.forum_home, name='forum_home'),
     path('post/<int:pk>/', views.post_detail, name='post_detail'),
+    path('login/', login_user, name='login'),
     
     # AJAX endpoints for posts (login required)
     path('api/post/create/', views.create_post, name='create_post'),
