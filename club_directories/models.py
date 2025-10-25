@@ -41,13 +41,14 @@ class ClubDetails(models.Model):
     def __str__(self):
         return f"Details for {self.club.name}"
 
-class FavoriteClub(models.Model):
+class LeaguePick(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="favorite_clubs")
-    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="favorited_by")
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="league_picks")
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name="picks_for_league")
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="picked_in_leagues")
     
     class Meta:
-        unique_together = ('user', 'club')
+        unique_together = ('user', 'league')
 
     def __str__(self):
-        return f"{self.user.username}'s favorite: {self.club.name}"
+        return f"{self.user.username}'s pick for {self.league.name}: {self.club.name}"
