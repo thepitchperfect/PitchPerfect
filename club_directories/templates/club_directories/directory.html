@@ -254,7 +254,6 @@
                 </section>
             {% endif %}
 
-
             <div id="clubSelectorModal">
                 <div class="modal-content">
                     <h3 id="modalLeagueTitle" class="font-tektur text-2xl font-bold text-gray-900 mb-2">Select Club for [League]</h3>
@@ -272,9 +271,9 @@
                     <div class="details-header">
                         <h3 id="detailsClubName" class="font-orbitron text-2xl font-bold">Club Details</h3>
                         <div class="flex items-center space-x-4">
-                            <button class="club-stats-btn bg-orange-500 hover:bg-orange-600 text-white font-tektur text-xs font-bold py-1 px-3 rounded-md shadow transition-colors duration-200">
+                            <a id="clubStatsLink" href="{% url 'statisticsrafi:home' %}" class="club-stats-btn bg-orange-500 hover:bg-orange-600 text-white font-tektur text-xs font-bold py-1 px-3 rounded-md shadow transition-colors duration-200">
                                 Club Stats
-                            </button>
+                            </a>
                             <button id="detailsCloseBtn" class="details-close-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                             </button>
@@ -777,6 +776,7 @@
                 detailsDescription.textContent = data.description || 'No description available.';
                 detailsHistory.textContent = data.history_summary || 'No history summary available.';
 
+                
                 if (setLeaguePickBtn) {
                     updatePickButtonState();
                 }
