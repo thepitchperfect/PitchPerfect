@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('club_directories', '0002_remove_club_fifa_ranking_remove_club_stadium'),
+        ('club_directories', '0001_initial'),
         ('statisticsrafi', '0002_teamstatistics'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]

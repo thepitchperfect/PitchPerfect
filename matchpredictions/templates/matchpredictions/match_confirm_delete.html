@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Match Confirmation</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans">
+
+  <div class="bg-white shadow-lg rounded-2xl p-8 max-w-md w-full border border-gray-200 text-center">
+    
+    <!-- Header -->
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Delete Match</h2>
+
+    <!-- Match Info -->
+    <p class="text-gray-700 mb-6">
+      Are you sure you want to delete 
+      <strong class="text-indigo-600">
+        {{ match.home_team.name }} 
+      </strong> 
+      vs 
+      <strong class="text-indigo-600">
+        {{ match.away_team.name }}
+      </strong>?
+    </p>
+
+    <!-- Warning Box -->
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-6">
+      ⚠️ This action cannot be undone. The match and its votes will be permanently deleted.
+    </div>
+
+    <!-- Buttons -->
+    <form method="POST" class="flex justify-center gap-4">
+      {% csrf_token %}
+      <button type="submit"
+        class="bg-red-600 hover:bg-red-700 text-white font-medium px-5 py-2 rounded-lg shadow-sm transition">
+        ✅ Yes, Delete
+      </button>
+
+      <a href="{% url 'matchpredictions:main' %}"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-5 py-2 rounded-lg transition">
+        ❌ Cancel
+      </a>
+    </form>
+  </div>
+
+</body>
+</html>
+
+

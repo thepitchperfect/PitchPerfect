@@ -1,9 +1,5 @@
 from django.db import models
-<<<<<<< HEAD
 from main.models import CustomUser
-=======
-from django.conf import settings
->>>>>>> 4f2a6beb9985f8a7cd0299fd03121f9eb9a4d8df
 import uuid
 
 class League(models.Model):

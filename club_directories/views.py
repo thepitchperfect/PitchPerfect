@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from django.shortcuts import render
-
-# Create your views here.
-=======
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .models import League, Club, FavoriteClub, ClubDetails
@@ -107,4 +102,3 @@ def toggle_favorite_club(request):
         return JsonResponse({'status': 'error', 'message': 'Club not found.'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
->>>>>>> 4f2a6beb9985f8a7cd0299fd03121f9eb9a4d8df

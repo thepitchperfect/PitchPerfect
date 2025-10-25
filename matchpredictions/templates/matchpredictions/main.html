@@ -1,0 +1,219 @@
+{% extends 'matchpredictions/base.html' %}
+{% load static %}
+
+{% block title %}Match Predictions{% endblock %}
+
+{% block content %}
+  <!-- 🏟️ Match Predictions -->
+  <section class="text-center mb-10 mt-10">
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900" style="font-family: 'Orbitron', sans-serif;">
+       Match Predictions
+    </h1>
+    <p class="text-gray-600 text-sm mt-2" style="font-family: 'Lato', sans-serif;">
+      Vote for your favorite club and see what others predict!
+    </p>
+  </section>
+
+  <!-- 🏆 League Buttons -->
+  <section class="text-center mb-12">
+    <div id="league-buttons" class="flex flex-wrap justify-center gap-4 mb-8">
+      <!-- 🌍 All Leagues -->
+      <button data-league=""
+              class="league-btn flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all transform shadow-md
+                     {% if not selected_league_id %}
+                        bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105
+                     {% else %}
+                        bg-white text-black hover:bg-yellow-100
+                     {% endif %}">
+        🌍 All Leagues
+      </button>
+
+      {% for league in leagues %}
+        <button data-league="{{ league.id }}"
+                class="league-btn flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all transform shadow-md
+                       {% if selected_league_id|stringformat:'s' == league.id|stringformat:'s' %}
+                          bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105
+                       {% else %}
+                          bg-white text-black hover:bg-yellow-100
+                       {% endif %}">
+          <img src="{% static league.logo_path %}" alt="{{ league.name }}"
+               class="w-6 h-6 rounded-full border border-gray-300 bg-white p-0.5 object-contain">
+          {{ league.name }}
+        </button>
+      {% endfor %}
+    </div>
+
+    <!-- 🔍 Search Bar -->
+    <div class="flex justify-center">
+      <input type="text" id="search-input"
+             placeholder="Search your favorite club..."
+             class="w-full sm:w-1/2 px-5 py-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 transition" />
+    </div>
+  </section>
+
+  <!-- 👨‍💼 Admin Add Button -->
+  {% if user.is_staff %}
+  <div class="flex justify-end mb-8">
+<a href="{% url 'matchpredictions:match_create' %}"
+   class="bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-600 hover:to-yellow-500 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md transform hover:scale-105">
+   ➕ Add Match
+</a>
+
+  </div>
+  {% endif %}
+
+<!-- ⚽ Match Filter Buttons -->
+<section class="text-center mb-6">
+  <div class="inline-flex rounded-full bg-gray-100 p-1 shadow-inner">
+    <button id="filter-all"
+      class="filter-btn px-5 py-2 text-sm font-semibold rounded-full transition
+             bg-gradient-to-r from-yellow-500 to-yellow-400 text-black shadow-md scale-105">
+       All Matches
+    </button>
+    <button id="filter-my"
+      class="filter-btn px-5 py-2 text-sm font-semibold rounded-full transition bg-white text-black hover:bg-yellow-100">
+       My Predictions
+    </button>
+  </div>
+</section>
+
+<!-- ⚽ Match Cards -->
+<div id="match-container" class="transition-opacity duration-200">
+  {% include 'matchpredictions/match_list.html' %}
+</div>
+
+  <!-- 🌙 Login Modal -->
+  <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-80 text-center relative animate-fadeIn">
+      <h2 class="text-xl font-bold text-gray-800 mb-2" style="font-family: 'Orbitron', sans-serif;">Login Required</h2>
+      <p class="text-gray-600 text-sm mb-6" style="font-family: 'Lato', sans-serif;">You need to be logged in to vote for matches.</p>
+      <div class="flex justify-center gap-3">
+        <a href="{% url 'login' %}"
+           class="bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-600 hover:to-yellow-500 text-white px-5 py-2 rounded-lg font-semibold transition shadow">
+          Login
+        </a>
+        <button id="close-modal"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-5 py-2 rounded-lg font-semibold transition shadow">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+
+  #match-container.fade-out { opacity: 0; }
+  #match-container.fade-in { opacity: 1; transition: opacity 0.25s ease-in-out; }
+
+  /* Vote buttons */
+  .vote-btn {
+    background: linear-gradient(to right, #fbbf24, #f59e0b);
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  .vote-btn:hover {
+    background: linear-gradient(to right, #d97706, #fbbf24);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(251, 191, 36, 0.4);
+  }
+</style>
+
+<script>
+$(document).ready(function() {
+  let currentLeagueId = '';
+  let currentFilter = 'all'; // 🆕 Track if user is viewing "all" or "my" predictions
+
+  $(document).on('click', '.league-btn', function() {
+  currentLeagueId = $(this).data('league');
+
+  // Remove highlight from all league buttons
+  $('.league-btn')
+    .removeClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105')
+    .addClass('bg-white text-black hover:bg-yellow-100');
+
+  // Add highlight to the selected one
+  $(this)
+    .removeClass('bg-white hover:bg-yellow-100')
+    .addClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105');
+
+  reloadMatches();
+});
+
+  // ✅ Match filter (All vs My Predictions)
+  $(document).on('click', '.filter-btn', function() {
+    $('.filter-btn').removeClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105 shadow-md')
+                    .addClass('bg-white text-black hover:bg-yellow-100');
+
+    $(this).removeClass('bg-white hover:bg-yellow-100')
+           .addClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105 shadow-md');
+
+    currentFilter = (this.id === 'filter-my') ? 'my' : 'all';
+    reloadMatches();
+  });
+
+  // ✅ Search filter
+  $('#search-input').on('keyup', function() {
+    reloadMatches();
+  });
+
+  // ✅ Function to reload matches with smooth fade animation
+  function reloadMatches() {
+    const query = $('#search-input').val();
+
+    $('#match-container').addClass('fade-out');
+    $.ajax({
+      url: "{% url 'matchpredictions:main' %}",
+      data: {
+        league: currentLeagueId,
+        search: query,
+        filter: currentFilter
+      },
+      success: function(response) {
+        const newMatches = $(response).find('#match-container').html();
+        setTimeout(() => {
+          $('#match-container').html(newMatches).removeClass('fade-out').addClass('fade-in');
+        }, 150);
+      }
+    });
+  }
+
+  // ✅ Login modal logic (keeps your existing functionality)
+  const modal = $('#login-modal');
+  const closeModal = $('#close-modal');
+
+  {% if not user.is_authenticated %}
+    $(document).on('click', '.vote-btn', function(e) {
+      e.preventDefault();
+      modal.removeClass('hidden').hide().fadeIn(200);
+    });
+  {% else %}
+    $(document).on('click', '.vote-btn', function(e) {
+      const href = $(this).attr('href');
+      if (href) window.location.href = href;
+    });
+  {% endif %}
+
+  closeModal.on('click', function() {
+    modal.fadeOut(200, () => modal.addClass('hidden'));
+  });
+
+  $(document).on('click', function(e) {
+    if ($(e.target).is(modal)) {
+      modal.fadeOut(200, () => modal.addClass('hidden'));
+    }
+  });
+});
+</script>
+{% endblock %}

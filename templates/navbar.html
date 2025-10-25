@@ -11,12 +11,12 @@
 
         <div class="hidden md:flex items-center space-x-5">
             {# Home link goes to placeholder #}
-            <a href="#" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Home </a>
+            <a href="/" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Home </a>
             {# Link to your club directory - THIS IS ACTIVE #}
             <a href="{% url 'club_directories:show_club_directory' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Directory </a>
             {# Placeholder links for other modules #}
             <a href="#" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Forum </a>
-            <a href="#" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Match Prediction </a>
+            <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Match Prediction </a>
             <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Statistic </a>
         </div>  
 
@@ -42,7 +42,7 @@
 
                     <div id="user-menu" class="hidden absolute right-0 w-48 origin-top-right rounded-md bg-white pt-3 pb-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
                         {# Profile link goes to placeholder #}
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Your Profile</a>
+                        <a href="/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Your Profile</a>
                         <a href="{% url 'main:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 logout-button" role="menuitem" tabindex="-1">Log Out</a>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
         <div class="flex justify-between items-center">
             <div class="">
                  {# Logo link goes to placeholder #}
-                <a href="#">
+                <a href="/">
                     <img src="{% static 'images/logo.svg' %}" alt="PitchPerfect" class="h-6"/>
                 </a>
             </div>
@@ -88,13 +88,13 @@
 
         <div class="flex flex-col space-y-2">
             {# Home link goes to placeholder #}
-            <a href="#" class="font-tektur text-base not-italic font-normal"> Home </a>
+            <a href="/" class="font-tektur text-base not-italic font-normal"> Home </a>
             {# Link to your club directory - THIS IS ACTIVE #}
             <a href="{% url 'club_directories:show_club_directory' %}" class="font-tektur text-base not-italic font-normal"> Club Directory </a>
              {# Placeholder links for other modules #}
             <a href="#" class="font-tektur text-base not-italic font-normal"> Forum </a>
-            <a href="#" class="font-tektur text-base not-italic font-normal"> Match Prediction </a>
-            <a href="#" class="font-tektur text-base not-italic font-normal"> Club Statistic </a>
+            <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-base not-italic font-normal"> Match Prediction </a>
+            <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-base not-italic font-normal"> Club Statistic </a>
         </div>
 
 
@@ -109,7 +109,7 @@
                  {# </div> #}
             </div>
              {# Profile link goes to placeholder #}
-             <a href="#" class="font-tektur text-base not-italic font-normal mb-2"> Your Profile </a>
+             <a href="/" class="font-tektur text-base not-italic font-normal mb-2"> Your Profile </a>
             <a href="{% url 'main:logout' %}" class="flex w-fit py-[2px] px-3 justify-center items-center rounded-full bg-red-600 text-white text-center font-lato text-xs not-italic font-extrabold mt-2 logout-button">
                 Log Out
             </a>

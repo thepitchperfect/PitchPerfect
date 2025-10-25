@@ -1,0 +1,48 @@
+{% extends 'matchpredictions/base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if match %}Edit Match{% else %}Add Match{% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="max-w-2xl mx-auto mt-10 bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
+      {% if match %}✏️ Edit Match{% else %}➕ Add New Match{% endif %}
+    </h1>
+
+    <form method="POST" class="space-y-6">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <!-- Render all fields -->
+      {% for field in form %}
+        <div>
+          <label for="{{ field.id_for_label }}" class="block text-sm font-semibold mb-2 text-gray-700">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ field.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="flex justify-between mt-8">
+        <button type="submit"
+                class="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white px-6 py-2 rounded-lg font-medium transition shadow">
+          💾 Save
+        </button>
+
+        <a href="{% url 'matchpredictions:main' %}"
+           class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition">
+          ❌ Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+
+
+
+
