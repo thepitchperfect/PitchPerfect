@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{# This block puts all your <head> items into base.html #}
+{% block meta %}
+    <title>Soccer Club Map Directory</title>
+    
+    <!-- Load Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Orbitron:wght@700&family=Tektur:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f8f9fa; 
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-tektur { font-family: 'Tektur', sans-serif; }
+        .font-lato { font-family: 'Lato', sans-serif; }
+
+        #map {
+            height: 500px;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 165, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); }
+        }
+        .league-icon-div {
+            animation: pulse 2s infinite;
+            border: 2px solid white;
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .favorite-btn.is-favorited {
+            color: #f59e0b;
+        }
+    </style>
+{% endblock meta %}
+
+{# This block puts all your <body> items into base.html #}
+{% block content %}
+    {# We are intentionally leaving the navbar out for now #}
+
+    <main class="py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <h2 class="text-3xl font-tektur font-bold text-center text-gray-900 mb-2">CHOOSE YOUR LEAGUE</h2>
+            <p class="text-center text-gray-600 mb-6">Click a league marker on the map to see its clubs.</p>
+            <div id="map" class="w-full rounded-xl shadow-lg border border-gray-300 mb-12 bg-gray-200"></div>
+
+            <div id="club-list-section">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 id="league-title" class="font-tektur text-4xl font-bold text-gray-900 text-center md:text-left">All Clubs</h2>
+                    
+                    <div class="relative w-full md:w-auto">
+                        <label for="searchBar" class="sr-only">Search</label>
+                        <input type="text" id="searchBar" placeholder="Search this league..." class="font-lato rounded-lg border-2 border-gray-300 focus:border-orange-500 focus:ring-orange-500 shadow-sm transition-all duration-200 pl-10 pr-4 py-2 bg-white text-gray-900 w-full md:w-64 lg:w-80">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-gray-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="clubGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {# Club cards will be injected here by JavaScript #}
+                </div>
+                 <p id="no-clubs-message" class="text-center text-gray-500 mt-8 hidden">No clubs found matching your search.</p>
+            </div>
+        </div>
+    </main>
+
+    {# We are intentionally leaving the footer out for now #}
+
+    {{ leagues_data|json_script:"leagues-data" }}
+    {{ favorite_club_ids_list|json_script:"favorite-club-ids" }}
+
+    <script>
+        const leagueData = JSON.parse(document.getElementById('leagues-data').textContent);
+        const favoriteClubIDs = new Set(JSON.parse(document.getElementById('favorite-club-ids').textContent));
+        
+        const mapElement = document.getElementById('map');
+        const clubGrid = document.getElementById('clubGrid');
+        const leagueTitle = document.getElementById('league-title');
+        const searchBar = document.getElementById('searchBar');
+        const noClubsMessage = document.getElementById('no-clubs-message');
+        let allClubCards = []; 
+        let currentLeague = null; 
+
+        const map = L.map(mapElement).setView([48, 4], 4); 
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 18
+        }).addTo(map);
+
+        function createClubCard(club, leagueName) {
+            const logo = club.logo_url || `https://placehold.co/100x100/EFEFEF/333333?text=${club.name.substring(0,3)}`;
+            const isFavorited = favoriteClubIDs.has(club.id); // Check against the Set
+            const favoritedClass = isFavorited ? 'is-favorited' : '';
+            
+            return `
+                <div class="club-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/50 flex flex-col" data-league="${leagueName}" data-club-id="${club.id}">
+                    <img src="${logo}" alt="${club.name} Logo" class="w-20 h-20 mx-auto mt-5 object-contain" onerror="this.src='https://placehold.co/100x100/EFEFEF/333333?text=Logo'; this.onerror=null;">
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h2 class="club-name font-tektur text-xl font-bold text-gray-900 text-center truncate" title="${club.name}">${club.name}</h2>
+                        <span class="bg-orange-500 text-white text-xs font-bold uppercase rounded-full px-3 py-1 self-center my-3 font-lato">${leagueName}</span>
+                        <p class="font-lato text-gray-600 text-sm text-center flex-grow mb-4">${club.desc}</p>
+                        
+                        <div class="mt-auto flex items-center justify-center space-x-3">
+                            <button 
+                                data-club-id="${club.id}" 
+                                class="favorite-btn p-2 rounded-full text-gray-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all duration-200 ${favoritedClass}"
+                                aria-label="Favorite ${club.name}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 pointer-events-none">
+                                    <path d="M16.5 18.75h-9a2.25 2.25 0 0 0-2.25 2.25v.01c0 .114.094.205.21.205h12.08c.116 0 .21-.09.21-.205v-.01a2.25 2.25 0 0 0-2.25-2.25Z" />
+                                    <path fill-rule="evenodd" d="M12 2.25c-2.39 0-4.451 1.22-5.704 3.028a.75.75 0 0 0 .832 1.036A3.74 3.74 0 0 1 12 4.5c1.23 0 2.35.53 3.12 1.385a.75.75 0 0 0 1.1-.986C15.13 3.32 13.637 2.25 12 2.25ZM9.879 15.043c.091-.453.331-.874.654-1.216l.243-.253a.75.75 0 0 0-.968-1.14l-.242.253a3.738 3.738 0 0 0-.654 1.216.75.75 0 1 0 1.44.288Zm.75-2.825a.75.75 0 0 0-1.06 1.06l.243.253c.323.342.563.763.654 1.216a.75.75 0 0 0 1.44-.288 3.738 3.738 0 0 0-.654-1.216l-.243-.253Zm2.742 2.825c-.091-.453-.331-.874-.654-1.216l-.243-.253a.75.75 0 0 0-.968 1.14l.242.253c.323.342.563.763.654 1.216a.75.75 0 1 0 1.44-.288Z" clip-rule="evenodd" />
+                                    <path d="M12 6.75a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75Z" />
+                                    <path d="M8.25 10.5a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75h-.01a.75.75 0 0 1-.75-.75v-.01ZM14.25 10.5a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75h-.01a.75.75 0 0 1-.75-.75v-.01Z" />
+                                </svg>
+                            </button>
+                            <a href="#" class="view-club-btn bg-gradient-to-r from-orange-500 to-orange-400 text-white font-tektur text-sm font-bold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 text-center">VIEW CLUB</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showClubs(league) {
+            currentLeague = league; 
+            clubGrid.innerHTML = ''; 
+            leagueTitle.textContent = league.name; 
+            allClubCards = []; 
+            noClubsMessage.classList.add('hidden'); 
+
+            if (!league || !league.clubs || league.clubs.length === 0) {
+                 clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No clubs available for this league.</p>';
+                 return;
+            }
+
+            league.clubs.forEach(club => {
+                const cardHTML = createClubCard(club, league.name);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cardHTML.trim(); 
+                const cardElement = tempDiv.firstChild;
+                if (cardElement) {
+                    clubGrid.appendChild(cardElement); 
+                    allClubCards.push(cardElement); 
+                }
+            });
+
+            searchBar.value = '';
+            filterClubs();
+        }
+
+        function filterClubs() {
+            const searchTerm = searchBar.value.toLowerCase().trim();
+            let visibleCount = 0;
+            
+            allClubCards.forEach(card => {
+                const cardNameElement = card.querySelector('.club-name'); 
+                if (!cardNameElement) return; 
+
+                const cardName = cardNameElement.textContent.toLowerCase();
+                const nameMatch = cardName.includes(searchTerm);
+                
+                if (nameMatch) {
+                    card.classList.remove('hidden');
+                    card.classList.add('flex'); 
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                    card.classList.remove('flex');
+                }
+            });
+
+            noClubsMessage.classList.toggle('hidden', visibleCount > 0);
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        leagueData.forEach(league => {
+            const logoStaticPath = league.logo_path ? `{% static '' %}${league.logo_path}` : 'https://placehold.co/48x48/f0f0f0/999999?text=L'; 
+            
+            const leagueIcon = L.divIcon({
+                className: 'league-icon-div', 
+                html: `<div style="background-image: url('${logoStaticPath}'); background-size: contain; background-repeat: no-repeat; background-position: center;" class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg"></div>`,
+                iconSize: [48, 48],
+                iconAnchor: [24, 24] 
+            });
+
+            L.marker(league.coords, { icon: leagueIcon })
+                .addTo(map)
+                .on('click', () => {
+                    showClubs(league); 
+                    map.setView(league.coords, 6); 
+                })
+                .bindTooltip(league.name, {
+                    permanent: false, 
+                    direction: 'top', 
+                    offset: [0, -24], 
+                    className: 'font-tektur text-lg bg-white bg-opacity-80 rounded px-2 py-1 border border-gray-300 shadow' 
+                });
+        });
+
+        searchBar.addEventListener('input', filterClubs);
+
+        clubGrid.addEventListener('click', function(e) {
+            const favButton = e.target.closest('.favorite-btn');
+            if (favButton) {
+                const clubId = favButton.dataset.clubId;
+                console.log("Favorite button clicked for club ID:", clubId); 
+                const isCurrentlyFavorited = favButton.classList.contains('is-favorited');
+                
+                 favButton.classList.toggle('is-favorited', !isCurrentlyFavorited);
+                 if (!isCurrentlyFavorited) {
+                     favoriteClubIDs.add(clubId);
+                 } else {
+                     favoriteClubIDs.delete(clubId);
+                 }
+            }
+            
+            const viewButton = e.target.closest('.view-club-btn');
+            if (viewButton) {
+                 e.preventDefault(); 
+                 const clubCard = viewButton.closest('.club-card');
+                 const clubId = clubCard ? clubCard.dataset.clubId : null;
+                 if (clubId) {
+                    console.log("View club button clicked for club ID:", clubId);
+                 }
+            }
+        });
+
+        if (leagueData && leagueData.length > 0) {
+            showClubs(leagueData[0]);
+        } else {
+             leagueTitle.textContent = "No Leagues Available";
+             clubGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">The directory is currently empty.</p>';
+             noClubsMessage.classList.remove('hidden');
+        }
+
+    </script>
+{% endblock content %}
+

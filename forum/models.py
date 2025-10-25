@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from main.models import CustomUser
 from club_directories.models import Club, League 
 
 class Post(models.Model):
@@ -10,7 +10,7 @@ class Post(models.Model):
     
     title = models.CharField(max_length=200)
     content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='forum_posts')
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='forum_posts')
     post_type = models.CharField(
         max_length=20, 
         choices=POST_TYPE_CHOICES, 

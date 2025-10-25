@@ -18,11 +18,10 @@
     <title>PitchPerfect</title>
     {% endblock meta %}
 </head>
+
 <body class="bg-gray-50">
     {% include 'navbar.html' %}
-
-    <main class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-        {% block content %}{% endblock content %}
-    </main>
+    {% block content %}{% endblock content %}
 </body>
+
 </html>
