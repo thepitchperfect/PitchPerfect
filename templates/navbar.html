@@ -1,57 +1,64 @@
 {% load static %}
 
-<nav class="sticky top-0 left-0 w-full bg-white z-50">
+<nav class="sticky top-0 left-0 w-full bg-white z-50 border-b border-gray-200 shadow-sm">
     <div class="top-nav flex flex-row w-screen justify-between items-center py-[10px] px-[15px] min-[400px]:px-[17px] md:p-5 lg:px-10">
-        <!-- Logo -->
         <div class="">
-            <a href="" class="">
+            {# Logo link goes to placeholder for now #}
+            <a href="/" class="">
                 <img src="{% static 'images/logo.svg' %}" alt="PitchPerfect" class="h-4 min-[400px]:h-5 md:h-6 lg:h-7"/>
             </a>
         </div>
 
-        <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-5">
-            <a href="" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Home </a>
-            <a href="" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Directory </a>
-            <a href="" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Forum </a>
-            <a href="" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Match Prediction </a>
-            <a href="" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Statistic </a>
+            {# Home link goes to placeholder #}
+            <a href="#" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Home </a>
+            {# Link to your club directory - THIS IS ACTIVE #}
+            <a href="{% url 'club_directories:show_club_directory' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Directory </a>
+            {# Placeholder links for other modules #}
+            <a href="#" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Forum </a>
+            <a href="#" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Match Prediction </a>
+            <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal"> Club Statistic </a>
         </div>
 
         <div class="flex items-center gap-4">
-            <!-- Desktop User -->
             <div class="hidden md:flex">
                 {% if user.is_authenticated %}
                 <div id="user-menu-container" class="relative">
-                    <button id="user-menu-button" type="button" class="flex text-right focus:outline-none" aria-expanded="false" aria-haspopup="true">
+                    <button id="user-menu-button" type="button" class="flex text-right focus:outline-none items-center" aria-expanded="false" aria-haspopup="true">
                         <span class="sr-only">Open user menu</span>
                         <div class="text-right">
                             <div class="font-tektur text-sm lg:text-xl not-italic font-normal">
                                 {{ user.username|default:"Username" }}
                             </div>
-                            <div class="font-tektur text-xs lg:text-sm not-italic font-normal">
-                                {{ user.full_name|default:"Full Name" }}
-                            </div>
+                            {# <div class="font-tektur text-xs lg:text-sm not-italic font-normal"> #}
+                            {#     {{ user.get_full_name|default:"Full Name" }} #}
+                            {# </div> #}
                         </div>
+                         {# Add a small icon like a chevron down #}
+                         <svg class="ml-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                         </svg>
                     </button>
 
                     <div id="user-menu" class="hidden absolute right-0 w-48 origin-top-right rounded-md bg-white pt-3 pb-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
-                        <a href="" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Your Profile</a>
-                        <a href="" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Log Out</a>
+                        {# Profile link goes to placeholder #}
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Your Profile</a>
+                        <a href="{% url 'main:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 logout-button" role="menuitem" tabindex="-1">Log Out</a>
                     </div>
                 </div>
                 {% else %}
-                <a href="" class="flex min-w-12 py-[3px] lg:py-1 px-4 lg:px-5 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base lg:text-lg not-italic font-extrabold">
+                {# Assuming 'login' is the name of the login view in the 'main' app - THIS IS ACTIVE #}
+                <a href="{% url 'main:login' %}" class="flex min-w-12 py-[3px] lg:py-1 px-4 lg:px-5 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base lg:text-lg not-italic font-extrabold">
                     Log In
                 </a>
+                {# <a href="{% url 'main:register' %}" class="ml-4 font-tektur text-sm lg:text-base text-gray-600 hover:text-gray-900"> Register </a> #}
                 {% endif %}
             </div>
 
-            <!-- Mobile Menu Button -->
             <div class="md:hidden">
                 <button class="mobile-menu-button">
                     <span class="sr-only">Open menu</span>
-                    <div class="space-y-1.5"> 
+                    <div class="space-y-1.5">
                         <span class="bg-black block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm"></span>
                         <span class="bg-black block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm"></span>
                         <span class="bg-black block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm"></span>
@@ -61,51 +68,58 @@
         </div>
     </div>
 
-    <!-- Mobile Menu -->
     <div class="mobile-menu hidden md:hidden fixed top-0 left-0 w-full h-screen bg-white z-50 flex flex-col px-10 py-12 space-y-9">
         <div class="flex justify-between items-center">
-            <!-- Logo -->
             <div class="">
-                <a href="">
+                 {# Logo link goes to placeholder #}
+                <a href="#">
                     <img src="{% static 'images/logo.svg' %}" alt="PitchPerfect" class="h-6"/>
                 </a>
             </div>
 
-            <!-- Close -->
             <button class="mobile-menu-close-button">
                 <span class="sr-only">Close menu</span>
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                {# Using a simple X icon for close #}
+                <svg class="w-6 h-6 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
             </button>
         </div>
 
-        <!-- Mobile Navigation -->
         <div class="flex flex-col space-y-2">
-            <a href="" class="font-tektur text-base not-italic font-normal"> Home </a>
-            <a href="" class="font-tektur text-base not-italic font-normal"> Club Directory </a>
-            <a href="" class="font-tektur text-base not-italic font-normal"> Forum </a>
-            <a href="" class="font-tektur text-base not-italic font-normal"> Match Prediction </a>
-            <a href="" class="font-tektur text-base not-italic font-normal"> Club Statistic </a>
+            {# Home link goes to placeholder #}
+            <a href="#" class="font-tektur text-base not-italic font-normal"> Home </a>
+            {# Link to your club directory - THIS IS ACTIVE #}
+            <a href="{% url 'club_directories:show_club_directory' %}" class="font-tektur text-base not-italic font-normal"> Club Directory </a>
+             {# Placeholder links for other modules #}
+            <a href="#" class="font-tektur text-base not-italic font-normal"> Forum </a>
+            <a href="#" class="font-tektur text-base not-italic font-normal"> Match Prediction </a>
+            <a href="#" class="font-tektur text-base not-italic font-normal"> Club Statistic </a>
         </div>
 
 
-        <!-- Mobile User Section -->
-        <div class="flex flex-col">
+        <div class="flex flex-col mt-auto pt-6 border-t border-gray-200"> {/* Added mt-auto and border */}
             {% if user.is_authenticated %}
-            <div class="text-left">
+            <div class="mb-4"> {/* Added margin bottom */}
                 <div class="font-tektur text-base not-italic font-normal">
                     {{ user.username|default:"Username" }}
                 </div>
-                <div class="font-tektur text-xs not-italic font-normal">
-                    {{ user.full_name|default:"Full Name" }}
-                </div>
+                 {# <div class="font-tektur text-xs not-italic font-normal"> #}
+                 {#     {{ user.get_full_name|default:"Full Name" }} #}
+                 {# </div> #}
             </div>
-            <a href="" class="flex w-fit py-[2px] px-3 justify-center items-center rounded-full bg-red-600 text-white text-center font-lato text-xs not-italic font-extrabold">
+             {# Profile link goes to placeholder #}
+             <a href="#" class="font-tektur text-base not-italic font-normal mb-2"> Your Profile </a>
+            <a href="{% url 'main:logout' %}" class="flex w-fit py-[2px] px-3 justify-center items-center rounded-full bg-red-600 text-white text-center font-lato text-xs not-italic font-extrabold mt-2 logout-button">
                 Log Out
             </a>
             {% else %}
-            <a href="" class="flex w-fit py-[3px] px-4 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base not-italic font-extrabold">
+             {# Login button for mobile - THIS IS ACTIVE #}
+            <a href="{% url 'main:login' %}" class="flex w-fit py-[3px] px-4 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base not-italic font-extrabold">
                 Log In
             </a>
+             {# Add Register link - THIS IS ACTIVE #}
+             <a href="{% url 'main:register' %}" class="font-tektur text-base not-italic font-normal mt-3"> Register </a>
             {% endif %}
         </div>
     </div>
@@ -116,33 +130,75 @@
         const topNav = document.querySelector(".top-nav");
         const userMenuContainer = document.querySelector("#user-menu-container");
 
-        // Event listener for the OPEN button
         openButton.addEventListener("click", () => {
             menu.classList.remove("hidden");
-            topNav.classList.add("hidden");
         });
 
-        // Event listener for the CLOSE button
         closeButton.addEventListener("click", () => {
             menu.classList.add("hidden");
-            topNav.classList.remove("hidden");
         });
 
         if (userMenuContainer) {
             const userMenuButton = userMenuContainer.querySelector("#user-menu-button");
             const userMenu = userMenuContainer.querySelector("#user-menu");
 
-            // Show menu on hover
-            userMenuContainer.addEventListener("mouseenter", () => {
-                userMenu.classList.remove("hidden");
-                userMenuButton.setAttribute("aria-expanded", "true");
+            userMenuButton.addEventListener("click", (event) => {
+                const isExpanded = userMenuButton.getAttribute("aria-expanded") === "true";
+                userMenu.classList.toggle("hidden");
+                userMenuButton.setAttribute("aria-expanded", !isExpanded);
+                event.stopPropagation(); 
             });
 
-            // Hide menu when mouse leaves
-            userMenuContainer.addEventListener("mouseleave", () => {
-                userMenu.classList.add("hidden");
-                userMenuButton.setAttribute("aria-expanded", "false");
+             document.addEventListener('click', (event) => {
+                if (userMenuContainer && !userMenuContainer.contains(event.target)) {
+                    if (menu && !menu.classList.contains("hidden")) return;
+                    userMenu.classList.add('hidden');
+                    userMenuButton.setAttribute('aria-expanded', 'false');
+                }
             });
         }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.querySelectorAll(".logout-button").forEach(button => {
+            button.addEventListener("click", function(e) {
+                e.preventDefault();
+                
+                const postURL = this.href; 
+                const csrftoken = getCookie('csrftoken');
+
+                fetch(postURL, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrftoken,
+                        "Content-Type": "application/json" 
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        console.error("Logout failed:", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error during logout:", error);
+                });
+            });
+        });
     </script>
 </nav>

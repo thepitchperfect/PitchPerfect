@@ -1,0 +1,75 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}Top Possession Average - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>🎯 Top Possession Average (Club Stats)</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        Season: {{ season }}
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-header">Top Possession Average Leaderboard</div>
+    
+    {% if assisters %}
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Logo</th>
+                <th>Club</th>
+                <th>League</th>
+                <th>Possession %</th>
+                <th>Goals per Match</th>
+                <th>Shots per Match</th>
+                <th>Conversion Rate %</th>
+                <th>Wins</th>
+                <th>Clean Sheets %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in assisters %}
+            <tr>
+                <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                <td style="text-align: center;">
+                    {% if stat.club.logo_url %}
+                        <img src="{{ stat.club.logo_url }}" alt="{{ stat.club.name }} logo" style="width: 35px; height: 35px; object-fit: contain;">
+                    {% else %}
+                        <span style="color: var(--color-gray-600);">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'statisticsrafi:team_detail' stat.club.id %}" style="color: var(--color-orange-300); font-weight: bold;">
+                        <strong>{{ stat.club.name }}</strong>
+                    </a>
+                    <br>
+                    <small style="color: var(--color-gray-600);">{{ stat.club.league.region }}</small>
+                </td>
+                <td>{{ stat.club.league.name }}</td>
+                <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.2rem;">{{ stat.possession_avg }}%</span></td>
+                <td>{{ stat.scored_per_match }}</td>
+                <td>{{ stat.shots_taken_per_match }}</td>
+                <td>{{ stat.shots_conversion_rate }}%</td>
+                <td>{{ stat.wins }}</td>
+                <td>{{ stat.clean_sheets_percentage }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 3rem;">
+        No statistics available for this season yet. Add some data in the admin panel!
+    </p>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+

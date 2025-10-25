@@ -1,5 +1,9 @@
 from django.db import models
+<<<<<<< HEAD
 from main.models import CustomUser
+=======
+from django.conf import settings
+>>>>>>> 4f2a6beb9985f8a7cd0299fd03121f9eb9a4d8df
 import uuid
 
 class League(models.Model):
@@ -23,6 +27,23 @@ class Club(models.Model):
     
     class Meta:
         ordering = ['name']
+    
+class ClubDetails(models.Model):
+    club = models.OneToOneField(
+        Club, 
+        on_delete=models.CASCADE, 
+        primary_key=True, 
+        related_name="details"
+    )
+    
+    description = models.TextField(blank=True, null=True)
+    history_summary = models.TextField(blank=True, null=True)
+    stadium_name = models.CharField(max_length=255, blank=True, null=True)
+    stadium_capacity = models.IntegerField(blank=True, null=True)
+    manager_name = models.CharField(max_length=255, blank=True, null=True)
+    
+    def __str__(self):
+        return f"Details for {self.club.name}"
 
 class FavoriteClub(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

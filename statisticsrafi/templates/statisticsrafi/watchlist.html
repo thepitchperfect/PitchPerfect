@@ -1,0 +1,88 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}My Votes - PitchPerfect Statistics{% endblock %}
+
+{% block content %}
+<div class="text-center mb-2">
+    <h1>🗳️ My Votes</h1>
+    <p style="font-size: 1.1rem; color: var(--color-gray-600);">
+        Your voting history and preferences
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-header">My Voting History</div>
+    
+    {% if votes %}
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Voted For</th>
+                <th>Season</th>
+                <th>Period</th>
+                <th>Voted Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vote in votes %}
+            <tr>
+                <td>
+                    <strong>{{ vote.get_category_display }}</strong>
+                </td>
+                <td>
+                    {% if vote.player %}
+                        <strong>{{ vote.player.name }}</strong>
+                        <br>
+                        <small style="color: var(--color-gray-600);">{{ vote.player.club.name }}</small>
+                    {% elif vote.club %}
+                        <strong>{{ vote.club.name }}</strong>
+                        <br>
+                        <small style="color: var(--color-gray-600);">{{ vote.club.league.name }}</small>
+                    {% endif %}
+                </td>
+                <td>{{ vote.season }}</td>
+                <td>
+                    {% if vote.week_number %}
+                        Week {{ vote.week_number }}
+                    {% elif vote.month_number %}
+                        Month {{ vote.month_number }}
+                    {% else %}
+                        Season
+                    {% endif %}
+                </td>
+                <td>{{ vote.voted_at|date:"M d, Y" }}</td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if vote.player %}
+                            <a href="{% url 'statisticsrafi:player_detail' vote.player.id %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Player</a>
+                        {% elif vote.club %}
+                            <a href="{% url 'statisticsrafi:team_detail' vote.club.id %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Club</a>
+                        {% endif %}
+                        <a href="{% url 'statisticsrafi:vote_results' vote.category vote.season %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Results</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 3rem;">
+        <p style="color: var(--color-gray-600); font-size: 1.1rem; margin-bottom: 1rem;">
+            You haven't cast any votes yet. Start voting for your favorites!
+        </p>
+        <a href="{% url 'statisticsrafi:home' %}" class="btn btn-primary">Browse Voting Options</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+
+

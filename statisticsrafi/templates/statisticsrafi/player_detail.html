@@ -1,0 +1,123 @@
+{% extends 'statisticsrafi/base.html' %}
+
+{% block title %}{{ player.name }} - Player Details{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div>
+            <h1 style="margin-bottom: 0.5rem;">{{ player.name }}</h1>
+            <h3 style="color: var(--color-gray-600); margin-bottom: 1rem;">
+                {{ player.club.name }} | {{ player.get_position_display }}
+            </h3>
+        </div>
+        {% if user.is_authenticated %}
+        <div>
+            <a href="{% url 'statisticsrafi:vote' 'PLAYER_SEASON' '2025/26' %}" class="btn btn-primary">
+                🗳️ Vote for Player
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; padding: 1rem; background: var(--color-orange-100); border-radius: 5px;">
+        <div>
+            <p style="margin: 0; color: var(--color-gray-600); font-size: 0.9rem;">Nationality</p>
+            <p style="margin: 0; font-weight: bold;">{{ player.nationality }}</p>
+        </div>
+        <div>
+            <p style="margin: 0; color: var(--color-gray-600); font-size: 0.9rem;">Jersey Number</p>
+            <p style="margin: 0; font-weight: bold;">{{ player.jersey_number|default:"-" }}</p>
+        </div>
+        <div>
+            <p style="margin: 0; color: var(--color-gray-600); font-size: 0.9rem;">Height</p>
+            <p style="margin: 0; font-weight: bold;">{{ player.height|default:"-" }}m</p>
+        </div>
+        <div>
+            <p style="margin: 0; color: var(--color-gray-600); font-size: 0.9rem;">Market Value</p>
+            <p style="margin: 0; font-weight: bold;">€{{ player.market_value|default:"-" }}M</p>
+        </div>
+    </div>
+</div>
+
+<!-- Season Statistics -->
+<div class="card">
+    <div class="card-header">📊 Season Statistics</div>
+    
+    {% if stats %}
+    <table>
+        <thead>
+            <tr>
+                <th>Season</th>
+                <th>Apps</th>
+                <th>Goals</th>
+                <th>Assists</th>
+                <th>Clean Sheets</th>
+                <th>Yellow Cards</th>
+                <th>Red Cards</th>
+                <th>Avg Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in stats %}
+            <tr>
+                <td><strong>{{ stat.season }}</strong></td>
+                <td>{{ stat.appearances }}</td>
+                <td><strong style="color: var(--color-orange-300);">{{ stat.goals }}</strong></td>
+                <td><strong style="color: var(--color-orange-300);">{{ stat.assists }}</strong></td>
+                <td>{{ stat.clean_sheets }}</td>
+                <td>{{ stat.yellow_cards }}</td>
+                <td>{{ stat.red_cards }}</td>
+                <td>{{ stat.average_rating|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 2rem;">
+        No statistics available for this player yet.
+    </p>
+    {% endif %}
+</div>
+
+<!-- Awards -->
+<div class="card">
+    <div class="card-header">🏆 Awards & Achievements</div>
+    
+    {% if awards %}
+    <table>
+        <thead>
+            <tr>
+                <th>Award</th>
+                <th>Type</th>
+                <th>Season</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for award in awards %}
+            <tr>
+                <td><strong>{{ award.title }}</strong></td>
+                <td>{{ award.get_award_type_display }}</td>
+                <td>{{ award.season }}</td>
+                <td>{{ award.date_awarded|date:"M d, Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: var(--color-gray-600); padding: 2rem;">
+        No awards yet for this player.
+    </p>
+    {% endif %}
+</div>
+
+<div class="text-center mt-2">
+    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}
+
+
+
+
+
