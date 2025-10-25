@@ -1,11 +1,15 @@
 {% extends 'statisticsrafi/base.html' %}
 
-{% block title %}Voting Results - {{ category }}{% endblock %}
+{% block title %}Voting Results{% endblock %}
 
 {% block content %}
 <div class="text-center mb-2">
     <h1>🗳️ Voting Results</h1>
-    <h2>{{ category|title|replace:"_":" " }} - {{ season }}</h2>
+    {% if category %}
+        <h2>{{ category|title|cut:"_" }} - {{ season }}</h2>
+    {% else %}
+        <h2>Club of the Season - {{ season }}</h2>
+    {% endif %}
     <p style="font-size: 1.1rem; color: var(--color-gray-600);">
         Total Votes: <strong>{{ total_votes }}</strong>
     </p>
@@ -14,42 +18,80 @@
 <div class="card">
     <div class="card-header">Vote Standings</div>
     
-    {% if results %}
+    {% if results or vote_counts %}
     <table>
         <thead>
             <tr>
                 <th>Rank</th>
-                {% if 'PLAYER' in category %}
+                {% if category and 'PLAYER' in category %}
                     <th>Player</th>
                     <th>Club</th>
                 {% else %}
                     <th>Club</th>
-                    <th>Country</th>
+                    <th>League</th>
                 {% endif %}
                 <th>Votes</th>
                 <th>Percentage</th>
             </tr>
         </thead>
         <tbody>
-            {% for result in results %}
-            <tr>
-                <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
-                {% if 'PLAYER' in category %}
-                    <td><strong>{{ result.player__name }}</strong></td>
-                    <td>{{ result.player__club__name }}</td>
-                {% else %}
-                    <td><strong>{{ result.club__name }}</strong></td>
-                    <td>{{ result.club__country|default:"-" }}</td>
-                {% endif %}
-                <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.1rem;">{{ result.vote_count }}</span></td>
-                <td>
-                    {% widthratio result.vote_count total_votes 100 %}%
-                    <div style="background: var(--color-gray-400); height: 8px; border-radius: 4px; margin-top: 0.3rem; overflow: hidden;">
-                        <div style="background: var(--color-orange-300); height: 100%; width: {% widthratio result.vote_count total_votes 100 %}%;"></div>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
+            {% if results %}
+                {% for result in results %}
+                <tr>
+                    <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                    {% if 'PLAYER' in category %}
+                        <td><strong>{{ result.player__name }}</strong></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                {% if result.player__club__logo_url %}
+                                    <img src="{{ result.player__club__logo_url }}" alt="{{ result.player__club__name }}" style="width: 24px; height: 24px; object-fit: contain;">
+                                {% endif %}
+                                <span>{{ result.player__club__name }}</span>
+                            </div>
+                        </td>
+                    {% else %}
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                {% if result.club__logo_url %}
+                                    <img src="{{ result.club__logo_url }}" alt="{{ result.club__name }}" style="width: 24px; height: 24px; object-fit: contain;">
+                                {% endif %}
+                                <strong>{{ result.club__name }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ result.club__league__name|default:"-" }}</td>
+                    {% endif %}
+                    <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.1rem;">{{ result.vote_count }}</span></td>
+                    <td>
+                        {% widthratio result.vote_count total_votes 100 %}%
+                        <div style="background: var(--color-gray-400); height: 8px; border-radius: 4px; margin-top: 0.3rem; overflow: hidden;">
+                            <div style="background: var(--color-orange-300); height: 100%; width: {% widthratio result.vote_count total_votes 100 %}%;"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% elif vote_counts %}
+                {% for vote_count in vote_counts %}
+                <tr>
+                    <td><strong style="color: var(--color-orange-300);">#{{ forloop.counter }}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            {% if vote_count.club__logo_url %}
+                                <img src="{{ vote_count.club__logo_url }}" alt="{{ vote_count.club__name }}" style="width: 24px; height: 24px; object-fit: contain;">
+                            {% endif %}
+                            <strong>{{ vote_count.club__name }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ vote_count.club__league__name|default:"-" }}</td>
+                    <td><span style="color: var(--color-orange-300); font-weight: bold; font-size: 1.1rem;">{{ vote_count.vote_count }}</span></td>
+                    <td>
+                        {% widthratio vote_count.vote_count total_votes 100 %}%
+                        <div style="background: var(--color-gray-400); height: 8px; border-radius: 4px; margin-top: 0.3rem; overflow: hidden;">
+                            <div style="background: var(--color-orange-300); height: 100%; width: {% widthratio vote_count.vote_count total_votes 100 %}%;"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% endif %}
         </tbody>
     </table>
     {% else %}
