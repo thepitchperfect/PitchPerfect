@@ -1,0 +1,29 @@
+{% extends 'matchpredictions/base.html' %}
+{% block title %}Edit Vote{% endblock %}
+
+{% block content %}
+<main class="max-w-md mx-auto mt-20 bg-white shadow-2xl rounded-2xl p-8 text-center border border-gray-200">
+  <h2 class="text-2xl font-bold mb-4 text-gray-800">Edit Your Vote</h2>
+  <p class="text-gray-600 mb-6">You are editing your vote for <span class="font-semibold">{{ match.home_team.name }}</span> vs <span class="font-semibold">{{ match.away_team.name }}</span>.</p>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="flex flex-col gap-3 mb-5">
+      <button type="submit" name="prediction" value="home_win"
+              class="px-5 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition">
+        {{ match.home_team.name }} Win
+      </button>
+      <button type="submit" name="prediction" value="draw"
+              class="px-5 py-3 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-semibold transition">
+        Draw
+      </button>
+      <button type="submit" name="prediction" value="away_win"
+              class="px-5 py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold transition">
+        {{ match.away_team.name }} Win
+      </button>
+    </div>
+    <a href="{% url 'matchpredictions:match_detail' match.id %}"
+       class="inline-block text-gray-600 hover:text-gray-800 mt-2 underline">Cancel</a>
+  </form>
+</main>
+{% endblock %}

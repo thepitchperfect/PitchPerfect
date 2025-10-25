@@ -4,9 +4,7 @@ from django.http import JsonResponse, HttpResponse
 from .models import Match, Vote, League, Club
 from .forms import MatchForm
 from django.db.models import Q
-
-
-
+from django.contrib import messages
 
 # 🏠 Home
 def home(request):
@@ -18,21 +16,32 @@ def main_view(request):
     leagues = League.objects.exclude(name="Primeira Liga").order_by('name')
     selected_league_id = request.GET.get('league')
     search_query = request.GET.get('search', '').strip()
+    filter_type = request.GET.get('filter', 'all')  # 🆕 "all" or "my"
 
     matches = Match.objects.all().order_by('match_date')
 
+    # 🏆 League filter
     if selected_league_id:
         matches = matches.filter(league__id=selected_league_id)
+
+    # 🔍 Search filter
     if search_query:
         matches = matches.filter(
             Q(home_team__name__icontains=search_query) |
             Q(away_team__name__icontains=search_query)
         )
 
+    # 💭 My Predictions filter
+    if filter_type == 'my' and request.user.is_authenticated:
+        matches = matches.filter(votes__user=request.user)  # ✅ FIXED HERE
+    elif filter_type == 'my' and not request.user.is_authenticated:
+        matches = Match.objects.none()  # ✅ avoids exposing all matches to guests
+
     return render(request, 'matchpredictions/main.html', {
-        'matches': matches,
+        'matches': matches.distinct(),
         'leagues': leagues,
         'selected_league_id': selected_league_id,
+        'filter_type': filter_type,
     })
 
 
@@ -82,7 +91,7 @@ def vote_match(request, match_id):
                     "prediction": prediction,
                 }
             )
-    return redirect('match_detail', match_id=match.id)
+    return redirect('matchpredictions:match_detail', match_id=match.id)
 
 
 
@@ -93,7 +102,7 @@ def match_create(request):
         form = MatchForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('main')
+            return redirect('matchpredictions:main')
     else:
         form = MatchForm()
     return render(request, 'matchpredictions/match_form.html', {'form': form})
@@ -107,7 +116,7 @@ def match_update(request, match_id):
         form = MatchForm(request.POST, instance=match)
         if form.is_valid():
             form.save()
-            return redirect('main')
+            return redirect('matchpredictions:main')
     else:
         form = MatchForm(instance=match)
     return render(request, 'matchpredictions/match_form.html', {'form': form, 'match': match})
@@ -119,7 +128,7 @@ def match_delete(request, match_id):
     match = get_object_or_404(Match, id=match_id)
     if request.method == 'POST':
         match.delete()
-        return redirect('main')
+        return redirect('matchpredictions:main')
     return render(request, 'matchpredictions/match_confirm_delete.html', {'match': match})
 
 
@@ -128,5 +137,48 @@ def load_clubs(request):
     league_id = request.GET.get('league_id')
     clubs = Club.objects.filter(league_id=league_id).order_by('name')
     return JsonResponse(list(clubs.values('id', 'name')), safe=False)
+
+
+@login_required
+def edit_vote(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+    vote = Vote.objects.filter(user=request.user, match=match).first()
+
+    if not vote:
+        messages.error(request, "You haven’t voted for this match yet.")
+        return redirect('matchpredictions:match_detail', match_id=match.id)
+
+    if request.method == "POST":
+        prediction = request.POST.get("prediction")
+        if prediction in ["home_win", "away_win", "draw"]:
+            vote.prediction = prediction
+            vote.save()
+            messages.success(request, f"Your vote has been updated to '{prediction.replace('_', ' ').title()}'!")
+            return redirect('matchpredictions:match_detail', match_id=match.id)
+
+    return render(request, "matchpredictions/edit_vote.html", {
+        "match": match,
+        "vote": vote,
+    })
+
+
+@login_required
+def delete_vote(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+    vote = Vote.objects.filter(user=request.user, match=match).first()
+
+    if not vote:
+        messages.error(request, "You have no vote to delete.")
+        return redirect('matchpredictions:match_detail', match_id=match.id)
+
+    if request.method == "POST":
+        vote.delete()
+        messages.success(request, "Your vote has been deleted successfully.")
+        return redirect('matchpredictions:match_detail', match_id=match.id)
+
+    return render(request, "matchpredictions/delete_vote_confirm.html", {
+        "match": match,
+    })
+
 
 

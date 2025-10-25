@@ -6,20 +6,46 @@
 {% block content %}
 <main class="max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl p-10 border border-gray-200 relative overflow-hidden">
 
+  <!-- ✅ Local Notifications -->
+  {% if messages %}
+    <div id="local-messages" class="mb-6 space-y-2 animate-fade-in">
+      {% for message in messages %}
+        <div class="px-4 py-3 rounded-lg shadow-md border transition-all transform hover:scale-[1.02]
+                    {% if message.tags == 'success' %}
+                      bg-green-100 border-green-300 text-green-800
+                    {% elif message.tags == 'error' %}
+                      bg-red-100 border-red-300 text-red-800
+                    {% elif message.tags == 'warning' %}
+                      bg-yellow-100 border-yellow-300 text-yellow-800
+                    {% else %}
+                      bg-gray-100 border-gray-300 text-gray-800
+                    {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+
+    <script>
+      // 🕓 Auto-hide notifications after 3 seconds
+      setTimeout(() => {
+        const msgBox = document.getElementById('local-messages');
+        if (msgBox) msgBox.remove();
+      }, 3000);
+    </script>
+  {% endif %}
+
   <!-- Decorative background -->
   <div class="absolute inset-0 opacity-5 pointer-events-none"
        style="background: radial-gradient(circle at 30% 20%, #fe9800 0, transparent 60%);"></div>
 
   <!-- 🏟️ Match Header -->
   <section class="relative z-10 flex justify-between items-center mb-10">
-    <!-- Home -->
     <div class="flex flex-col items-center w-1/3">
       <img src="{{ match.home_team.logo_url }}" alt="{{ match.home_team.name }}"
            class="w-28 h-28 mb-3 rounded-full border-4 border-orange-200 shadow-md bg-white p-2 transform transition hover:scale-105">
       <h2 class="text-xl font-bold text-gray-800">{{ match.home_team.name }}</h2>
     </div>
 
-    <!-- VS -->
     <div class="text-center w-1/3">
       <p class="text-4xl font-extrabold text-orange-500 drop-shadow mb-1">VS</p>
       <p class="text-sm text-gray-600">{{ match.match_date|date:"D, M d, Y H:i" }}</p>
@@ -28,55 +54,10 @@
       </p>
     </div>
 
-    <!-- Away -->
     <div class="flex flex-col items-center w-1/3">
       <img src="{{ match.away_team.logo_url }}" alt="{{ match.away_team.name }}"
            class="w-28 h-28 mb-3 rounded-full border-4 border-orange-200 shadow-md bg-white p-2 transform transition hover:scale-105">
       <h2 class="text-xl font-bold text-gray-800">{{ match.away_team.name }}</h2>
-    </div>
-  </section>
-
-  <!-- 📊 Team Stats + Chart -->
-  <section class="relative z-10 text-center mb-10">
-    <h3 class="text-2xl font-semibold mb-6 text-gray-800">Team Statistics</h3>
-
-    <!-- Stats Summary -->
-    <div class="grid grid-cols-3 text-sm font-medium text-gray-700 mb-8">
-      <!-- Home Stats -->
-      <div class="text-left">
-        {% if home_stats %}
-          <p>🏆 Wins: {{ home_stats.wins }}</p>
-          <p>🤝 Draws: {{ home_stats.draws }}</p>
-          <p>❌ Losses: {{ home_stats.losses }}</p>
-          <p>⚽ Scored / Match: {{ home_stats.goals_per_match }}</p>
-          <p>📈 Avg Goals: {{ home_stats.avg_goals }}</p>
-        {% else %}
-          <p class="text-gray-500 italic">No data available.</p>
-        {% endif %}
-      </div>
-
-      <div class="text-center flex flex-col justify-center text-gray-500">
-        <p class="text-xl font-bold text-orange-500 mb-1">VS</p>
-        <p class="text-xs">Stat Comparison</p>
-      </div>
-
-      <!-- Away Stats -->
-      <div class="text-right">
-        {% if away_stats %}
-          <p>🏆 Wins: {{ away_stats.wins }}</p>
-          <p>🤝 Draws: {{ away_stats.draws }}</p>
-          <p>❌ Losses: {{ away_stats.losses }}</p>
-          <p>⚽ Scored / Match: {{ away_stats.goals_per_match }}</p>
-          <p>📈 Avg Goals: {{ away_stats.avg_goals }}</p>
-        {% else %}
-          <p class="text-gray-500 italic">No data available.</p>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Horizontal Chart -->
-    <div class="relative w-full h-64">
-      <canvas id="teamComparisonChart"></canvas>
     </div>
   </section>
 
@@ -87,33 +68,44 @@
     <h3 class="text-2xl font-semibold mb-6 text-gray-800">Cast Your Prediction</h3>
 
     {% if user.is_authenticated %}
-      <form method="POST" action="{% url 'vote_match' match.id %}" class="flex flex-col items-center">
+      <form id="voteForm" method="POST" action="{% url 'matchpredictions:vote_match' match.id %}" class="flex flex-col items-center">
         {% csrf_token %}
         <div class="flex gap-6 mb-4 flex-wrap justify-center">
-          <button type="submit" name="prediction" value="home_win"
-            class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105 
+
+          <!-- Home Win -->
+          <button type="button" name="prediction" value="home_win"
+            {% if user_vote %}disabled{% endif %}
+            class="vote-btn px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
                    {% if user_vote and user_vote.prediction == 'home_win' %}
                       bg-gray-400 text-white cursor-not-allowed
+                   {% elif user_vote %}
+                      bg-gray-300 text-gray-500 cursor-not-allowed
                    {% else %}
                       bg-gradient-to-r from-green-500 to-green-400 hover:from-green-600 hover:to-green-500 text-white shadow-md
                    {% endif %}">
             {{ match.home_team.name }} Win
           </button>
 
-          <button type="submit" name="prediction" value="draw"
-            class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
+          <!-- Draw -->
+          <button type="button" name="prediction" value="draw"
+            {% if user_vote %}disabled{% endif %}
+            class="vote-btn px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
                    {% if user_vote and user_vote.prediction == 'draw' %}
                       bg-gray-400 text-white cursor-not-allowed
+                   {% elif user_vote %}
+                      bg-gray-300 text-gray-500 cursor-not-allowed
                    {% else %}
                       bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-600 hover:to-yellow-500 text-white shadow-md
-                   {% endif %}">
-            Draw
-          </button>
+                   {% endif %}">Draw</button>
 
-          <button type="submit" name="prediction" value="away_win"
-            class="px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
+          <!-- Away Win -->
+          <button type="button" name="prediction" value="away_win"
+            {% if user_vote %}disabled{% endif %}
+            class="vote-btn px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105
                    {% if user_vote and user_vote.prediction == 'away_win' %}
                       bg-gray-400 text-white cursor-not-allowed
+                   {% elif user_vote %}
+                      bg-gray-300 text-gray-500 cursor-not-allowed
                    {% else %}
                       bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500 text-white shadow-md
                    {% endif %}">
@@ -122,23 +114,37 @@
         </div>
 
         {% if user_vote %}
-          <p class="text-sm text-gray-600 mt-2">
-          ✅ You voted:
-          <span class="font-semibold text-orange-600">
+        <div class="mt-6 px-5 py-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg shadow-sm text-left animate-fade-in">
+          <p class="text-orange-700 font-medium">🟢 You have already voted for this match!</p>
+          <p class="text-sm text-gray-700 mt-1">
+            Your prediction:
+            <span class="font-semibold text-orange-600">
               {% if user_vote.prediction == "home_win" %}
-              {{ match.home_team.name }} Win
+                {{ match.home_team.name }} Win
               {% elif user_vote.prediction == "away_win" %}
-              {{ match.away_team.name }} Win
+                {{ match.away_team.name }} Win
               {% else %}
-              Draw
+                Draw
               {% endif %}
-          </span>
+            </span>
           </p>
+
+          <div class="flex gap-3 mt-4">
+            <a href="{% url 'matchpredictions:edit_vote' match.id %}"
+               class="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-medium shadow transition">
+               Edit Vote
+            </a>
+            <a href="{% url 'matchpredictions:delete_vote' match.id %}"
+               class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium shadow transition">
+               Delete Vote
+            </a>
+          </div>
+        </div>
         {% endif %}
       </form>
     {% else %}
       <p class="text-center mt-6 text-gray-600">
-        <a href="{% url 'login' %}" class="text-orange-500 hover:text-orange-600 font-medium underline">
+        <a href="{% url 'main:login' %}?next={{ request.path }}" class="text-orange-500 hover:text-orange-600 font-medium underline">
           Login
         </a> to participate in match predictions.
       </p>
@@ -160,9 +166,7 @@
         </div>
         <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
           <div class="bg-green-500 h-5 rounded-full text-xs font-bold text-white text-right pr-2 transition-all duration-700 ease-out"
-               style="width: {{ vote_summary.home_win }}%">
-            {{ vote_summary.home_win }}%
-          </div>
+               style="width: {{ vote_summary.home_win }}%">{{ vote_summary.home_win }}%</div>
         </div>
       </div>
 
@@ -173,9 +177,7 @@
         </div>
         <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
           <div class="bg-yellow-500 h-5 rounded-full text-xs font-bold text-white text-right pr-2 transition-all duration-700 ease-out"
-               style="width: {{ vote_summary.draw }}%">
-            {{ vote_summary.draw }}%
-          </div>
+               style="width: {{ vote_summary.draw }}%">{{ vote_summary.draw }}%</div>
         </div>
       </div>
 
@@ -186,9 +188,7 @@
         </div>
         <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
           <div class="bg-blue-500 h-5 rounded-full text-xs font-bold text-white text-right pr-2 transition-all duration-700 ease-out"
-               style="width: {{ vote_summary.away_win }}%">
-            {{ vote_summary.away_win }}%
-          </div>
+               style="width: {{ vote_summary.away_win }}%">{{ vote_summary.away_win }}%</div>
         </div>
       </div>
 
@@ -201,79 +201,86 @@
     {% endif %}
   </section>
 
-  <!-- ⬅️ Back -->
   <div class="text-center mt-10 relative z-10">
-    <a href="{% url 'main' %}"
-       class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 text-white px-6 py-3 rounded-lg font-medium shadow-md transition transform hover:scale-105">
-      ⬅️ Back to Matches
+    <a href="{% url 'matchpredictions:main' %}"
+     class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-black font-semibold px-6 py-3 rounded-xl shadow-lg transition transform hover:scale-105 hover:shadow-xl">
+      Back to Matches
     </a>
+
   </div>
 </main>
 
-<!-- 📊 Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- 🧡 Confirmation Modal -->
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+  <div class="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full mx-4 animate-fade-in">
+    <h3 class="text-lg font-semibold text-gray-800 mb-2">Confirm Your Vote</h3>
+    <p id="confirmText" class="text-gray-600 mb-5">Are you sure you want to vote?</p>
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+      <button id="cancelBtn" type="button"
+              class="w-full sm:w-auto px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 shadow transition">
+        Cancel
+      </button>
+      <button id="confirmBtn" type="button" autofocus
+              class="w-full sm:w-auto px-5 py-2 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-300 text-black font-semibold hover:from-yellow-500 hover:to-yellow-400 shadow-md transition">
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.3s ease-in-out; }
+</style>
+
 <script>
-  const ctx = document.getElementById('teamComparisonChart').getContext('2d');
+document.addEventListener("DOMContentLoaded", function() {
+  const buttons = document.querySelectorAll(".vote-btn");
+  const modal = document.getElementById("confirmModal");
+  const confirmText = document.getElementById("confirmText");
+  const confirmBtn = document.getElementById("confirmBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const form = document.getElementById("voteForm");
+  let selectedPrediction = null;
 
-  const data = {
-    labels: ['Wins', 'Draws', 'Losses', 'Goals/Match', 'Avg Goals'],
-    datasets: [
-      {
-        label: '{{ match.home_team.name }}',
-        data: [
-          {{ home_stats.wins|default:0 }},
-          {{ home_stats.draws|default:0 }},
-          {{ home_stats.losses|default:0 }},
-          {{ home_stats.goals_per_match|default:0 }},
-          {{ home_stats.avg_goals|default:0 }}
-        ],
-        backgroundColor: 'rgba(254, 152, 0, 0.7)',
-        borderColor: '#fe9800',
-        borderWidth: 1,
-        borderSkipped: false,
-        barThickness: 18
-      },
-      {
-        label: '{{ match.away_team.name }}',
-        data: [
-          -{{ away_stats.wins|default:0 }},
-          -{{ away_stats.draws|default:0 }},
-          -{{ away_stats.losses|default:0 }},
-          -{{ away_stats.goals_per_match|default:0 }},
-          -{{ away_stats.avg_goals|default:0 }}
-        ],
-        backgroundColor: 'rgba(128, 128, 128, 0.7)',
-        borderColor: '#888',
-        borderWidth: 1,
-        borderSkipped: false,
-        barThickness: 18
-      }
-    ]
-  };
-
-  const chart = new Chart(ctx, {
-    type: 'bar',
-    data: data,
-    options: {
-      indexAxis: 'y',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#333', font: { size: 12 } }
-        },
-      },
-      responsive: true,
-      scales: {
-        x: {
-          beginAtZero: true,
-          grid: { color: '#eee' },
-          ticks: { callback: value => Math.abs(value) }
-        },
-        y: {
-          grid: { color: '#eee' }
-        }
-      }
-    }
+  buttons.forEach(btn => {
+    btn.addEventListener("click", function() {
+      if (this.disabled) return;
+      selectedPrediction = this.value;
+      const teamName = this.textContent.trim();
+      confirmText.textContent = `Are you sure you want to vote for "${teamName}"? You won't be able to change your vote later.`;
+      modal.classList.remove("hidden");
+      confirmBtn.focus();
+    });
   });
+
+  function closeModal() {
+    modal.classList.add("hidden");
+    selectedPrediction = null;
+    confirmBtn.disabled = false;
+  }
+
+  cancelBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+  });
+
+  confirmBtn.addEventListener("click", () => {
+    if (!selectedPrediction) return;
+    const existing = form.querySelector('input[name="prediction"][type="hidden"]');
+    if (existing) existing.remove();
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = "prediction";
+    hiddenInput.value = selectedPrediction;
+    form.appendChild(hiddenInput);
+    confirmBtn.disabled = true;
+    form.submit();
+  });
+});
 </script>
 {% endblock %}

@@ -17,7 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
-from matchpredictions import views as prediction_views
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/statistics/', permanent=False), name='home'),
@@ -25,10 +24,8 @@ urlpatterns = [
     path('', include('main.urls')),
     path('statistics/', include('statisticsrafi.urls')),
     path('directory/', include('club_directories.urls')),
-    path('', prediction_views.home, name='home'),
     path('predictions/', include('matchpredictions.urls')),
     path('accounts/', include('django.contrib.auth.urls')),  # ✅ This line fixes the login issue
-    path('predictions/', include('matchpredictions.urls')),
 ]
 
 

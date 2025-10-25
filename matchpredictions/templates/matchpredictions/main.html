@@ -54,17 +54,33 @@
   <!-- 👨‍💼 Admin Add Button -->
   {% if user.is_staff %}
   <div class="flex justify-end mb-8">
-    <a href="{% url 'match_create' %}"
-       class="bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-600 hover:to-yellow-500 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md transform hover:scale-105">
-       ➕ Add Match
-    </a>
+<a href="{% url 'matchpredictions:match_create' %}"
+   class="bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-600 hover:to-yellow-500 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md transform hover:scale-105">
+   ➕ Add Match
+</a>
+
   </div>
   {% endif %}
 
-  <!-- ⚽ Match Cards -->
-  <div id="match-container" class="transition-opacity duration-200">
-    {% include 'matchpredictions/match_list.html' %}
+<!-- ⚽ Match Filter Buttons -->
+<section class="text-center mb-6">
+  <div class="inline-flex rounded-full bg-gray-100 p-1 shadow-inner">
+    <button id="filter-all"
+      class="filter-btn px-5 py-2 text-sm font-semibold rounded-full transition
+             bg-gradient-to-r from-yellow-500 to-yellow-400 text-black shadow-md scale-105">
+       All Matches
+    </button>
+    <button id="filter-my"
+      class="filter-btn px-5 py-2 text-sm font-semibold rounded-full transition bg-white text-black hover:bg-yellow-100">
+       My Predictions
+    </button>
   </div>
+</section>
+
+<!-- ⚽ Match Cards -->
+<div id="match-container" class="transition-opacity duration-200">
+  {% include 'matchpredictions/match_list.html' %}
+</div>
 
   <!-- 🌙 Login Modal -->
   <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50">
@@ -117,27 +133,53 @@
 <script>
 $(document).ready(function() {
   let currentLeagueId = '';
+  let currentFilter = 'all'; // 🆕 Track if user is viewing "all" or "my" predictions
 
-  // ✅ League filter + highlight behavior
   $(document).on('click', '.league-btn', function() {
-    currentLeagueId = $(this).data('league');
+  currentLeagueId = $(this).data('league');
 
-    // Reset all buttons to white
-    $('.league-btn')
-      .removeClass('from-yellow-500 to-yellow-400 scale-105')
-      .addClass('bg-white text-black hover:bg-yellow-100')
-      .removeClass('bg-gradient-to-r');
+  // Remove highlight from all league buttons
+  $('.league-btn')
+    .removeClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105')
+    .addClass('bg-white text-black hover:bg-yellow-100');
 
-    // Highlight clicked one as orange
-    $(this)
-      .removeClass('bg-white hover:bg-yellow-100')
-      .addClass('bg-gradient-to-r from-yellow-500 to-yellow-400 scale-105 text-black');
+  // Add highlight to the selected one
+  $(this)
+    .removeClass('bg-white hover:bg-yellow-100')
+    .addClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105');
 
-    // Reload matches with fade
+  reloadMatches();
+});
+
+  // ✅ Match filter (All vs My Predictions)
+  $(document).on('click', '.filter-btn', function() {
+    $('.filter-btn').removeClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105 shadow-md')
+                    .addClass('bg-white text-black hover:bg-yellow-100');
+
+    $(this).removeClass('bg-white hover:bg-yellow-100')
+           .addClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105 shadow-md');
+
+    currentFilter = (this.id === 'filter-my') ? 'my' : 'all';
+    reloadMatches();
+  });
+
+  // ✅ Search filter
+  $('#search-input').on('keyup', function() {
+    reloadMatches();
+  });
+
+  // ✅ Function to reload matches with smooth fade animation
+  function reloadMatches() {
+    const query = $('#search-input').val();
+
     $('#match-container').addClass('fade-out');
     $.ajax({
-      url: "{% url 'main' %}",
-      data: { league: currentLeagueId },
+      url: "{% url 'matchpredictions:main' %}",
+      data: {
+        league: currentLeagueId,
+        search: query,
+        filter: currentFilter
+      },
       success: function(response) {
         const newMatches = $(response).find('#match-container').html();
         setTimeout(() => {
@@ -145,22 +187,9 @@ $(document).ready(function() {
         }, 150);
       }
     });
-  });
+  }
 
-  // ✅ Search filter
-  $('#search-input').on('keyup', function() {
-    const query = $(this).val();
-    $.ajax({
-      url: "{% url 'main' %}",
-      data: { search: query, league: currentLeagueId },
-      success: function(response) {
-        const filteredMatches = $(response).find('#match-container').html();
-        $('#match-container').html(filteredMatches);
-      }
-    });
-  });
-
-  // ✅ Login modal
+  // ✅ Login modal logic (keeps your existing functionality)
   const modal = $('#login-modal');
   const closeModal = $('#close-modal');
 
@@ -176,7 +205,6 @@ $(document).ready(function() {
     });
   {% endif %}
 
-  // Modal close
   closeModal.on('click', function() {
     modal.fadeOut(200, () => modal.addClass('hidden'));
   });

@@ -109,7 +109,7 @@ class Award(models.Model):
 
 class UserWatchlist(models.Model):
     """User's favorite players watchlist"""
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='watchlist')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='watched_by')
     added_date = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, help_text="Personal notes about the player")
