@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods, require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Post, PostImage, Comment
-from club_directories.models import Club, League
+from club_directories.models import Club, League, FavoriteClub
 import json
 
 
@@ -41,6 +41,11 @@ def forum_home(request):
             Q(content__icontains=search)
         )
     
+    # Get favorite club
+    user_favorite_clubs = []
+    if request.user.is_authenticated:
+        user_favorite_clubs = Club.objects.filter(favorited_by__user=request.user)
+
     # Separate news and discussions
     news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')[:3]  # Top 3 most recent news
     discussion_posts = filtered_posts.filter(post_type='discussion')
@@ -60,6 +65,7 @@ def forum_home(request):
         'clubs': clubs,
         'leagues': leagues,
         'current_filters': {
+            'user_favorite_clubs': user_favorite_clubs,
             'clubs': club_ids,
             'league': league_id,
             'search': search,
