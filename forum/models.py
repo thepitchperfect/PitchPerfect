@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from club_directories.models import Club, League  # Import from club_directories app
+from club_directories.models import Club, League 
 
 class Post(models.Model):
     POST_TYPE_CHOICES = [
