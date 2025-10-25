@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User 
+from main.models import CustomUser
 import uuid
 
 class League(models.Model):
@@ -26,7 +26,7 @@ class Club(models.Model):
 
 class FavoriteClub(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorite_clubs")
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="favorite_clubs")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="favorited_by")
     
     class Meta:
