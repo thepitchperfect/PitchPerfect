@@ -26,8 +26,7 @@
                     src="{% if user.profpict %}{{ user.profpict }}{% else %}{% static 'images/empty_profile_picture.jpg' %}{% endif %}"
                     alt="Profile Picture"
                     class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-[#FE8800] shadow-xl mb-4" />
-                <h1 id="full-name-display" class="text-xl md:text-2xl font-orbitron font-bold text-gray-900">{{
-                    user.full_name }}</h1>
+                <h1 id="full-name-display" class="text-xl md:text-2xl font-orbitron font-bold text-gray-900">{{ user.full_name }}</h1>
                 <p id="email-display" class="font-lato text-gray-600 md:text-lg">{{ user.email }}</p>
             </div>
 
@@ -104,7 +103,8 @@
 
                                 <!-- Author & date -->
                                 <div class="text-xs text-gray-500 mb-3">
-                                    {% if post.updated_at and post.created_at and post.updated_at|date:'U' > post.created_at|date:'U' %}
+                                    {% if post.updated_at and post.created_at and post.updated_at|date:'U' >
+                                    post.created_at|date:'U' %}
                                     <span>{{ post.updated_at|date:"M d, Y" }} | <em>Edited</em></span>
                                     {% elif post.created_at %}
                                     <span>{{ post.created_at|date:"M d, Y" }}</span>
