@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Pitch Perfect - Profile</title>
+<style>
+    #crudModalContent {
+        transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+    }
+</style>
+{% endblock meta %}
+
+{% block content %}
+<div class="w-full min-h-screen justify-center flex">
+    <div class="max-w-md w-full md:max-w-5xl p-2 md:grid md:grid-cols-3 md:gap-10 md:p-5 lg:p-7 xl:p-9">
+        <div class="md:col-span-1">
+            <!-- Edit Button -->
+            <button onclick="showEditModal()"
+                class="px-5 py-1.5 bg-[#FE8800] text-white font-lato font-bold text-sm rounded-full hover:bg-opacity-90 shadow-md">
+                Edit
+            </button>
+
+            <!-- Main Profile Info -->
+            <div class="flex flex-col items-center pt-4 pb-6 md:items-center text-center md:pt-8">
+                <img id="profile-pic-display"
+                    src="{% if user.profpict %}{{ user.profpict }}{% else %}{% static 'images/empty_profile_picture.jpg' %}{% endif %}"
+                    alt="Profile Picture"
+                    class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-[#FE8800] shadow-xl mb-4" />
+                <h1 id="full-name-display" class="text-xl md:text-2xl font-orbitron font-bold text-gray-900">{{ user.full_name }}</h1>
+                <p id="email-display" class="font-lato text-gray-600 md:text-lg">{{ user.email }}</p>
+            </div>
+
+            <div class="border-b border-gray-200 md:border-none">
+                <nav class="flex justify-around -mb-px md:flex-col md:space-y-2" aria-label="Tabs">
+                    <!-- Tab 1: Fav Clubs -->
+                    <button onclick="showTab('fav-clubs')" id="tab-fav-clubs" class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-[#FE8800] border-[#FE8800] md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-orange-50">
+                        League Picks
+                    </button>
+                    <!-- Tab 2: Posts -->
+                    <button onclick="showTab('posts')" id="tab-posts" class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-transparent md:hover:bg-gray-50">
+                        Posts
+                    </button>
+                    <!-- Tab 3: Predictions -->
+                    <button onclick="showTab('predictions')" id="tab-predictions" class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-transparent md:hover:bg-gray-50">
+                        Predictions
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <div class="md:col-span-2">
+            <div class="py-6 px-4 md:px-0 md:py-0 md:mt-6">
+                <!-- Panel 1: Fav Clubs Content -->
+                <div id="panel-fav-clubs" class="tab-panel grid grid-cols-3 gap-4">
+                    {% for fav in favorite_clubs|slice:":6" %}
+                    <div
+                        class="rounded-lg border-2 border-[#FE8800] aspect-square w-full flex items-center justify-center p-2 shadow-sm">
+                        <span class="text-xs text-center font-semibold">{{ fav.club.name|default:"Club Name" }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="col-span-3 text-gray-500 text-center">No favorite clubs added yet.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Panel 2: Posts Content (Hidden by default) -->
+                <div id="panel-posts" class="tab-panel hidden space-y-4">
+                    {% for post in user_posts %}
+                    <div class="p-4 bg-white rounded-lg shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]">
+                        <h3 class="font-bold font-lato">{{ post.title|default:"Post Title" }}</h3>
+                        <p class="text-sm text-gray-600">{{ post.content|default:"Post content..."|truncatewords:20 }}
+                        </p>
+                    </div>
+                    {% empty %}
+                    <p class="col-span-3 text-gray-500 text-center">No posts made yet.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Panel 3: Predictions Content (Hidden by default) -->
+                <div id="panel-predictions" class="tab-panel hidden space-y-4">
+                    {% for vote in user_predictions %}
+                    <div class="p-4 bg-white rounded-lg shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]">
+                        <h3 class="font-bold font-lato">{{ vote.match.home_team.name }} vs {{ vote.match.away_team.name }}</h3>
+                        <p class="text-sm text-gray-600">Your pick: {{ vote.get_prediction_display }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="col-span-3 text-gray-500 text-center">No predictions made yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div id="edit-profile-modal"
+    class="hidden fixed inset-0 z-50 w-full h-full flex items-center justify-center bg-gray-800 bg-opacity-70 p-4">
+    <div id="modal-content" class="bg-white rounded-lg shadow-lg w-full max-w-md max-h-full overflow-y-auto">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="text-xl font-orbitron font-semibold text-gray-900">
+                Edit Profile
+            </h3>
+            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" onclick="hideEditModal()">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="px-6 py-4">
+            <div id="message-container" class="mb-4 hidden"></div>
+
+            <form id="profileEditForm" class="space-y-4 md:space-y-6" method="POST">
+                {% csrf_token %}
+                <div>
+                    <label for="profpict" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
+                        Profile Picture URL
+                    </label>
+                    <input id="profpict" name="profpict" type="url" class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" placeholder="https://example.com/image.png" value="{{ edit_form.profpict.value|default:'' }}">
+                    <div id="error-profpict" class="text-red-600 text-sm mt-1"></div>
+                </div>
+
+                <div>
+                    <label for="username" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
+                        Username
+                    </label>
+                    <input id="username" name="username" type="text" readonly disabled class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-gray-100 text-gray-500 cursor-not-allowed shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" value="{{ edit_form.username.value|default:'' }}">
+                    <div id="error-username" class="text-red-600 text-sm mt-1"></div>
+                </div>
+
+                <div>
+                    <label for="full_name" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
+                        Full Name
+                    </label>
+                    <input id="full_name" name="full_name" type="text" required class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" placeholder="Enter your full name" value="{{ edit_form.full_name.value|default:'' }}">
+                    <div id="error-full_name" class="text-red-600 text-sm mt-1"></div>
+                </div>
+
+                <div>
+                    <label for="email" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Email</label>
+                    <input id="email" name="email" type="email" required class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" placeholder="Enter your email" value="{{ edit_form.email.value|default:'' }}">
+                    <div id="error-email" class="text-red-600 text-sm mt-1"></div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="flex flex-col sm:flex-row gap-4 p-6 border-t border-gray-200 rounded-b">
+            <button type="button" id="cancelButton" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center" onclick="hideEditModal()">Cancel</button>
+            <button type="submit" id="submitProfile" form="profileEditForm" class="order-1 sm:order-2 flex-1 bg-[#FE8800] text-white px-6 py-3 rounded-md font-bold hover:bg-opacity-90 transition-colors">Save Edit</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Switching Tab Logic
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    function showTab(tabId) {
+        tabButtons.forEach(button => {
+            if (button.id === `tab-${tabId}`) {
+                button.classList.add('text-[#FE8800]', 'border-[#FE8800]');
+                button.classList.remove('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'hover:border-gray-300');
+
+                button.classList.add('md:bg-orange-50', 'md:border-l-4');
+                button.classList.remove('md:bg-transparent', 'md:hover:bg-gray-50');
+
+            } else {
+                button.classList.add('text-gray-500', 'border-transparent', 'hover:text-gray-700', 'hover:border-gray-300');
+                button.classList.remove('text-[#FE8800]', 'border-[#FE8800]');
+
+                button.classList.add('md:bg-transparent', 'md:hover:bg-gray-50');
+                button.classList.remove('md:bg-orange-50', 'md:border-l-4');
+            }
+        });
+
+        tabPanels.forEach(panel => {
+            if (panel.id === `panel-${tabId}`) {
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        });
+    }
+
+    const modal = document.getElementById('edit-profile-modal');
+    const modalContent = document.getElementById('modal-content');
+    const form = document.getElementById('profileEditForm');
+    const messageContainer = document.getElementById('message-container');
+
+    function showEditModal() {
+        messageContainer.innerHTML = '';
+        messageContainer.classList.add('hidden');
+        document.querySelectorAll('[id^="error-"]').forEach(el => el.innerHTML = '');
+
+        form.elements.profpict.value = "{{ edit_form.profpict.value|default:'' }}";
+        form.elements.username.value = "{{ edit_form.username.value|default:'' }}";
+        form.elements.full_name.value = "{{ edit_form.full_name.value|default:'' }}";
+        form.elements.email.value = "{{ edit_form.email.value|default:'' }}";
+
+        modal.classList.remove('hidden');
+    }
+
+    function hideEditModal() {
+        modal.classList.add('hidden');
+    }
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            hideEditModal();
+        }
+    });
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const postURL = "{% url 'main:profile_edit' %}";
+        const formData = new FormData(form);
+        formData.set('username', form.elements.username.value);
+
+        fetch(postURL, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: formData,
+        })
+            .then(response => response.json())
+            .then(data => {
+                messageContainer.innerHTML = "";
+                messageContainer.classList.remove('hidden');
+
+                document.querySelectorAll('[id^="error-"]').forEach(el => el.innerHTML = '');
+
+                if (data.status === 'success') {
+                    messageContainer.innerHTML = `<div class="px-4 py-3 rounded-md text-sm border bg-green-50 border-green-200 text-green-700">
+                    ${data.message || "Profile updated successfully!"}
+                </div>`;
+
+                    const user = data.user;
+                    document.getElementById('full-name-display').innerText = user.full_name;
+                    document.getElementById('email-display').innerText = user.email;
+                    if (user.profpict) {
+                        document.getElementById('profile-pic-display').src = user.profpict;
+                    } else {
+                        document.getElementById('profile-pic-display').src = 'https://placehold.co/150x150/EFEFEF/AAAAAA?text=No+Image';
+                    }
+
+                    setTimeout(() => {
+                        hideEditModal();
+                    }, 800);
+                } else if (data.errors) {
+                    Object.entries(data.errors).forEach(([field, messages]) => {
+                        const errorEl = document.getElementById(`error-${field}`);
+                        if (errorEl) {
+                            errorEl.innerHTML = messages.join(" ");
+                        } else {
+                            messageContainer.innerHTML += `<div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700 mb-2"> <strong>${field === '__all__' ? 'Error' : field}:</strong> ${messages.join(" ")} </div>`;
+                        }
+                    });
+                } else {
+                    messageContainer.innerHTML = `<div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700">
+                    ${data.message || "An unknown error occurred."}
+                </div>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                messageContainer.classList.remove('hidden');
+                messageContainer.innerHTML = `<div class="px-4 py-3 rounded-md text-sm border bg-red-50 border-red-200 text-red-700">
+                An unexpected network error occurred. Please try again.
+            </div>`;
+            });
+    });
+
+</script>
+{% endblock content %}

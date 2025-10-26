@@ -1,12 +1,27 @@
 import datetime
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.shortcuts import render
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, CustomUserChangeForm
+
+try:
+    from club_directories.models import FavoriteClub
+except ImportError:
+    FavoriteClub = None
+
+try:
+    from forum.models import Post
+except ImportError:
+    Post = None
+
+try:
+    from matchpredictions.models import Vote
+except ImportError:
+    Vote = None
 
 def register_user(request):
     if request.method == 'POST':
@@ -43,7 +58,8 @@ def login_user(request):
                 'user': {
                     'username': user.username,
                     'full_name': user.full_name,
-                    'role': user.role
+                    'role': user.role,
+                    'profpict': user.profpict
                 },
                 'redirect_url': reverse('main:show_main')
             })
@@ -57,19 +73,70 @@ def login_user(request):
                 'errors': errors
             }, status=400)
     else:
-        return render(request, 'login.html')
+        form = AuthenticationForm()
+        return render(request, 'login.html', {'form': form})
 
 @require_POST
 def logout_user(request):
     logout(request)
-    response = JsonResponse({
-        'status': 'success', 
-        'message': 'You have been logged out.',
-        'redirect_url': reverse('main:login')
-    })
+    response = HttpResponseRedirect(reverse('main:login'))
     
     response.delete_cookie('last_login')
     return response
 
 def show_main(request):
-    return render(request, "main.html")
+    return render(request, "main.html", {"full_name": request.user.full_name})
+
+@login_required
+def profile(request):
+    profile_user = request.user
+    
+    edit_form = CustomUserChangeForm(instance=profile_user)
+    
+    favorite_clubs = []
+    if FavoriteClub:
+        favorite_clubs = FavoriteClub.objects.filter(user=profile_user).select_related('club')
+
+    user_posts = []
+    if Post:
+        user_posts = profile_user.forum_posts.all()[:10]
+
+    user_predictions = []
+    if Vote:
+        user_predictions = profile_user.matchpred_votes.all().select_related(
+            'match', 'match__home_team', 'match__away_team'
+        )[:10]
+
+    context = {
+        'profile_user': profile_user,
+        'edit_form': edit_form,
+        'favorite_clubs': favorite_clubs,
+        'user_posts': user_posts,
+        'user_predictions': user_predictions,
+    }
+    return render(request, 'profile.html', context)
+
+@login_required
+@require_POST
+def profile_edit(request):
+    form = CustomUserChangeForm(request.POST, instance=request.user)
+    
+    if form.is_valid():
+        user = form.save()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Profile updated successfully!',
+            'user': {
+                'username': user.username,
+                'full_name': user.full_name,
+                'email': user.email,
+                'profpict': user.profpict,
+            }
+        }, status=200)
+    else:
+        errors = {field: [str(e) for e in errs] for field, errs in form.errors.items()}
+        return JsonResponse({
+            'status': 'error', 
+            'errors': errors
+        }, status=400)
+

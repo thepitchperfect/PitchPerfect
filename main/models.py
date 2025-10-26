@@ -45,6 +45,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(username, email, full_name, password, **extra_fields)
 
 class CustomUser(AbstractBaseUser):
+    profpict = models.URLField(blank=True, null=True) 
     full_name = models.CharField(max_length=255)
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(verbose_name='email address', max_length=255, unique=True)
@@ -55,17 +56,13 @@ class CustomUser(AbstractBaseUser):
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
     
-    # Fields required by Django
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    # Tell Django to use the custom manager
     objects = CustomUserManager()
 
-    # Tell Django which field to use for login
     USERNAME_FIELD = 'username'
     
-    # Fields required when using 'createsuperuser' command
     REQUIRED_FIELDS = ['email', 'full_name']
 
     def __str__(self):
