@@ -15,7 +15,7 @@ class Post(models.Model):
         max_length=20, 
         choices=POST_TYPE_CHOICES, 
         default='discussion',
-        help_text='Only admins can post Official News'
+        help_text=''
     )
     
     clubs = models.ManyToManyField(
