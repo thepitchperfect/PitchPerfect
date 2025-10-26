@@ -13,7 +13,7 @@
 <div class="card">
     <div class="card-header">My Voting History</div>
     
-    {% if votes %}
+    {% if votes or club_votes %}
     <table>
         <thead>
             <tr>
@@ -33,13 +33,27 @@
                 </td>
                 <td>
                     {% if vote.player %}
-                        <strong>{{ vote.player.name }}</strong>
-                        <br>
-                        <small style="color: var(--color-gray-600);">{{ vote.player.club.name }}</small>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            {% if vote.player.club.logo_url %}
+                                <img src="{{ vote.player.club.logo_url }}" alt="{{ vote.player.club.name }}" style="width: 24px; height: 24px; object-fit: contain;">
+                            {% endif %}
+                            <div>
+                                <strong>{{ vote.player.name }}</strong>
+                                <br>
+                                <small style="color: var(--color-gray-600);">{{ vote.player.club.name }}</small>
+                            </div>
+                        </div>
                     {% elif vote.club %}
-                        <strong>{{ vote.club.name }}</strong>
-                        <br>
-                        <small style="color: var(--color-gray-600);">{{ vote.club.league.name }}</small>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            {% if vote.club.logo_url %}
+                                <img src="{{ vote.club.logo_url }}" alt="{{ vote.club.name }}" style="width: 24px; height: 24px; object-fit: contain;">
+                            {% endif %}
+                            <div>
+                                <strong>{{ vote.club.name }}</strong>
+                                <br>
+                                <small style="color: var(--color-gray-600);">{{ vote.club.league.name }}</small>
+                            </div>
+                        </div>
                     {% endif %}
                 </td>
                 <td>{{ vote.season }}</td>
@@ -61,6 +75,35 @@
                             <a href="{% url 'statisticsrafi:team_detail' vote.club.id %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Club</a>
                         {% endif %}
                         <a href="{% url 'statisticsrafi:vote_results' vote.category vote.season %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Results</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            
+            {% for club_vote in club_votes %}
+            <tr>
+                <td>
+                    <strong>Club of the Season</strong>
+                </td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        {% if club_vote.club.logo_url %}
+                            <img src="{{ club_vote.club.logo_url }}" alt="{{ club_vote.club.name }}" style="width: 24px; height: 24px; object-fit: contain;">
+                        {% endif %}
+                        <div>
+                            <strong>{{ club_vote.club.name }}</strong>
+                            <br>
+                            <small style="color: var(--color-gray-600);">{{ club_vote.club.league.name }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ club_vote.season }}</td>
+                <td>Season</td>
+                <td>{{ club_vote.created_at|date:"M d, Y" }}</td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'statisticsrafi:team_detail' club_vote.club.id %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Club</a>
+                        <a href="{% url 'statisticsrafi:voting_results' %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View Results</a>
                     </div>
                 </td>
             </tr>
