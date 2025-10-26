@@ -13,14 +13,26 @@
 <div class="forum-layout">
     <!-- Sidebar Filters -->
     <aside class="forum-sidebar">
-        <h3 class="sidebar-title">FILTERS</h3>
+        <h3 class="text-gray-900 sidebar-title">FILTERS</h3>
         
         <form id="filterForm">
             <!-- Clubs Multi-Select with Search (Only Favorite Clubs) -->
             <div class="filter-group">
                 <label>Filter by Your Clubs:</label>
                 {% if user.is_authenticated %}
-                    {% if user_favorite_clubs %}
+                    {% if user.is_staff %}
+                        <input type="text" id="clubSearch" class="club-search" placeholder="Search clubs...">
+                        <div class="clubs-multiselect" id="clubsMultiselect">
+                            {% for club in clubs %}
+                            <div class="club-checkbox" data-club-name="{{ club.name|lower }}">
+                                <input type="checkbox" name="clubs" value="{{ club.id }}"
+                                    id="club-{{ club.id }}"
+                                    {% if club.id|stringformat:"s" in current_filters.clubs %}checked{% endif %}>
+                                <label for="club-{{ club.id }}">{{ club.name }}</label>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% elif user_favorite_clubs %}
                         <input type="text" id="clubSearch" class="club-search" placeholder="Search your clubs...">
                         <div class="clubs-multiselect" id="clubsMultiselect">
                             {% for club in user_favorite_clubs %}
@@ -39,12 +51,10 @@
                     {% endif %}
                 {% else %}
                     <p style="color: #666; font-size: 0.9rem; padding: 1rem; background: #ffd7aa30; border-radius: 8px;">
-                        <a href="{% url 'login' %}" style="color: #fe8800; font-weight: bold;">Login</a> to filter by your clubs
+                        <a href="{% url 'main:login' %}" style="color: #fe8800; font-weight: bold;">Login</a> to filter by your clubs
                     </p>
                 {% endif %}
             </div>
-
-
 
             <!-- Search -->
             <div class="filter-group">
@@ -67,14 +77,14 @@
     <main class="forum-main">
         <!-- Forum Header -->
         <div class="forum-header">
-            <h1 class="forum-title">PITCHPERFECT FORUM</h1>
+            <h1 class="forum-title"> <span class="text-gray-900"> DISCUSSION</span> FORUM</h1>
             {% if user.is_authenticated %}
             <button class="btn btn-primary" onclick="openCreateModal()">
                 {% if user.is_staff %}CREATE POST{% else %}CREATE POST{% endif %}
             </button>
             {% else %}
             <p class="login-prompt">
-                <a href="{% url 'login' %}">Login</a> to create posts and join discussions
+                <a href="{% url 'main:login' %}">Login</a> to create posts and join discussions
             </p>
             {% endif %}
         </div>
@@ -161,7 +171,7 @@
 
         <!-- Discussion Posts -->
         <div class="posts-container">
-            <h2 style="font-family: 'Orbitron', sans-serif; color: #fe8800; margin-bottom: 1rem; text-transform: uppercase;">
+            <h2 style="font-family: 'Orbitron', sans-serif; color: gray-900; font-weight: 900; margin-bottom: 0.5rem; text-transform: uppercase;">
                 Discussions
             </h2>
             
@@ -276,8 +286,8 @@
             <div class="form-group">
                 <label>Post Type:</label>
                 <select id="postType">
-                    <option value="discussion">💬 Discussion</option>
-                    <option value="news">📰 Official News</option>
+                    <option value="discussion">Discussion</option>
+                    <option value="news">Official News</option>
                 </select>
             </div>
             {% endif %}
