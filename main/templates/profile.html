@@ -26,22 +26,26 @@
                     src="{% if user.profpict %}{{ user.profpict }}{% else %}{% static 'images/empty_profile_picture.jpg' %}{% endif %}"
                     alt="Profile Picture"
                     class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-[#FE8800] shadow-xl mb-4" />
-                <h1 id="full-name-display" class="text-xl md:text-2xl font-orbitron font-bold text-gray-900">{{ user.full_name }}</h1>
+                <h1 id="full-name-display" class="text-xl md:text-2xl font-orbitron font-bold text-gray-900">{{
+                    user.full_name }}</h1>
                 <p id="email-display" class="font-lato text-gray-600 md:text-lg">{{ user.email }}</p>
             </div>
 
             <div class="border-b border-gray-200 md:border-none">
                 <nav class="flex justify-around -mb-px md:flex-col md:space-y-2" aria-label="Tabs">
                     <!-- Tab 1: Fav Clubs -->
-                    <button onclick="showTab('fav-clubs')" id="tab-fav-clubs" class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-[#FE8800] border-[#FE8800] md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-orange-50">
+                    <button onclick="showTab('fav-clubs')" id="tab-fav-clubs"
+                        class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-[#FE8800] border-[#FE8800] md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-orange-50">
                         League Picks
                     </button>
                     <!-- Tab 2: Posts -->
-                    <button onclick="showTab('posts')" id="tab-posts" class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-transparent md:hover:bg-gray-50">
+                    <button onclick="showTab('posts')" id="tab-posts"
+                        class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-transparent md:hover:bg-gray-50">
                         Posts
                     </button>
                     <!-- Tab 3: Predictions -->
-                    <button onclick="showTab('predictions')" id="tab-predictions" class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-transparent md:hover:bg-gray-50">
+                    <button onclick="showTab('predictions')" id="tab-predictions"
+                        class="tab-button w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 md:w-auto md:py-3 md:px-5 md:text-left md:border-l-4 md:border-b-0 md:rounded-r-md md:bg-transparent md:hover:bg-gray-50">
                         Predictions
                     </button>
                 </nav>
@@ -51,25 +55,96 @@
         <div class="md:col-span-2">
             <div class="py-6 px-4 md:px-0 md:py-0 md:mt-6">
                 <!-- Panel 1: Fav Clubs Content -->
-                <div id="panel-fav-clubs" class="tab-panel grid grid-cols-3 gap-4">
-                    {% for fav in favorite_clubs|slice:":6" %}
+                <div id="panel-fav-clubs" class="tab-panel justify-center lg:justify-start flex flex-wrap gap-4">
+                    {% for club in league_pick|slice:":6" %}
                     <div
-                        class="rounded-lg border-2 border-[#FE8800] aspect-square w-full flex items-center justify-center p-2 shadow-sm">
-                        <span class="text-xs text-center font-semibold">{{ fav.club.name|default:"Club Name" }}</span>
+                        class="bg-white border-2 border-gray-300 rounded-xl px-5 py-3 flex flex-col items-center justify-center text-center text-gray-500 cursor-pointer transition-all duration-200 ease-in-out max-h-[122px] lg:max-h-[160px] relative overflow-hidden aspect-[1/1] hover:border-[#FE8800] hover:text-[#FE8800] hover:shadow-md">
+                        <div class="flex-1 flex items-center justify-center overflow-hidden p-1">
+                            <img src="{{ club.club.logo_url }}" alt="{{ club.club.name }}"
+                                class="max-w-full max-h-full object-contain"
+                                onerror="this.src='https://placehold.co/100x100/EFEFEF/AAAAAA?text=Logo'; this.onerror=null;">
+                        </div>
+                        <p class="font-lato text-[0.9rem] font-semibold text-gray-800 mt-2">{{ club.club.name }}</p>
                     </div>
                     {% empty %}
-                    <p class="col-span-3 text-gray-500 text-center">No favorite clubs added yet.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    </div>
                     {% endfor %}
                 </div>
 
                 <!-- Panel 2: Posts Content (Hidden by default) -->
                 <div id="panel-posts" class="tab-panel hidden space-y-4">
                     {% for post in user_posts %}
-                    <div class="p-4 bg-white rounded-lg shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]">
-                        <h3 class="font-bold font-lato">{{ post.title|default:"Post Title" }}</h3>
-                        <p class="text-sm text-gray-600">{{ post.content|default:"Post content..."|truncatewords:20 }}
-                        </p>
-                    </div>
+                    <article
+                        class="bg-white border-2 border-gray-300 rounded-xl flex flex-col cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden hover:border-[#FE8800] hover:text-[#FE8800] hover:shadow-md  shadow-sm">
+                        <div class="flex flex-col md:flex-row p-5 gap-4 md:gap-6">
+                            <!-- Left Content -->
+                            <div class="flex-1 flex flex-col">
+                                <!-- Club badges -->
+                                <div class="flex flex-wrap gap-2 mb-2">
+                                    {% for club in post.clubs.all %}
+                                    <span
+                                        class="inline-flex items-center gap-1 bg-[#fffdfa] px-2 py-0.5 rounded text-xs font-['Tektur'] text-gray-700">
+                                        {% if club.logo_url %}
+                                        <img src="{{ club.logo_url }}" alt="{{ club.name }}"
+                                            class="w-4 h-4 object-contain">
+                                        {% endif %}
+                                        {{ club.name }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Title -->
+                                <h3
+                                    class="text-lg sm:text-xl font-['Tektur'] font-semibold text-[#fe8800] leading-snug mb-1">
+                                    <a href="{% url 'forum:post_detail' post.id %}" class="hover:underline">
+                                        {{ post.title }}
+                                    </a>
+                                </h3>
+
+                                <!-- Author & date -->
+                                <div class="text-xs text-gray-500 mb-3">
+                                    {% if post.updated_at and post.created_at and post.updated_at|date:'U' > post.created_at|date:'U' %}
+                                    <span>{{ post.updated_at|date:"M d, Y" }} | <em>Edited</em></span>
+                                    {% elif post.created_at %}
+                                    <span>{{ post.created_at|date:"M d, Y" }}</span>
+                                    {% else %}
+                                    <span>Unknown date</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Image (mobile only) -->
+                                {% if post.images.first %}
+                                <div class="md:hidden w-full flex justify-center mb-3">
+                                    <img src="{{ post.images.first.image_url }}" alt="{{ post.title }}"
+                                        class="rounded-md w-full sm:w-3/4 object-cover border border-[#ffd7aa]" />
+                                </div>
+                                {% endif %}
+
+                                <!-- Content -->
+                                <p class="text-gray-700 text-sm leading-relaxed mb-2 line-clamp-4 text-justify">
+                                    {{ post.content|truncatewords:60 }}
+                                </p>
+                            </div>
+
+                            <!-- Right Image (desktop only) -->
+                            {% if post.images.first %}
+                            <div class="hidden md:flex md:items-start md:justify-end md:w-64 lg:w-72 pr-3">
+                                <img src="{{ post.images.first.image_url }}" alt="{{ post.title }}"
+                                    class="rounded-md w-full object-cover border border-[#ffd7aa]" />
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Footer -->
+                        <footer
+                            class="px-5 py-2 border-t border-[#ffd7aa] flex justify-end items-center text-sm text-gray-600">
+                            <a href="{% url 'forum:post_detail' post.id %}"
+                                class="text-[#fe8800] font-semibold hover:underline">
+                                Read more →
+                            </a>
+                        </footer>
+                    </article>
                     {% empty %}
                     <p class="col-span-3 text-gray-500 text-center">No posts made yet.</p>
                     {% endfor %}
@@ -78,9 +153,17 @@
                 <!-- Panel 3: Predictions Content (Hidden by default) -->
                 <div id="panel-predictions" class="tab-panel hidden space-y-4">
                     {% for vote in user_predictions %}
-                    <div class="p-4 bg-white rounded-lg shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]">
-                        <h3 class="font-bold font-lato">{{ vote.match.home_team.name }} vs {{ vote.match.away_team.name }}</h3>
-                        <p class="text-sm text-gray-600">Your pick: {{ vote.get_prediction_display }}</p>
+                    <div
+                        class="bg-white border-2 border-gray-300 rounded-xl p-4 flex flex-col md:flex-row justify-between md:items-center text-gray-500 cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden hover:border-[#FE8800] hover:text-[#FE8800] hover:shadow-md">
+                        <div>
+                            <h3 class="font-bold font-lato">{{ vote.match.home_team.name }} vs {{ vote.match.away_team.name }}</h3>
+                            <p class="text-sm text-gray-600">Your pick: {{ vote.get_prediction_display }}</p>
+                        </div>
+
+                        <a href="{% url 'matchpredictions:match_detail' vote.match.id %}"
+                            class="mt-3 md:mt-0 block text-center bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                            See Vote
+                        </a>
                     </div>
                     {% empty %}
                     <p class="col-span-3 text-gray-500 text-center">No predictions made yet.</p>
@@ -99,9 +182,14 @@
             <h3 class="text-xl font-orbitron font-semibold text-gray-900">
                 Edit Profile
             </h3>
-            <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" onclick="hideEditModal()">
-                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            <button type="button"
+                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                onclick="hideEditModal()">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"></path>
                 </svg>
                 <span class="sr-only">Close modal</span>
             </button>
@@ -117,7 +205,9 @@
                     <label for="profpict" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
                         Profile Picture URL
                     </label>
-                    <input id="profpict" name="profpict" type="url" class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" placeholder="https://example.com/image.png" value="{{ edit_form.profpict.value|default:'' }}">
+                    <input id="profpict" name="profpict" type="url"
+                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                        placeholder="https://example.com/image.png" value="{{ edit_form.profpict.value|default:'' }}">
                     <div id="error-profpict" class="text-red-600 text-sm mt-1"></div>
                 </div>
 
@@ -125,7 +215,9 @@
                     <label for="username" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
                         Username
                     </label>
-                    <input id="username" name="username" type="text" readonly disabled class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-gray-100 text-gray-500 cursor-not-allowed shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" value="{{ edit_form.username.value|default:'' }}">
+                    <input id="username" name="username" type="text" readonly disabled
+                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-gray-100 text-gray-500 cursor-not-allowed shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                        value="{{ edit_form.username.value|default:'' }}">
                     <div id="error-username" class="text-red-600 text-sm mt-1"></div>
                 </div>
 
@@ -133,13 +225,18 @@
                     <label for="full_name" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
                         Full Name
                     </label>
-                    <input id="full_name" name="full_name" type="text" required class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" placeholder="Enter your full name" value="{{ edit_form.full_name.value|default:'' }}">
+                    <input id="full_name" name="full_name" type="text" required
+                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                        placeholder="Enter your full name" value="{{ edit_form.full_name.value|default:'' }}">
                     <div id="error-full_name" class="text-red-600 text-sm mt-1"></div>
                 </div>
 
                 <div>
-                    <label for="email" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Email</label>
-                    <input id="email" name="email" type="email" required class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]" placeholder="Enter your email" value="{{ edit_form.email.value|default:'' }}">
+                    <label for="email"
+                        class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Email</label>
+                    <input id="email" name="email" type="email" required
+                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
+                        placeholder="Enter your email" value="{{ edit_form.email.value|default:'' }}">
                     <div id="error-email" class="text-red-600 text-sm mt-1"></div>
                 </div>
             </form>
@@ -147,8 +244,12 @@
 
         <!-- Modal footer -->
         <div class="flex flex-col sm:flex-row gap-4 p-6 border-t border-gray-200 rounded-b">
-            <button type="button" id="cancelButton" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center" onclick="hideEditModal()">Cancel</button>
-            <button type="submit" id="submitProfile" form="profileEditForm" class="order-1 sm:order-2 flex-1 bg-[#FE8800] text-white px-6 py-3 rounded-md font-bold hover:bg-opacity-90 transition-colors">Save Edit</button>
+            <button type="button" id="cancelButton"
+                class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center"
+                onclick="hideEditModal()">Cancel</button>
+            <button type="submit" id="submitProfile" form="profileEditForm"
+                class="order-1 sm:order-2 flex-1 bg-[#FE8800] text-white px-6 py-3 rounded-md font-bold hover:bg-opacity-90 transition-colors">Save
+                Edit</button>
         </div>
 
     </div>

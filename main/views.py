@@ -9,9 +9,9 @@ from django.shortcuts import render
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 try:
-    from club_directories.models import FavoriteClub
+    from club_directories.models import LeaguePick
 except ImportError:
-    FavoriteClub = None
+    LeaguePick = None
 
 try:
     from forum.models import Post
@@ -97,9 +97,9 @@ def profile(request):
     
     edit_form = CustomUserChangeForm(instance=profile_user)
     
-    favorite_clubs = []
-    if FavoriteClub:
-        favorite_clubs = FavoriteClub.objects.filter(user=profile_user).select_related('club')
+    league_pick = []
+    if LeaguePick:
+        league_pick = LeaguePick.objects.filter(user=profile_user).select_related('club')
 
     user_posts = []
     if Post:
@@ -114,7 +114,7 @@ def profile(request):
     context = {
         'profile_user': profile_user,
         'edit_form': edit_form,
-        'favorite_clubs': favorite_clubs,
+        'league_pick': league_pick,
         'user_posts': user_posts,
         'user_predictions': user_predictions,
     }
