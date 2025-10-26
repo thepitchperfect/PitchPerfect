@@ -316,9 +316,22 @@
         {% if user.is_authenticated %}
         <div class="sidebar-section">
             <h3>Vote for Club of the Season</h3>
-            <button id="voteButton" class="sidebar-button" onclick="voteForClub()">
-                🗳️ Vote for {{ club.name }}
-            </button>
+            {% if user_voted_for_this_club %}
+                <button id="voteButton" class="sidebar-button" onclick="deleteVoteFromTeam()" style="background: #dc2626;">
+                    🗑️ Delete Your Vote
+                </button>
+            {% elif user_has_voted %}
+                <p style="color: var(--color-gray-600); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    You have already voted for another club this season.
+                </p>
+                <a href="{% url 'statisticsrafi:voting_results' %}" class="sidebar-button" style="display: block; text-align: center;">
+                    View Voting Results
+                </a>
+            {% else %}
+                <button id="voteButton" class="sidebar-button" onclick="voteForClub()">
+                    🗳️ Vote for {{ club.name }}
+                </button>
+            {% endif %}
             <div id="voteMessage" style="margin-top: 1rem; display: none;"></div>
         </div>
         {% endif %}
@@ -530,6 +543,53 @@ function voteForClub() {
     })
     .finally(() => {
         voteButton.disabled = false;
+    });
+}
+
+function deleteVoteFromTeam() {
+    const voteButton = document.getElementById('voteButton');
+    const voteMessage = document.getElementById('voteMessage');
+    
+    // Disable button during request
+    voteButton.disabled = true;
+    voteButton.textContent = 'Deleting...';
+    
+    // Send delete request
+    fetch('{% url "statisticsrafi:delete_vote" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'season=2025/26'
+    })
+    .then(response => response.json())
+    .then(data => {
+        voteMessage.style.display = 'block';
+        
+        if (data.status === 'success') {
+            voteMessage.innerHTML = `<div style="color: #4ade80; font-size: 0.9rem;">✅ ${data.message}</div>`;
+            voteButton.textContent = '✅ Deleted!';
+            voteButton.style.background = 'rgba(74, 222, 128, 0.3)';
+            
+            // Reload page after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            voteMessage.innerHTML = `<div style="color: #dc2626; font-size: 0.9rem;">❌ ${data.message}</div>`;
+            voteButton.disabled = false;
+            voteButton.textContent = '🗑️ Delete Your Vote';
+            voteButton.style.background = '#dc2626';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        voteMessage.style.display = 'block';
+        voteMessage.innerHTML = `<div style="color: #dc2626; font-size: 0.9rem;">❌ An error occurred while deleting your vote.</div>`;
+        voteButton.disabled = false;
+        voteButton.textContent = '🗑️ Delete Your Vote';
+        voteButton.style.background = '#dc2626';
     });
 }
 </script>
