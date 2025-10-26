@@ -47,6 +47,7 @@ def forum_home(request):
     if request.user.is_authenticated:
         user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
 
+    print("user_favorite_clubs:", list(user_favorite_clubs))
     # Separate news and discussions
     news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')
     discussion_posts = filtered_posts.filter(post_type='discussion')
@@ -66,8 +67,8 @@ def forum_home(request):
         'clubs': clubs,
         'leagues': leagues,
         'form': PostForm(user=request.user),
+        'user_favorite_clubs': user_favorite_clubs,
         'current_filters': {
-            'user_favorite_clubs': user_favorite_clubs,
             'clubs': club_ids,
             'league': league_id,
             'search': search,
@@ -89,17 +90,16 @@ def post_detail(request, pk):
     )
     comments = post.comments.all()
     
-    # Get user's favorite clubs if logged in (for potential actions)
-    if request.user.is_authenticated:
-        # Get clubs from LeaguePick for the user
-        user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
-    else:
-        user_favorite_clubs = []
+    # # Get user's favorite clubs if logged in (for potential actions)
+    # if request.user.is_authenticated:
+    #     # Get clubs from LeaguePick for the user
+    #     user_favorite_clubs = LeaguePick.objects.filter(picked_in_leagues__user=request.user)
+    # else:
+    #     user_favorite_clubs = []
     
     context = {
         'post': post,
         'comments': comments,
-        'user_favorite_clubs': user_favorite_clubs,
     }
     
     return render(request, 'forum/post_detail.html', context)
