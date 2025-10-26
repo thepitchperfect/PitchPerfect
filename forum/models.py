@@ -1,6 +1,6 @@
 from django.db import models
 from main.models import CustomUser
-from club_directories.models import Club, League 
+from club_directories.models import Club, LeaguePick 
 
 class Post(models.Model):
     POST_TYPE_CHOICES = [
@@ -15,7 +15,7 @@ class Post(models.Model):
         max_length=20, 
         choices=POST_TYPE_CHOICES, 
         default='discussion',
-        help_text='Only admins can post Official News'
+        help_text=''
     )
     
     clubs = models.ManyToManyField(
@@ -24,8 +24,6 @@ class Post(models.Model):
         related_name='tagged_posts',
         help_text='Tag clubs (can select multiple)'
     )
-    
-    # Remove hashtag fields - we'll use clubs ManyToMany for filtering
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

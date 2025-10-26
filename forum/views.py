@@ -5,7 +5,8 @@ from django.views.decorators.http import require_http_methods, require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Post, PostImage, Comment
-from club_directories.models import Club, League
+from .forms import PostForm
+from club_directories.models import Club, League, LeaguePick
 import json
 
 
@@ -16,10 +17,10 @@ def forum_home(request):
     - Supports filtering by multiple clubs and league
     - Shows news carousel at top, discussions below
     """
-    # Base queryset - removed 'league' from select_related since it might not exist yet
+    # Base queryset
     all_posts = Post.objects.select_related('author').prefetch_related('clubs', 'images').annotate(
         comment_count=Count('comments')
-    )
+    ).order_by('-created_at')
     
     # Get filter parameters
     club_ids = request.GET.getlist('clubs')  # Multiple clubs
@@ -44,10 +45,10 @@ def forum_home(request):
     # Get favorite club
     user_favorite_clubs = []
     if request.user.is_authenticated:
-        user_favorite_clubs = Club.objects.filter(favorited_by__user=request.user)
+        user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
 
     # Separate news and discussions
-    news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')[:3]  # Top 3 most recent news
+    news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')
     discussion_posts = filtered_posts.filter(post_type='discussion')
     
     # Pagination for discussions only
@@ -64,6 +65,7 @@ def forum_home(request):
         'page_obj': page_obj,
         'clubs': clubs,
         'leagues': leagues,
+        'form': PostForm(user=request.user),
         'current_filters': {
             'user_favorite_clubs': user_favorite_clubs,
             'clubs': club_ids,
@@ -88,11 +90,11 @@ def post_detail(request, pk):
     comments = post.comments.all()
     
     # Get user's favorite clubs if logged in (for potential actions)
-    user_favorite_clubs = []
     if request.user.is_authenticated:
-        user_favorite_clubs = Club.objects.filter(
-            favorited_by__user=request.user
-        ).select_related('league').order_by('name')
+        # Get clubs from LeaguePick for the user
+        user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
+    else:
+        user_favorite_clubs = []
     
     context = {
         'post': post,
@@ -154,116 +156,63 @@ def get_post_data(request, pk):
 
 
 @login_required
-@require_http_methods(["POST"])
 def create_post(request):
-    """
-    Create a new post (AJAX)
-    - Only logged-in users can create posts
-    - Only admins can create 'news' type posts
-    """
-    try:
-        data = json.loads(request.body)
-        
-        post_type = data.get('post_type', 'discussion')
-        
-        # Check if user is admin for news posts
-        if post_type == 'news' and not request.user.is_staff:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Only admins can post official news'
-            }, status=403)
-        
-        # Create post (without league field since it doesn't exist in DB)
-        post = Post.objects.create(
-            title=data.get('title'),
-            content=data.get('content'),
-            author=request.user,
-            post_type=post_type,
-        )
-        
-        # Add club tags (multiple clubs)
-        club_ids = data.get('club_ids', [])
-        if club_ids:
-            post.clubs.set(club_ids)
-        
-        # Add images if provided
-        images_data = data.get('images', [])
-        for idx, img_data in enumerate(images_data):
-            PostImage.objects.create(
-                post=post,
-                image_url=img_data.get('url'),
-                caption=img_data.get('caption', ''),
-                order=idx
-            )
-        
-        return JsonResponse({
-            'success': True,
-            'post': {
-                'id': post.id,
-                'title': post.title,
-                'content': post.content,
-                'author': post.author.username,
-                'post_type': post.get_post_type_display(),
-                'created_at': post.created_at.strftime('%B %d, %Y %I:%M %p')
-            }
-        })
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
 
+    form = PostForm(request.POST, user=request.user)
+    if not form.is_valid():
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+    post_type = form.cleaned_data.get('post_type')
+    if post_type == 'news' and not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Only staff can create official news.'}, status=403)
+
+    club_ids = request.POST.getlist('clubs')
+    if len(club_ids) > 3:
+        return JsonResponse({'success': False, 'error': 'Max 3 clubs allowed'}, status=400)
+
+    image_urls = request.POST.getlist('image_urls')
+    image_captions = request.POST.getlist('image_captions')
+
+    post = form.save(commit=False)
+    post.author = request.user
+    post.save()
+
+    if club_ids:
+        post.clubs.set(club_ids)
+
+    # Append images (image_url, caption)
+    for idx, url in enumerate(image_urls):
+        if not url:
+            continue
+        caption = image_captions[idx] if idx < len(image_captions) else ''
+        PostImage.objects.create(post=post, image_url=url, caption=caption)
+
+    return JsonResponse({'success': True})
 
 @login_required
-@require_http_methods(["PUT"])
 def update_post(request, pk):
-    """Update a post (AJAX) - author or admin only"""
     post = get_object_or_404(Post, pk=pk)
-    
-    # Check if user is the author or admin
-    if post.author != request.user and not request.user.is_staff:
-        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
-    
-    try:
-        data = json.loads(request.body)
-        
-        post.title = data.get('title', post.title)
-        post.content = data.get('content', post.content)
+
+    if request.user != post.author and not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Not authorized'}, status=403)
+
+    if request.method in ['POST', 'PUT']:
+        # handle text data
+        post.title = request.POST.get('title', post.title)
+        post.content = request.POST.get('content', post.content)
+        post.post_type = request.POST.get('post_type', post.post_type)
         post.save()
-        
-        # Update league if field exists
-        if hasattr(Post, 'league'):
-            league_id = data.get('league_id')
-            post.league_id = league_id if league_id else None
-            post.save()
-        
-        # Update club tags (multiple clubs)
-        if 'club_ids' in data:
-            post.clubs.set(data.get('club_ids', []))
-        
-        # Update images if provided
-        if 'images' in data:
-            # Delete existing images
-            post.images.all().delete()
-            
-            # Add new images
-            images_data = data.get('images', [])
-            for idx, img_data in enumerate(images_data):
-                PostImage.objects.create(
-                    post=post,
-                    image_url=img_data.get('url'),
-                    caption=img_data.get('caption', ''),
-                    order=idx
-                )
-        
-        return JsonResponse({
-            'success': True,
-            'post': {
-                'id': post.id,
-                'title': post.title,
-                'content': post.content,
-                'updated_at': post.updated_at.strftime('%B %d, %Y %I:%M %p')
-            }
-        })
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+        # handle new image uploads (append, not replace)
+        for i, img_file in enumerate(request.FILES.getlist('images')):
+            caption = request.POST.get(f'caption_{i}', '')
+            PostImage.objects.create(post=post, image=img_file, caption=caption)
+
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
 
 
 @login_required
