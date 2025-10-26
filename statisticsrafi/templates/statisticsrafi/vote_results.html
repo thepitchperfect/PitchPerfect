@@ -3,8 +3,29 @@
 {% block title %}Voting Results{% endblock %}
 
 {% block content %}
+<style>
+    .back-button {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 1rem 2rem;
+        background: var(--color-orange-300);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-family: var(--font-subheader);
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(254, 152, 0, 0.4);
+        transition: transform 0.2s ease-in-out;
+        z-index: 100;
+    }
+    
+    .back-button:hover {
+        transform: translateY(-2px);
+    }
+</style>
 <div class="text-center mb-2">
-    <h1>🗳️ Voting Results</h1>
+    <h1>Voting Results</h1>
     {% if category %}
         <h2>{{ category|title|cut:"_" }} - {{ season }}</h2>
     {% else %}
@@ -24,7 +45,7 @@
                     <span style="font-weight: bold;">Your vote: <span style="color: var(--color-orange-300);">{{ user_vote.club.name }}</span></span>
                 </div>
                 <button id="deleteVoteBtn" onclick="deleteVote()" style="background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
-                    🗑️ Delete Vote
+                    Delete Vote
                 </button>
             </div>
             <div id="deleteVoteMessage" style="margin-top: 0.5rem; font-size: 0.9rem; display: none;"></div>
@@ -122,9 +143,10 @@
     {% endif %}
 </div>
 
-<div class="text-center mt-2">
-    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
-</div>
+<!-- Floating Back Button -->
+<a href="{% url 'statisticsrafi:home' %}" class="back-button">
+    ← Back to Home
+</a>
 
 <script>
 function getCookie(name) {

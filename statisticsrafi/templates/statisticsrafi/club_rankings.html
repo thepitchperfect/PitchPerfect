@@ -3,6 +3,27 @@
 {% block title %}FIFA Club Rankings - PitchPerfect Statistics{% endblock %}
 
 {% block content %}
+<style>
+    .back-button {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 1rem 2rem;
+        background: var(--color-orange-300);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-family: var(--font-subheader);
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(254, 152, 0, 0.4);
+        transition: transform 0.2s ease-in-out;
+        z-index: 100;
+    }
+    
+    .back-button:hover {
+        transform: translateY(-2px);
+    }
+</style>
 <div class="text-center mb-2">
     <h1>🌍 FIFA Club World Rankings</h1>
     <p style="font-size: 1.1rem; color: var(--color-gray-600);">
@@ -81,9 +102,10 @@
     {% endif %}
 </div>
 
-<div class="text-center mt-2">
-    <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
-</div>
+<!-- Floating Back Button -->
+<a href="{% url 'statisticsrafi:home' %}" class="back-button">
+    ← Back to Home
+</a>
 {% endblock %}
 
 

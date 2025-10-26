@@ -92,7 +92,7 @@ def add_to_watchlist(request, player_id):
     else:
         messages.info(request, f'{player.name} is already in your watchlist.')
     
-    return redirect('player_detail', player_id=player_id)
+    return redirect('statisticsrafi:player_detail', player_id=player_id)
 
 # READ - User Votes
 @login_required
@@ -113,7 +113,7 @@ def remove_from_watchlist(request, watchlist_id):
     player_name = watchlist_item.player.name
     watchlist_item.delete()
     messages.success(request, f'{player_name} removed from your watchlist.')
-    return redirect('my_watchlist')
+    return redirect('statisticsrafi:my_watchlist')
 
 # UPDATE - Watchlist Notes
 @login_required
@@ -125,7 +125,7 @@ def update_watchlist_notes(request, watchlist_id):
         watchlist_item.notes = request.POST.get('notes', '')
         watchlist_item.save()
         messages.success(request, 'Notes updated successfully!')
-        return redirect('my_watchlist')
+        return redirect('statisticsrafi:my_watchlist')
     
     return render(request, 'statisticsrafi/edit_watchlist_notes.html', {'item': watchlist_item})
 
@@ -160,7 +160,7 @@ def vote(request, category, season):
         except Exception as e:
             messages.error(request, f'Error submitting vote: {str(e)}')
     
-    return redirect('vote_results', category=category, season=season)
+    return redirect('statisticsrafi:vote_results', category=category, season=season)
 
 # READ - Vote Results
 def vote_results(request, category, season):
