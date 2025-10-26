@@ -7,7 +7,7 @@ class MatchForm(forms.ModelForm):
         fields = ['league', 'home_team', 'away_team', 'match_date', 'status']
 
         widgets = {
-            # 🗓️ HTML5 datetime-local widget for date + time
+            #  HTML5 datetime-local widget for date + time
             'match_date': forms.DateTimeInput(
                 attrs={
                     'type': 'datetime-local',
