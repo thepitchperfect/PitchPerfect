@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from .models import League, Club, FavoriteClub, ClubDetails
+from django.http import JsonResponse, Http404 
+from .models import League, Club, ClubDetails, LeaguePick
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 import json
@@ -8,11 +8,16 @@ import json
 def show_club_directory(request):
     leagues = League.objects.prefetch_related('clubs').all().order_by('name')
     
-    favorite_club_ids = set()
+    # Get League Picks
+    league_picks = {}
     if request.user.is_authenticated:
-        favorite_club_ids = set(
-            FavoriteClub.objects.filter(user=request.user).values_list('club_id', flat=True)
-        )
+        picks = LeaguePick.objects.filter(user=request.user).select_related('club')
+        for pick in picks:
+            league_picks[str(pick.league_id)] = {
+                'clubId': str(pick.club_id),
+                'clubName': pick.club.name,
+                'logoUrl': pick.club.logo_url
+            }
 
     leagues_data = []
     for league in leagues:
@@ -33,21 +38,22 @@ def show_club_directory(request):
                 'name': club.name, 
                 'logo_url': club.logo_url,
                 'desc': f"Founded in {club.founded_year or 'N/A'}. Plays in {league.name}.",
-                'is_favorite': club.id in favorite_club_ids
             } for club in league.clubs.all()]
         })
     
     context = {
         'leagues_data': leagues_data,
+        'league_picks_data': league_picks,
     }
     return render(request, 'club_directories/directory.html', context)
 
 def get_club_details(request, club_id):
     club = get_object_or_404(Club.objects.select_related('league'), pk=club_id)
     
-    is_favorite = False
+    is_league_pick = False
     if request.user.is_authenticated:
-        is_favorite = FavoriteClub.objects.filter(user=request.user, club=club).exists()
+        is_league_pick = LeaguePick.objects.filter(user=request.user, club=club).exists()
+
     try:
         details = club.details 
         description = details.description
@@ -71,7 +77,7 @@ def get_club_details(request, club_id):
         'league_name': club.league.name,
         'league_logo_path': club.league.logo_path,
         'region': club.league.region,
-        'is_favorite': is_favorite,
+        'is_league_pick': is_league_pick,
         'description': description,
         'history_summary': history_summary,
         'stadium_name': stadium_name,
@@ -82,23 +88,54 @@ def get_club_details(request, club_id):
 
 @login_required
 @require_POST
-def toggle_favorite_club(request):
+def set_league_pick(request):
     try:
         club_id = request.POST.get('club_id')
-        if not club_id:
-            return JsonResponse({'status': 'error', 'message': 'Club ID is required.'}, status=400)
+        league_id = request.POST.get('league_id') 
+
+        if not club_id and not league_id:
+             return JsonResponse({'status': 'error', 'message': 'Club or League ID is required.'}, status=400)
+
+        if club_id == 'NONE':
+            if not league_id:
+                return JsonResponse({'status': 'error', 'message': 'League ID is required to clear a pick.'}, status=400)
             
-        club = get_object_or_404(Club, pk=club_id)
+            league = get_object_or_404(League, pk=league_id) 
+            LeaguePick.objects.filter(user=request.user, league=league).delete()
+            return JsonResponse({'status': 'cleared', 'league_id': league_id})
+
+        club = get_object_or_404(Club, pk=club_id) 
+        league = club.league
+
+        pick, created = LeaguePick.objects.update_or_create(
+            user=request.user, 
+            league=league,
+            defaults={'club': club}
+        )
+
+        club_data = {
+            'clubId': str(club.id),
+            'clubName': club.name,
+            'logoUrl': club.logo_url
+        }
         
-        favorite, created = FavoriteClub.objects.get_or_create(user=request.user, club=club)
-        
-        if created:
-            return JsonResponse({'status': 'added', 'is_favorite': True})
-        else:
-            favorite.delete()
-            return JsonResponse({'status': 'removed', 'is_favorite': False})
+        return JsonResponse({
+            'status': 'set', 
+            'league_id': str(league.id),
+            'club_data': club_data
+        })
             
-    except Club.DoesNotExist:
+    except Http404:
+        message = 'Object not found.'
+        if 'club' not in locals() and club_id != 'NONE':
+             message = 'Club not found.'
+        elif 'league' not in locals() and club_id == 'NONE':
+             message = 'League not found.'
+        return JsonResponse({'status': 'error', 'message': message}, status=404)
+    except Club.DoesNotExist: 
         return JsonResponse({'status': 'error', 'message': 'Club not found.'}, status=404)
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    except League.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'League not found.'}, status=404)
+        
+    except Exception as e: 
+        return JsonResponse({'status': 'error', 'message': 'An internal server error occurred.'}, status=500)

@@ -99,7 +99,11 @@ def add_to_watchlist(request, player_id):
 def my_watchlist(request):
     """User's voting history"""
     votes = Vote.objects.filter(user=request.user)
-    return render(request, 'statisticsrafi/watchlist.html', {'votes': votes})
+    club_votes = ClubVote.objects.filter(user=request.user)
+    return render(request, 'statisticsrafi/watchlist.html', {
+        'votes': votes,
+        'club_votes': club_votes
+    })
 
 # DELETE - Watchlist
 @login_required
@@ -164,11 +168,11 @@ def vote_results(request, category, season):
     votes = Vote.objects.filter(category=category, season=season)
     
     if 'PLAYER' in category:
-        results = votes.values('player__name', 'player__club__name').annotate(
+        results = votes.values('player__name', 'player__club__name', 'player__club__logo_url').annotate(
             vote_count=Count('id')
         ).order_by('-vote_count')
     else:
-        results = votes.values('club__name').annotate(
+        results = votes.values('club__name', 'club__logo_url').annotate(
             vote_count=Count('id')
         ).order_by('-vote_count')
     
@@ -288,7 +292,7 @@ def voting_results(request):
     season = request.GET.get('season', '2025/26')
     
     # Get vote counts for each club
-    vote_counts = ClubVote.objects.filter(season=season).values('club__name').annotate(
+    vote_counts = ClubVote.objects.filter(season=season).values('club__name', 'club__league__name', 'club__logo_url').annotate(
         vote_count=Count('id')
     ).order_by('-vote_count')
     
