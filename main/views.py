@@ -79,7 +79,11 @@ def login_user(request):
 @require_POST
 def logout_user(request):
     logout(request)
-    response = HttpResponseRedirect(reverse('main:login'))
+    response = JsonResponse({
+        'status': 'success', 
+        'message': 'You have been logged out.',
+        'redirect_url': reverse('main:login')
+    })
     
     response.delete_cookie('last_login')
     return response

@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods, require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Post, PostImage, Comment
-from club_directories.models import Club, League, FavoriteClub
+from club_directories.models import Club, League
 import json
 
 
