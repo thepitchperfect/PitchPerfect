@@ -103,8 +103,7 @@
 
                                 <!-- Author & date -->
                                 <div class="text-xs text-gray-500 mb-3">
-                                    {% if post.updated_at and post.created_at and post.updated_at|date:'U' >
-                                    post.created_at|date:'U' %}
+                                    {% if post.updated_at and post.created_at and post.updated_at|date:'U' > post.created_at|date:'U' %}
                                     <span>{{ post.updated_at|date:"M d, Y" }} | <em>Edited</em></span>
                                     {% elif post.created_at %}
                                     <span>{{ post.created_at|date:"M d, Y" }}</span>
@@ -156,7 +155,7 @@
                     <div
                         class="bg-white border-2 border-gray-300 rounded-xl p-4 flex flex-col md:flex-row justify-between md:items-center text-gray-500 cursor-pointer transition-all duration-200 ease-in-out relative overflow-hidden hover:border-[#FE8800] hover:text-[#FE8800] hover:shadow-md">
                         <div>
-                            <h3 class="font-bold font-lato">{{ vote.match.home_team.name }} vs {{ vote.match.away_team.name }}</h3>
+                            <h3 class="font-bold font-lato text-black">{{ vote.match.home_team.name }} vs {{ vote.match.away_team.name }}</h3>
                             <p class="text-sm text-gray-600">Your pick: {{ vote.get_prediction_display }}</p>
                         </div>
 
