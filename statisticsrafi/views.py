@@ -236,6 +236,15 @@ def team_detail(request, club_id):
     # Get club awards
     club_awards = Award.objects.filter(club=club).order_by('-date_awarded')
     
+    # Get user's vote status for the current season
+    user_has_voted = False
+    user_voted_for_this_club = False
+    if request.user.is_authenticated:
+        user_vote = ClubVote.objects.filter(user=request.user, season='2025/26').first()
+        if user_vote:
+            user_has_voted = True
+            user_voted_for_this_club = user_vote.club == club
+    
     context = {
         'club': club,
         'team_stats': team_stats,
@@ -243,6 +252,8 @@ def team_detail(request, club_id):
         'player_stats': player_stats,
         'club_ranking': club_ranking,
         'club_awards': club_awards,
+        'user_has_voted': user_has_voted,
+        'user_voted_for_this_club': user_voted_for_this_club,
     }
     return render(request, 'statisticsrafi/team_detail.html', context)
 
@@ -284,6 +295,36 @@ def vote_for_club(request, club_id):
         return JsonResponse({
             'status': 'error',
             'message': 'An error occurred while processing your vote.'
+        })
+
+
+@login_required
+@require_POST
+def delete_vote(request):
+    """Delete user's vote for Club of the Season"""
+    season = request.POST.get('season', '2025/26')
+    
+    try:
+        # Find and delete user's vote
+        user_vote = ClubVote.objects.filter(user=request.user, season=season).first()
+        
+        if user_vote:
+            club_name = user_vote.club.name
+            user_vote.delete()
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Your vote for {club_name} has been deleted.'
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No vote found to delete.'
+            })
+            
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'An error occurred while deleting your vote.'
         })
 
 

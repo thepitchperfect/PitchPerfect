@@ -35,6 +35,7 @@ urlpatterns = [
     
     # Club of the Season Voting
     path('vote-club/<uuid:club_id>/', views.vote_for_club, name='vote_for_club'),
+    path('delete-vote/', views.delete_vote, name='delete_vote'),
     path('club-voting-results/', views.voting_results, name='voting_results'),
     
     # Club Comparison

@@ -13,6 +13,27 @@
     <p style="font-size: 1.1rem; color: var(--color-gray-600);">
         Total Votes: <strong>{{ total_votes }}</strong>
     </p>
+    
+    {% if user.is_authenticated and user_vote %}
+        <div id="userVoteInfo" style="background: var(--color-orange-50); padding: 1rem; border-radius: 8px; margin-top: 1rem; display: inline-block;">
+            <div style="display: flex; align-items: center; gap: 1rem; justify-content: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    {% if user_vote.club.logo_url %}
+                        <img src="{{ user_vote.club.logo_url }}" alt="{{ user_vote.club.name }}" style="width: 32px; height: 32px; object-fit: contain;">
+                    {% endif %}
+                    <span style="font-weight: bold;">Your vote: <span style="color: var(--color-orange-300);">{{ user_vote.club.name }}</span></span>
+                </div>
+                <button id="deleteVoteBtn" onclick="deleteVote()" style="background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                    🗑️ Delete Vote
+                </button>
+            </div>
+            <div id="deleteVoteMessage" style="margin-top: 0.5rem; font-size: 0.9rem; display: none;"></div>
+        </div>
+    {% elif user.is_authenticated %}
+        <p style="color: var(--color-gray-600); font-size: 0.95rem; margin-top: 0.5rem;">
+            You haven't voted yet for this season.
+        </p>
+    {% endif %}
 </div>
 
 <div class="card">
@@ -104,6 +125,79 @@
 <div class="text-center mt-2">
     <a href="{% url 'statisticsrafi:home' %}" class="btn btn-secondary">Back to Home</a>
 </div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function deleteVote() {
+    const deleteBtn = document.getElementById('deleteVoteBtn');
+    const messageDiv = document.getElementById('deleteVoteMessage');
+    
+    // Disable button during request
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting...';
+    
+    // Send delete request
+    fetch('{% url "statisticsrafi:delete_vote" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'season={{ season }}'
+    })
+    .then(response => response.json())
+    .then(data => {
+        messageDiv.style.display = 'block';
+        
+        if (data.status === 'success') {
+            messageDiv.innerHTML = `<div style="color: #4ade80;">✅ ${data.message}</div>`;
+            deleteBtn.textContent = '✅ Deleted!';
+            deleteBtn.style.background = 'rgba(74, 222, 128, 0.3)';
+            
+            // Hide the user vote info after a short delay
+            setTimeout(() => {
+                const userVoteInfo = document.getElementById('userVoteInfo');
+                if (userVoteInfo) {
+                    userVoteInfo.style.transition = 'opacity 0.5s';
+                    userVoteInfo.style.opacity = '0';
+                    setTimeout(() => {
+                        userVoteInfo.style.display = 'none';
+                        location.reload();
+                    }, 500);
+                }
+            }, 1500);
+        } else {
+            messageDiv.innerHTML = `<div style="color: #dc2626;">❌ ${data.message}</div>`;
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = '🗑️ Delete Vote';
+            deleteBtn.style.background = '#dc2626';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        messageDiv.style.display = 'block';
+        messageDiv.innerHTML = `<div style="color: #dc2626;">❌ An error occurred while deleting your vote.</div>`;
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = '🗑️ Delete Vote';
+        deleteBtn.style.background = '#dc2626';
+    });
+}
+</script>
+
 {% endblock %}
 
 
