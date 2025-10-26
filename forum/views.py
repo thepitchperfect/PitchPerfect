@@ -47,7 +47,6 @@ def forum_home(request):
     if request.user.is_authenticated:
         user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
 
-    print("user_favorite_clubs:", list(user_favorite_clubs))
     # Separate news and discussions
     news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')
     discussion_posts = filtered_posts.filter(post_type='discussion')
@@ -89,13 +88,6 @@ def post_detail(request, pk):
         pk=pk
     )
     comments = post.comments.all()
-    
-    # # Get user's favorite clubs if logged in (for potential actions)
-    # if request.user.is_authenticated:
-    #     # Get clubs from LeaguePick for the user
-    #     user_favorite_clubs = LeaguePick.objects.filter(picked_in_leagues__user=request.user)
-    # else:
-    #     user_favorite_clubs = []
     
     context = {
         'post': post,
@@ -205,7 +197,7 @@ def update_post(request, pk):
         post.post_type = request.POST.get('post_type', post.post_type)
         post.save()
 
-        # handle new image uploads (append, not replace)
+        # handle new image uploads 
         for i, img_file in enumerate(request.FILES.getlist('images')):
             caption = request.POST.get(f'caption_{i}', '')
             PostImage.objects.create(post=post, image=img_file, caption=caption)

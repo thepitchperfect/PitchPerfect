@@ -7,22 +7,25 @@
 <div id="alert-container"></div>
 
 <div class="forum-layout mt-2 flex gap-6">
+  <!-- MOBILE & DESKTOP LAYOUT -->
+  <div class="w-full flex flex-col lg:flex-row gap-0 lg:gap-6">
     <!-- MOBILE FILTER TOGGLE -->
-    <div class="lg:hidden w-full flex justify-start mb-4 px-4">
-        <button
-            id="toggleFilterBtn"
-            class="py-2 px-4 bg-[#fe8800] text-white rounded-md font-['Tektur'] font-semibold uppercase text-sm hover:bg-[#ffb054] transition"
-        >
-            Filters ▾
-        </button>
+    <div class="lg:hidden w-full flex flex-col items-start mb-4 px-4">
+      <button
+        id="toggleFilterBtn"
+        class="py-2 px-4 bg-[#fe8800] text-white rounded-md font-['Tektur'] font-semibold uppercase text-sm hover:bg-[#ffb054] transition"
+        style="align-self: flex-start;"
+      >
+        Filters ▾
+      </button>
     </div>
 
     <!-- Sidebar Filters -->
     <div id="filterSidebar" class="hidden lg:block">
-        <aside class="lg:sticky lg:top-8 lg:h-[calc(100vh-2rem)] lg:w-56 w-full bg-white rounded-xl p-4 shadow-sm border border-[#f4f4f4] overflow-y-auto">
-            <h3 class="font-['Tektur'] text-[#fe8800] text-lg font-bold mb-4 pb-3 border-b-4 border-[#ffd7aa]">FILTERS</h3>
+      <aside class="lg:sticky lg:top-8 lg:h-[calc(100vh-2rem)] lg:w-56 lg:ml-4 w-full bg-white rounded-xl p-4 shadow-sm border border-[#f4f4f4] overflow-y-auto">
+        <h3 class="font-['Tektur'] text-[#fe8800] text-lg font-bold mb-4 pb-3 border-b-4 border-[#ffd7aa]">FILTERS</h3>
 
-            <form id="filterForm" class="space-y-4">
+        <form id="filterForm" class="space-y-4">
                 <!-- Clubs Multi-Select with Search (Only Favorite Clubs) -->
                 <div class="filter-group">
                 <label class="block text-sm font-['Tektur'] font-semibold text-gray-700 mb-2">Filter by Your Clubs:</label>
@@ -130,7 +133,7 @@
             <div id="carouselTrack" class="carousel-track flex transition-transform duration-500 ease-in-out">
             {% for news in news_posts %}
                 {% if forloop.first or forloop.counter0|divisibleby:3 %}
-                <!-- start slide: grid with left large (2-row) + right column (2 stacked items) -->
+                <!-- start slide -->
                 <div class="carousel-slide flex-shrink-0 w-full grid grid-cols-3 gap-4">
                 {% endif %}
 
@@ -142,7 +145,7 @@
                 {% endcomment %}
 
                 {% if forloop.counter0|divisibleby:3 %}
-                <!-- LARGE LEFT CARD (spans two rows) -->
+                <!-- LARGE LEFT CARD  -->
                 <article
                     class="news-card large col-span-2 row-span-2 flex flex-col bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition cursor-pointer"
                     onclick="window.location.href='{% url 'forum:post_detail' news.id %}'"
@@ -224,7 +227,7 @@
                 </article>
 
                 {% else %}
-                <!-- RIGHT TOP SMALL CARD (with club badge) -->
+                <!-- RIGHT TOP SMALL CARD  -->
                 <article
                 class="news-card small col-span-1 flex flex-col bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transform transition cursor-pointer"
                 onclick="window.location.href='{% url 'forum:post_detail' news.id %}'"
@@ -258,7 +261,7 @@
                 {% endif %}
 
                 {% if forloop.counter|divisibleby:3 or forloop.last %}
-                </div> <!-- end slide -->
+                </div>
                 {% endif %}
             {% endfor %}
             </div>
@@ -389,12 +392,12 @@
       <button aria-label="Close" onclick="closeModal()" class="text-2xl text-gray-700">&times;</button>
     </div>
 
-    <!-- Body (scrollable) -->
+    <!-- Body  -->
     <div class="p-4 overflow-y-auto">
       <form id="postForm" method="post" class="space-y-4">
         {% csrf_token %}
 
-        <!-- Render core fields from the Django form (title, post_type, content) -->
+        <!-- Render core fields from the Django form  -->
         <div>
           {{ form.title.label_tag }}
           {{ form.title }}
@@ -515,14 +518,11 @@
         });
     }
 
-    // --- Dynamic club tagging (max 3) ---
     const clubs = [
         {% for club in clubs %}
         {id: '{{ club.id }}', name: '{{ club.name }}', league: '{{ club.league.name }}'},
         {% endfor %}
     ];
-    const dynamicClubFields = document.getElementById('dynamicClubFields');
-    let clubTags = [];
 
     // Datalist for club search
     if (!document.getElementById('clubsDatalist')) {
@@ -568,7 +568,7 @@
                 clubSearchInput.value = '';
             }
         });
-        // Optional: Add on Enter key
+
         clubSearchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -629,7 +629,7 @@
                 currentSlide = 0;
             }
             updateCarousel();
-        }, 8000); // Auto-advance every 5 seconds
+        }, 8000); 
     }
     
     function resetAutoplay() {
@@ -666,7 +666,7 @@
         setTimeout(() => alertDiv.remove(), 3000);
     }
 
-/* ========== Modal open/close ========== */
+/*  Modal open/close */
 function openCreateModal() {
   // reset form UI each time
   document.getElementById('postForm').reset();
@@ -686,7 +686,7 @@ function closeModal() {
   document.getElementById('createPostModal').classList.add('hidden');
 }
 
-/* ========== Club search + tag system (max 3) ========== */
+/* Club search + tag system  */
 (function(){ 
   const allClubsEl = Array.from(document.querySelectorAll('#allClubsData .club-data'))
     .map(el => ({ id: el.dataset.id, name: el.dataset.name }));
@@ -749,22 +749,22 @@ function closeModal() {
 
   function removeClub(id) {
     selected = selected.filter(s => s.id !== id);
-    // remove chip
+
     Array.from(selectedClubsEl.children).forEach(child => {
       if (child.textContent.includes(id) === false) {
-        // can't rely on id in text; instead compare hidden inputs
+
       }
     });
-    // Remove by hidden input
+
     const inp = hiddenInputs.querySelector(`input[data-club-id="${id}"]`);
     if (inp) inp.remove();
-    // remove matching chip by name (simpler)
+
     Array.from(selectedClubsEl.children).forEach(child => {
       const txt = child.querySelector('span')?.textContent || '';
       const found = allClubsEl.find(c => c.id === id && c.name === txt);
       if (found) child.remove();
     });
-    // fallback: remove any chip whose text matches removed id's name
+    // fallback
     selectedClubsEl.querySelectorAll('div').forEach(div => {
       const txt = div.querySelector('span')?.textContent || '';
       if (!selected.find(s => s.name === txt)) div.remove();
@@ -789,7 +789,7 @@ function closeModal() {
   });
 })();
 
-/* ========== Images rows (URL + caption) ========== */
+/*  Images rows (URL + caption) */
 (function(){
   const template = document.getElementById('imageRowTemplate');
   const imagesList = document.getElementById('imagesList');
@@ -809,10 +809,10 @@ function closeModal() {
 
   window.removeImageRow = function(btn) {
     const row = btn.closest('div');
-    // don't remove if only one left
+
     const rows = Array.from(imagesList.children).filter(n => n.style.display !== 'none' && n.id !== 'imageRowTemplate');
     if (rows.length <= 1) {
-      // clear fields instead
+
       row.querySelector('input[name="image_urls"]').value = '';
       row.querySelector('input[name="image_captions"]').value = '';
       return;
@@ -821,11 +821,11 @@ function closeModal() {
   };
 
   addBtn.addEventListener('click', () => addImageRow());
-  // create initial row
+
   if (!imagesList.querySelector('div:not(#imageRowTemplate)')) addImageRow();
 
   function updateRemoveButtons() {
-    // show remove only when >1 rows
+ 
     const rows = Array.from(imagesList.children).filter(n => n.style.display !== 'none' && n.id !== 'imageRowTemplate');
     rows.forEach((r, i) => {
       const btn = r.querySelector('button');
@@ -834,29 +834,25 @@ function closeModal() {
   }
 })();
 
-/* ========== Submit AJAX ========== */
+/* Submit AJAX */
 document.getElementById('submitPostBtn').addEventListener('click', async function(){
   const errorsEl = document.getElementById('postFormErrors');
   errorsEl.textContent = '';
 
   const formEl = document.getElementById('postForm');
-
-  // basic client-side validation
   const title = formEl.querySelector('[name="title"]').value.trim();
   const content = formEl.querySelector('[name="content"]').value.trim();
   if (!title || !content) {
     errorsEl.textContent = 'Title and content are required.';
     return;
   }
-
-  // ensure clubs count <=3 (hidden inputs)
   const clubInputs = Array.from(document.querySelectorAll('#clubHiddenInputs input[name="clubs"]'));
   if (clubInputs.length > 3) {
     errorsEl.textContent = 'You may select up to 3 clubs only.';
     return;
   }
 
-  // prepare FormData directly from form (includes hidden club inputs and image inputs)
+  // prepare FormData directly from form
   const fd = new FormData(formEl);
 
   try {
@@ -959,7 +955,5 @@ document.getElementById('postForm')?.addEventListener('submit', async function (
     showAlert("Failed to submit. Please try again.", "error");
   }
 });
-
 </script>
-
 {% endblock %}
