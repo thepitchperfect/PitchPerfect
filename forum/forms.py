@@ -12,12 +12,11 @@ class PostForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # Pop user if passed from the view
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # If user is not staff, hide the "Official News" option
         if not (user and user.is_staff):
             self.fields['post_type'].choices = [
                 ('discussion', 'Discussion')
             ]
+            self.fields['post_type'].initial = 'discussion'

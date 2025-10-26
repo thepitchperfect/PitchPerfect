@@ -178,10 +178,7 @@ class ClubDirectoriesTests(TestCase):
     def test_set_league_pick_unauthenticated(self):
         """Test that an unauthenticated user is redirected to the login page."""
         response = self.client.post(self.set_pick_url, {'club_id': self.club1.id})
-        # @login_required decorator redirects to the login URL
         self.assertEqual(response.status_code, 302)
-        # Check if it redirects to the login URL specified in your settings
-        # or in directory.html, which is 'main:login'
         self.assertIn(reverse('main:login'), response.url)
 
     def test_set_league_pick_not_post(self):

@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_http_methods, require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Post, PostImage, Comment
 from .forms import PostForm
 from club_directories.models import Club, League, LeaguePick
+import traceback
 import json
 
 
@@ -66,8 +67,8 @@ def forum_home(request):
         'clubs': clubs,
         'leagues': leagues,
         'form': PostForm(user=request.user),
+        'user_favorite_clubs': user_favorite_clubs,
         'current_filters': {
-            'user_favorite_clubs': user_favorite_clubs,
             'clubs': club_ids,
             'league': league_id,
             'search': search,
@@ -89,17 +90,9 @@ def post_detail(request, pk):
     )
     comments = post.comments.all()
     
-    # Get user's favorite clubs if logged in (for potential actions)
-    if request.user.is_authenticated:
-        # Get clubs from LeaguePick for the user
-        user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
-    else:
-        user_favorite_clubs = []
-    
     context = {
         'post': post,
         'comments': comments,
-        'user_favorite_clubs': user_favorite_clubs,
     }
     
     return render(request, 'forum/post_detail.html', context)
@@ -114,13 +107,14 @@ def get_post_data(request, pk):
     - Only author or admin can access
     """
     try:
-        post = get_object_or_404(Post, pk=pk)
-        
-        # Check if user is the author or admin
+        post = get_object_or_404(
+            Post.objects.select_related('author').prefetch_related('clubs', 'images'), 
+            pk=pk
+        ) 
+
         if post.author != request.user and not request.user.is_staff:
             return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
         
-        # Get post images
         images = []
         for img in post.images.all().order_by('order'):
             images.append({
@@ -129,14 +123,10 @@ def get_post_data(request, pk):
                 'order': img.order
             })
         
-        # Get tagged club IDs
         club_ids = list(post.clubs.values_list('id', flat=True))
         
-        # Get league_id if field exists
-        league_id = None
-        if hasattr(post, 'league') and post.league:
-            league_id = str(post.league.id)
-        
+        league_id = None 
+            
         return JsonResponse({
             'success': True,
             'post': {
@@ -145,15 +135,15 @@ def get_post_data(request, pk):
                 'content': post.content,
                 'post_type': post.post_type,
                 'club_ids': [str(club_id) for club_id in club_ids],
-                'league_id': league_id,
+                'league_id': league_id, 
                 'images': images,
             }
         })
+    except Http404:
+        return JsonResponse({'success': False, 'error': 'Post not found.'}, status=404)
     except Exception as e:
-        import traceback
-        print("Error in get_post_data:", traceback.format_exc())
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
+        print("Error in get_post_data:", traceback.format_exc()) # Keep for debugging
+        return JsonResponse({'success': False, 'error': 'An internal server error occurred.'}, status=500)
 
 @login_required
 def create_post(request):
@@ -205,7 +195,7 @@ def update_post(request, pk):
         post.post_type = request.POST.get('post_type', post.post_type)
         post.save()
 
-        # handle new image uploads (append, not replace)
+        # handle new image uploads 
         for i, img_file in enumerate(request.FILES.getlist('images')):
             caption = request.POST.get(f'caption_{i}', '')
             PostImage.objects.create(post=post, image=img_file, caption=caption)
