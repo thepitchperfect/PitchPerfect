@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Post, PostImage, Comment
 from .forms import PostForm
-from club_directories.models import Club, League, FavoriteClub
+from club_directories.models import Club, League, LeaguePick
 import json
 
 
@@ -45,7 +45,7 @@ def forum_home(request):
     # Get favorite club
     user_favorite_clubs = []
     if request.user.is_authenticated:
-        user_favorite_clubs = Club.objects.filter(favorited_by__user=request.user)
+        user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
 
     # Separate news and discussions
     news_posts = filtered_posts.filter(post_type='news').order_by('-created_at')
@@ -90,11 +90,11 @@ def post_detail(request, pk):
     comments = post.comments.all()
     
     # Get user's favorite clubs if logged in (for potential actions)
-    user_favorite_clubs = []
     if request.user.is_authenticated:
-        user_favorite_clubs = Club.objects.filter(
-            favorited_by__user=request.user
-        ).select_related('league').order_by('name')
+        # Get clubs from LeaguePick for the user
+        user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user)
+    else:
+        user_favorite_clubs = []
     
     context = {
         'post': post,
