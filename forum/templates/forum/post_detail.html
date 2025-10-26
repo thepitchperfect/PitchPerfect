@@ -59,7 +59,7 @@
       </div>
       {% endif %}
 
-        <!-- Image carousel (inline between header and content) -->
+        <!-- Image carousel  -->
         <div id="post-image-section" class="w-full">
         {% if post.images.all %}
             <div class="relative">
@@ -75,7 +75,7 @@
             </div>
             {% endif %}
 
-            <!-- Caption (shows if caption exists for current image) -->
+            <!-- Caption  -->
             <div id="imageCaption" class="mt-2 text-sm text-gray-600">
                 {% if post.images.first.caption %}
                 {{ post.images.first.caption }}
@@ -112,7 +112,7 @@
     <!-- Divider -->
     <div class="border-t border-[#ffd7aa]"></div>
 
-    <!-- Comment form (below post, before comments) -->
+    <!-- Comment form  -->
     <div class="p-6 bg-[#fffdfa]">
       {% if user.is_authenticated %}
       <form id="commentForm" class="flex flex-col gap-3">
@@ -178,7 +178,7 @@
                 </div>
               </div>
 
-              <!-- replies (one-level only) -->
+              <!-- replies  -->
               {% if comment.replies %}
                 <div class="mt-4 border-l-2 border-[#ffd7aa] pl-4">
                   {% for reply in comment.replies %}
@@ -245,7 +245,6 @@
                             <div class="mt-4 border-l-2 border-[#ffd7aa] pl-4">
                             {% for reply in comment.replies %}
                                 <div id="comment-{{ reply.id }}" class="bg-white border border-[#f7efe0] rounded p-3 mb-3">
-                                ...  <!-- keep your existing reply rendering (no changes) -->
                                 </div>
                             {% endfor %}
                             </div>
@@ -268,30 +267,30 @@
 </div>
 
 <script>
-    // CSRF + postId + images
-    const csrftoken = '{{ csrf_token }}';
-    const postId = {{ post.id }};
-    const images = [
-    {% for img in post.images.all %}
-        {
-        url: '{{ img.image_url|escapejs }}',
-        caption: '{{ img.caption|default:""|escapejs }}'
-        }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-    ];
-    let currentImageIdx = 0;
+// CSRF + postId + images
+const csrftoken = '{{ csrf_token }}';
+const postId = {{ post.id }};
+const images = [
+{% for img in post.images.all %}
+    {
+    url: '{{ img.image_url|escapejs }}',
+    caption: '{{ img.caption|default:""|escapejs }}'
+    }{% if not forloop.last %},{% endif %}
+{% endfor %}
+];
+let currentImageIdx = 0;
 
-  function showAlert(msg, type='success') {
+function showAlert(msg, type='success') {
     const container = document.getElementById('alert-container');
     const div = document.createElement('div');
     div.className = `rounded px-4 py-2 mb-2 shadow ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
     div.textContent = msg;
     container.appendChild(div);
     setTimeout(() => div.remove(), 3000);
-  }
+}
 
-  // Helper to set image + caption safely
-  function setMainImage(idx) {
+// Helper to set image + caption safely
+function setMainImage(idx) {
     if (!images.length) return;
     const img = images[idx];
     const mainImage = document.getElementById('mainImage');
@@ -300,59 +299,59 @@
     if (idxEl) idxEl.textContent = idx + 1;
     const captionEl = document.getElementById('imageCaption');
     if (captionEl) captionEl.textContent = img.caption || '';
-  }
+}
     
-  // Image navigation
-  function changeImage(direction) {
+// Image navigation
+function changeImage(direction) {
     if (!images.length) return;
     currentImageIdx += direction;
     if (currentImageIdx < 0) currentImageIdx = images.length - 1;
     if (currentImageIdx >= images.length) currentImageIdx = 0;
     setMainImage(currentImageIdx);
-  }
+ }
   
-  // set initial caption correctly on DOMContentLoaded
-  document.addEventListener('DOMContentLoaded', () => {
+// set initial caption correctly on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
     setMainImage(0);
-  })
+})
 
-  // Inline post edit flow
-  const postEditBtn = document.getElementById('postEditBtn');
-  const postDeleteBtn = document.getElementById('postDeleteBtn');
-  const postEditArea = document.getElementById('postEditArea');
-  const postContentEl = document.getElementById('postContent');
-  const postTitleInput = document.getElementById('postTitleInput');
-  const postContentInput = document.getElementById('postContentInput');
+// Inline post edit flow
+const postEditBtn = document.getElementById('postEditBtn');
+const postDeleteBtn = document.getElementById('postDeleteBtn');
+const postEditArea = document.getElementById('postEditArea');
+const postContentEl = document.getElementById('postContent');
+const postTitleInput = document.getElementById('postTitleInput');
+const postContentInput = document.getElementById('postContentInput');
 
-  if (postEditBtn) {
+if (postEditBtn) {
     postEditBtn.addEventListener('click', async () => {
-      // load current content via API (safe)
-      const res = await fetch(`/forum/api/post/${postId}/data/`, { headers: {'X-CSRFToken': csrftoken} });
-      const data = await res.json();
-      if (data.success) {
-        postTitleInput.value = data.post.title;
-        postContentInput.value = data.post.content;
-        {% if user.is_staff %}
-        document.getElementById('postTypeInput').value = data.post.post_type;
-        {% endif %}
-        postEditArea.classList.remove('hidden');
-        postContentEl.classList.add('hidden');
-        postEditBtn.classList.add('hidden');
-      } else {
-        showAlert('Failed to load post data', 'error');
-      }
+        // load current content via API 
+        const res = await fetch(`/forum/api/post/${postId}/data/`, { headers: {'X-CSRFToken': csrftoken} });
+        const data = await res.json();
+        if (data.success) {
+            postTitleInput.value = data.post.title;
+            postContentInput.value = data.post.content;
+            {% if user.is_staff %}
+            document.getElementById('postTypeInput').value = data.post.post_type;
+            {% endif %}
+            postEditArea.classList.remove('hidden');
+            postContentEl.classList.add('hidden');
+            postEditBtn.classList.add('hidden');
+        } else {
+            showAlert('Failed to load post data', 'error');
+        }
     });
-  }
+}
 
-  // Cancel edit
-  document.getElementById('postCancelBtn')?.addEventListener('click', () => {
+// Cancel edit
+document.getElementById('postCancelBtn')?.addEventListener('click', () => {
     postEditArea.classList.add('hidden');
     postContentEl.classList.remove('hidden');
     postEditBtn?.classList.remove('hidden');
-  });
+});
 
-  // Save edited post (PUT)
-  document.getElementById('postSaveBtn')?.addEventListener('click', async () => {
+// Save edited post 
+document.getElementById('postSaveBtn')?.addEventListener('click', async () => {
     const formData = new FormData();
     formData.append('title', postTitleInput.value);
     formData.append('content', postContentInput.value);
@@ -362,48 +361,48 @@
 
     const newFiles = document.getElementById('newImages')?.files;
     if (newFiles && newFiles.length > 0) {
-    for (const f of newFiles) {
-        formData.append('images', f);
-    }
+        for (const f of newFiles) {
+            formData.append('images', f);
+        }
     }
 
     const captions = document.getElementById('imageCaptions')?.value.split(',').map(c => c.trim());
     if (newFiles && newFiles.length > 0) {
-    for (let i = 0; i < newFiles.length; i++) {
-        formData.append('images', newFiles[i]);
-        if (captions && captions[i]) {
-        formData.append(`caption_${i}`, captions[i]);
+        for (let i = 0; i < newFiles.length; i++) {
+            formData.append('images', newFiles[i]);
+            if (captions && captions[i]) {
+            formData.append(`caption_${i}`, captions[i]);
+            }
         }
-    }
     }
 
     const r = await fetch(`/forum/api/post/${postId}/update/`, {
-    method: 'POST', // use POST since we're now sending files
-    headers: { 'X-CSRFToken': csrftoken },
-    body: formData
+        method: 'POST', 
+        headers: { 'X-CSRFToken': csrftoken },
+        body: formData
     });
 
     const result = await r.json();
     if (result.success) {
-    showAlert('Post updated!', 'success');
+        showAlert('Post updated!', 'success');
 
-    // update DOM directly from form inputs
-    const newTitle = postTitleInput.value;
-    const newContent = postContentInput.value;
+        // update DOM directly from form inputs
+        const newTitle = postTitleInput.value;
+        const newContent = postContentInput.value;
 
-    document.querySelector('h1').textContent = newTitle;
-    postContentEl.innerHTML = newContent.replace(/\n/g, '<br>');
+        document.querySelector('h1').textContent = newTitle;
+        postContentEl.innerHTML = newContent.replace(/\n/g, '<br>');
 
-    postEditArea.classList.add('hidden');
-    postContentEl.classList.remove('hidden');
-    postEditBtn?.classList.remove('hidden');
+        postEditArea.classList.add('hidden');
+        postContentEl.classList.remove('hidden');
+        postEditBtn?.classList.remove('hidden');
     } else {
-    showAlert(result.error || 'Failed to update', 'error');
+        showAlert(result.error || 'Failed to update', 'error');
     }
-  });
+});
 
-  // Delete post
-  if (postDeleteBtn) {
+// Delete post
+if (postDeleteBtn) {
     postDeleteBtn.addEventListener('click', async () => {
       if (!confirm('Delete this post and all comments?')) return;
       const r = await fetch(`/forum/api/post/${postId}/delete/`, {
@@ -418,10 +417,10 @@
         showAlert(j.error || 'Could not delete', 'error');
       }
     });
-  }
+}
 
-  // Create comment (top-level)
-  document.getElementById('commentForm')?.addEventListener('submit', async (e) => {
+// Create comment 
+document.getElementById('commentForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const content = document.getElementById('commentContent').value.trim();
     if (!content) return;
@@ -437,47 +436,47 @@
     } else {
       showAlert(j.error || 'Failed to post comment', 'error');
     }
-  });
+});
 
-  // Edit / Delete comment helpers
-  function startEditComment(id) {
+// Edit / Delete comment helpers
+function startEditComment(id) {
     document.getElementById(`text-${id}`).style.display = 'none';
     document.getElementById(`edit-${id}`).style.display = 'block';
-  }
-  function cancelEdit(id) {
+}
+function cancelEdit(id) {
     document.getElementById(`edit-${id}`).style.display = 'none';
     document.getElementById(`text-${id}`).style.display = 'block';
-  }
+}
 
-  // Save edited comment (PUT)
-  async function saveComment(id) {
+// Save edited comment 
+async function saveComment(id) {
     const content = document.getElementById(`content-${id}`).value.trim();
     if (!content) return;
     const r = await fetch(`/forum/api/comment/${id}/update/`, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
-      body: JSON.stringify({content})
+        method: 'PUT',
+        headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
+        body: JSON.stringify({content})
     });
     const j = await r.json();
     if (j.success) {
-      showAlert('Comment updated!', 'success');
-      // update DOM
-      document.getElementById(`text-${id}`).innerHTML = content.replace(/\n/g,'<br>');
-      cancelEdit(id);
+        showAlert('Comment updated!', 'success');
+        // update DOM
+        document.getElementById(`text-${id}`).innerHTML = content.replace(/\n/g,'<br>');
+        cancelEdit(id);
     } else {
       showAlert(j.error || 'Failed to update comment', 'error');
     }
-  }
+}
 
-  // toggle reply form visibility
-  function toggleReplyForm(commentId) {
+// toggle reply form visibility
+function toggleReplyForm(commentId) {
     const form = document.getElementById(`replyForm-${commentId}`);
     if (!form) return;
     form.classList.toggle('hidden');
-  }
+}
 
- // submit a reply via AJAX (POST with parent_id)
-  async function submitReply(parentId) {
+// submit a reply via AJAX (POST with parent_id)
+async function submitReply(parentId) {
     const textarea = document.getElementById(`replyContent-${parentId}`);
     const statusEl = document.getElementById(`replyStatus-${parentId}`);
     if (!textarea) return;
@@ -504,12 +503,12 @@
         if (statusEl) statusEl.textContent = j.error || 'Failed to post reply';
       }
     } catch (err) {
-      if (statusEl) statusEl.textContent = 'Network error';
+        if (statusEl) statusEl.textContent = 'Network error';
     }
-  }
+}
 
-  // Delete comment
-  async function deleteComment(id) {
+// Delete comment
+async function deleteComment(id) {
     if (!confirm('Delete this comment?')) return;
     const r = await fetch(`/forum/api/comment/${id}/delete/`, {
       method: 'DELETE',
@@ -522,6 +521,6 @@
     } else {
       showAlert(j.error || 'Failed to delete', 'error');
     }
-  }
+}
 </script>
 {% endblock %}
