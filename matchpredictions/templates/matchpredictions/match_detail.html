@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (this.disabled) return;
       selectedPrediction = this.value;
       const teamName = this.textContent.trim();
-      confirmText.textContent = `Are you sure you want to vote for "${teamName}"? You won't be able to change your vote later.`;
+      confirmText.textContent = `Are you sure you want to vote for "${teamName}"?`;
       modal.classList.remove("hidden");
       confirmBtn.focus();
     });

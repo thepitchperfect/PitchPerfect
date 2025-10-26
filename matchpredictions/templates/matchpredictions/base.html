@@ -1,81 +1,29 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}PitchPerfect{% endblock %}</title>
 
-  <!-- 🌈 Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+{% block title %}Match Predictions | PitchPerfect{% endblock %}
 
-  <!-- 🧠 Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Tektur:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-
-  <!-- 🎨 Color Theme (matches group style) -->
-  <style>
-    :root {
-      --color-white: #ffffff;
-      --color-gray-100: #f9f9f9;
-      --color-gray-400: #bbbbbb;
-      --color-gray-600: #8e8e8e;
-      --color-gray-800: #606060;
-      --color-gray-1000: #2f2f2f;
-
-      --color-orange-100: #ffd7aa;
-      --color-orange-200: #ffb054;
-      --color-orange-300: #fe9800;
-      --color-orange-400: #c58900;
-
-      --font-header: 'Orbitron', sans-serif;
-      --font-subheader: 'Tektur', sans-serif;
-      --font-body: 'Lato', sans-serif;
-    }
-
-    body {
-      font-family: var(--font-body);
-      background-color: var(--color-gray-100);
-      color: var(--color-gray-1000);
-      transition: background-color 0.3s ease;
-    }
-
-    footer {
-      background-color: var(--color-gray-1000);
-      color: var(--color-gray-400);
-      font-family: var(--font-body);
-      letter-spacing: 0.2px;
-    }
-
-    {% block extra_css %}{% endblock %}
-  </style>
-
+{% block extra_head %}
   <link rel="stylesheet" href="{% static 'matchpredictions/css/main.css' %}">
-  {% block extra_head %}{% endblock %}
-</head>
+{% endblock %}
 
-<body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
+{% block extra_css %}
+  main {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    padding: 2rem;
+  }
+{% endblock %}
 
-  <!-- 🌟 GLOBAL NAVBAR (shared across the whole site) -->
-  {% include 'navbar.html' %}
-
-  <!-- 🧩 Main Content -->
-  <main class="flex-grow container mx-auto px-6 py-10 mt-10">
-    {% block content %}
+{% block content %}
+  <div class="container mx-auto px-6 py-10">
+    {% block matchpredictions_content %}
     {% endblock %}
-  </main>
+  </div>
 
-  <!-- ⚓ Footer -->
-  <footer class="text-center text-sm py-6">
-    &copy; {{ now.year }} PitchPerfect. Built with ⚙️ Django & ❤️ Team Spirit.
-  </footer>
-
-  <!-- 📜 Scripts -->
+  {# ✅ Force scripts to load even if global base doesn’t have block extra_scripts #}
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="{% static 'matchpredictions/js/main.js' %}"></script>
   {% block extra_scripts %}{% endblock %}
-</body>
-</html>
-
-
+{% endblock %}

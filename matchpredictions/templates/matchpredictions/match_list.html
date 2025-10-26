@@ -85,10 +85,10 @@
              <span class="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-400 opacity-0 hover:opacity-100 transition-opacity duration-300"></span>
           </a>
         {% else %}
-          <a href="{% url 'login' %}?next={{ request.path }}"
-             class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-             🔒 Login to Vote
-          </a>
+          <a href="{% url 'main:login' %}?next={{ request.path }}"
+   class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+   🔒 Login to Vote
+</a>
         {% endif %}
 
         {% if user.is_staff %}
