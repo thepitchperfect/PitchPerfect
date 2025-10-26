@@ -4,7 +4,7 @@
 {% block title %}Match Predictions | PitchPerfect{% endblock %}
 
 {% block matchpredictions_content %}
-  <!-- 🏟️ Match Predictions Header -->
+  <!--  Match Predictions Header -->
   <section class="text-center mb-10 mt-10">
     <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 font-[Orbitron]">
       Match Predictions
@@ -14,7 +14,7 @@
     </p>
   </section>
 
-  <!-- 🏆 League Buttons -->
+  <!--  League Buttons -->
   <section class="text-center mb-12">
     <div id="league-buttons" class="flex flex-wrap justify-center gap-4 mb-8">
       <!-- 🌍 All Leagues -->
@@ -56,7 +56,7 @@
       </button>
     </div>
 
-    <!-- 🔍 Search Bar -->
+    <!--  Search Bar -->
     <div class="flex justify-center">
       <input type="text" id="search-input"
              placeholder="Search your favorite club..."
@@ -64,7 +64,7 @@
     </div>
   </section>
 
-  <!-- 👨‍💼 Admin Add Button -->
+  <!--  Admin Add Button -->
   {% if user.is_staff %}
   <div class="flex justify-end mb-8">
     <a href="{% url 'matchpredictions:match_create' %}"
@@ -74,7 +74,7 @@
   </div>
   {% endif %}
 
-  <!-- ⚽ Match Filter Buttons -->
+  <!--  Match Filter Buttons -->
   <section class="text-center mb-6">
     <div class="inline-flex rounded-full bg-gray-100 p-1 shadow-inner">
       <button id="filter-all"
@@ -89,12 +89,12 @@
     </div>
   </section>
 
-  <!-- ⚽ Match Cards -->
+  <!--  Match Cards -->
   <div id="match-container" class="transition-opacity duration-200">
     {% include 'matchpredictions/match_list.html' %}
   </div>
 
-  <!-- 🌙 Login Modal -->
+  <!--  Login Modal -->
   <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-80 text-center relative animate-fadeIn">
       <h2 class="text-xl font-bold text-gray-800 mb-2 font-[Orbitron]">Login Required</h2>
@@ -130,7 +130,7 @@ $(function() {
   let currentLeagueId = '';
   let currentFilter = 'all';
 
-  // 🏆 League filter buttons
+  //  League filter buttons
   $(document).on('click', '.league-btn', function() {
     currentLeagueId = $(this).data('league');
     $('.league-btn').removeClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105')
@@ -140,7 +140,7 @@ $(function() {
     reloadMatches();
   });
 
-  // ⚙️ Match filter buttons
+  //  Match filter buttons
   $(document).on('click', '.filter-btn', function() {
     $('.filter-btn').removeClass('bg-gradient-to-r from-yellow-500 to-yellow-400 text-black scale-105 shadow-md')
                     .addClass('bg-white text-black hover:bg-yellow-100');
@@ -150,10 +150,10 @@ $(function() {
     reloadMatches();
   });
 
-  // 🔍 Search
+  //  Search
   $('#search-input').on('keyup', reloadMatches);
 
-  // ♻️ AJAX reload
+  //  AJAX reload
   function reloadMatches() {
     const query = $('#search-input').val();
     $('#match-container').addClass('fade-out');
@@ -169,7 +169,7 @@ $(function() {
     });
   }
 
-  // 🌙 Login modal
+  //  Login modal
   const modal = $('#login-modal');
   const closeModal = $('#close-modal');
 

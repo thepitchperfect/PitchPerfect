@@ -6,36 +6,36 @@ from .forms import MatchForm
 from django.db.models import Q
 from django.contrib import messages
 
-# 🏠 Home
+#  Home
 def home(request):
     return HttpResponse("<h1>Welcome to PitchPerfect</h1><p><a href='/predictions/'>Go to Match Predictions</a></p>")
 
 
-# 🟢 MAIN PAGE (List matches + filter by league)
+#  MAIN PAGE (List matches + filter by league)
 def main_view(request):
     leagues = League.objects.exclude(name="Primeira Liga").order_by('name')
     selected_league_id = request.GET.get('league')
     search_query = request.GET.get('search', '').strip()
-    filter_type = request.GET.get('filter', 'all')  # 🆕 "all" or "my"
+    filter_type = request.GET.get('filter', 'all')  #  "all" or "my"
 
     matches = Match.objects.all().order_by('match_date')
 
-    # 🏆 League filter
+    #  League filter
     if selected_league_id:
         matches = matches.filter(league__id=selected_league_id)
 
-    # 🔍 Search filter
+    #  Search filter
     if search_query:
         matches = matches.filter(
             Q(home_team__name__icontains=search_query) |
             Q(away_team__name__icontains=search_query)
         )
 
-    # 💭 My Predictions filter
+    #  My Predictions filter
     if filter_type == 'my' and request.user.is_authenticated:
-        matches = matches.filter(votes__user=request.user)  # ✅ FIXED HERE
+        matches = matches.filter(votes__user=request.user)  #  FIXED HERE
     elif filter_type == 'my' and not request.user.is_authenticated:
-        matches = Match.objects.none()  # ✅ avoids exposing all matches to guests
+        matches = Match.objects.none()  #  avoids exposing all matches to guests
 
     return render(request, 'matchpredictions/main.html', {
         'matches': matches.distinct(),
@@ -53,13 +53,13 @@ def match_detail(request, match_id):
     if request.user.is_authenticated:
         user_vote = Vote.objects.filter(user=request.user, match=match).first()
 
-    # 🧮 Precompute the counts
+    #  Precompute the counts
     total_votes = match.votes.count()
     home_votes = match.votes.filter(prediction="home_win").count()
     draw_votes = match.votes.filter(prediction="draw").count()
     away_votes = match.votes.filter(prediction="away_win").count()
 
-    # 🧠 Use existing percentage logic
+    #  Use existing percentage logic
     vote_summary = match.vote_summary
 
     return render(request, 'matchpredictions/match_detail.html', {
@@ -75,7 +75,7 @@ def match_detail(request, match_id):
 
 
 
-# 🗳️ USER VOTE
+#  USER VOTE
 @login_required
 def vote_match(request, match_id):
     match = get_object_or_404(Match, id=match_id)
@@ -95,7 +95,7 @@ def vote_match(request, match_id):
 
 
 
-# 🟡 CREATE MATCH (Admin only)
+#  CREATE MATCH (Admin only)
 @user_passes_test(lambda u: u.is_staff)
 def match_create(request):
     if request.method == 'POST':
@@ -108,7 +108,7 @@ def match_create(request):
     return render(request, 'matchpredictions/match_form.html', {'form': form})
 
 
-# 🟠 UPDATE MATCH (Admin only)
+#  UPDATE MATCH (Admin only)
 @user_passes_test(lambda u: u.is_staff)
 def match_update(request, match_id):
     match = get_object_or_404(Match, id=match_id)
@@ -122,7 +122,7 @@ def match_update(request, match_id):
     return render(request, 'matchpredictions/match_form.html', {'form': form, 'match': match})
 
 
-# 🔴 DELETE MATCH (Admin only)
+#  DELETE MATCH (Admin only)
 @user_passes_test(lambda u: u.is_staff)
 def match_delete(request, match_id):
     match = get_object_or_404(Match, id=match_id)
@@ -132,7 +132,7 @@ def match_delete(request, match_id):
     return render(request, 'matchpredictions/match_confirm_delete.html', {'match': match})
 
 
-# ⚙️ AJAX ENDPOINT – for loading clubs dynamically when league is selected
+#  AJAX ENDPOINT – for loading clubs dynamically when league is selected
 def load_clubs(request):
     league_id = request.GET.get('league_id')
     clubs = Club.objects.filter(league_id=league_id).order_by('name')
