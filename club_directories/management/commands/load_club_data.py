@@ -7,7 +7,7 @@ LEAGUES_DATA = {
     "La Liga": {"region": "Spain", "logo_path": "images/leagues/la_liga.png"},
     "Bundesliga": {"region": "Germany", "logo_path": "images/leagues/bundesliga.png"},
     "Serie A": {"region": "Italy", "logo_path": "images/leagues/serieabc.png"},
-    "Ligue 1 McDonald's": {"region": "France", "logo_path": "images/league  s/ligue_1.png"},
+    "Ligue 1 McDonald's": {"region": "France", "logo_path": "images/leagues/ligue_1.png"},
     "Primeira Liga": {"region": "Portugal", "logo_path": "images/leagues/primeira_liga.png"},
 }
 
