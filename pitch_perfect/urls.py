@@ -26,6 +26,7 @@ urlpatterns = [
     path('statistics/', include('statisticsrafi.urls')),
     path('directory/', include('club_directories.urls')),
     path('predictions/', include('matchpredictions.urls')),
+    path('auth/', include('authentication.urls')),
     path('accounts/', include('django.contrib.auth.urls')),  # ✅ This line fixes the login issue
 ]
 
