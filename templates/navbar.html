@@ -12,11 +12,11 @@
 
         <div class="hidden md:flex items-center space-x-5">
             <a href="{% url 'club_directories:show_club_directory' %}"
-                class="font-tektur text-sm lg:text-xl not-italic font-normal text-black"> Club Directory </a>
-            <a href="{% url 'forum:forum_home' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal text-black"> Forum </a>
-            <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal text-black">
+                class="font-tektur text-sm lg:text-xl not-italic font-bold text-black"> Club Directory </a>
+            <a href="{% url 'forum:forum_home' %}" class="font-tektur text-sm lg:text-xl not-italic font-bold text-black"> Forum </a>
+            <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-sm lg:text-xl not-italic font-bold text-black">
                 Match Prediction </a>
-            <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-sm lg:text-xl not-italic font-normal text-black">
+            <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-sm lg:text-xl not-italic font-bold text-black">
                 Club Statistic </a>
         </div>
 
@@ -27,7 +27,7 @@
                     <button id="user-menu-button" type="button" class="flex text-right focus:outline-none items-center"
                         aria-expanded="false" aria-haspopup="true">
                         <span class="sr-only">Open user menu</span>
-                        <div class="font-tektur text-sm lg:text-xl not-italic font-normal text-right">
+                        <div class="font-tektur text-sm lg:text-xl not-italic font-bold text-right">
                             {{ user.username|default:"Username" }}
                         </div>
                         <svg class="ml-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -90,21 +90,21 @@
 
         <div class="flex flex-col space-y-2">
             <a href="{% url 'club_directories:show_club_directory' %}"
-                class="font-tektur text-base not-italic font-normal text-black"> Club Directory </a>
-            <a href="{% url 'forum:forum_home' %}" class="font-tektur text-base not-italic font-normal text-black"> Forum </a>
-            <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-base not-italic font-normal text-black"> Match
+                class="font-tektur text-base not-italic font-bold text-black"> Club Directory </a>
+            <a href="{% url 'forum:forum_home' %}" class="font-tektur text-base not-italic font-bold text-black"> Forum </a>
+            <a href="{% url 'matchpredictions:main' %}" class="font-tektur text-base not-italic font-bold text-black"> Match
                 Prediction </a>
-            <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-base not-italic font-normal text-black"> Club
+            <a href="{% url 'statisticsrafi:home' %}" class="font-tektur text-base not-italic font-bold text-black"> Club
                 Statistic </a>
         </div>
 
 
         <div class="flex flex-col mt-auto pt-6 border-t border-gray-200">
             {% if user.is_authenticated %}
-            <div class="font-tektur text-base not-italic font-normal mb-4">
+            <div class="font-tektur text-base not-italic font-bold mb-4">
                 {{ user.username|default:"Username" }}
             </div>
-            <a href="{% url 'main:profile' %}" class="font-tektur text-base not-italic font-normal mb-2"> Your Profile
+            <a href="{% url 'main:profile' %}" class="font-tektur text-base not-italic font-bold mb-2"> Your Profile
             </a>
             <a href="{% url 'main:logout' %}"
                 class="flex w-fit py-[2px] px-3 justify-center items-center rounded-full bg-red-600 text-white text-center font-lato text-xs not-italic font-extrabold mt-2 logout-button">
@@ -115,7 +115,7 @@
                 class="flex w-fit py-[3px] px-4 justify-center items-center rounded-full bg-[#FE8800] text-white text-center font-lato text-base not-italic font-extrabold">
                 Log In
             </a>
-            <a href="{% url 'main:register' %}" class="font-tektur text-base not-italic font-normal mt-3"> Register </a>
+            <a href="{% url 'main:register' %}" class="font-tektur text-base not-italic font-bold mt-3"> Register </a>
             {% endif %}
         </div>
     </div>
