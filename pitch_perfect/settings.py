@@ -35,7 +35,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id"]
 
-CSRF_TRUSTED_ORIGINS = ["https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id"]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1", "https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id"]
 
 # Application definition
 
@@ -46,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'main',
     'statisticsrafi',
     'club_directories',
@@ -54,6 +62,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

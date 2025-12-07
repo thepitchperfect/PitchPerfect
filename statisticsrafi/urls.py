@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import json_views
 
 app_name = 'statisticsrafi'
 
@@ -34,4 +35,12 @@ urlpatterns = [
     
     # Style Guide
     path('style-guide/', views.style_guide, name='style_guide'),
+
+    # JSON API Endpoints
+    path('json/general/', json_views.get_general_stats_json, name='json_general'),
+    path('json/list/<str:category>/', json_views.get_specific_stat_json, name='json_specific_list'),
+    path('json/team/<uuid:club_id>/', json_views.get_team_detail_json, name='json_team_detail'),
+    path('json/vote/', json_views.vote_club_json, name='json_vote'),
+    path('json/vote-results/', json_views.get_vote_results_json, name='json_vote_results'),
+    path('json/all-clubs/', json_views.get_all_clubs_json, name='json_all_clubs'),
 ]
