@@ -35,14 +35,19 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id"]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id",
+]
 CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1", "https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000", "https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id"]
 
 # Application definition
 

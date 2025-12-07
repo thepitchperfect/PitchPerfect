@@ -25,7 +25,8 @@ class Award(models.Model):
     description = models.TextField(blank=True)
     
     def __str__(self):
-        return f"{self.club.name} - {self.title} ({self.season})"
+        club_name = self.club.name if self.club else "No Club"
+        return f"{club_name} - {self.title} ({self.season})"
     
     class Meta:
         ordering = ['-date_awarded']
@@ -48,7 +49,7 @@ class Vote(models.Model):
     voted_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        target = self.club.name
+        target = self.club.name if self.club else "No Club"
         return f"{self.user.username} voted {target} for {self.category}"
     
     class Meta:

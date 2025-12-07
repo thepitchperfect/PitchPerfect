@@ -93,14 +93,22 @@ def vote_results(request, category, season):
     """Display voting results"""
     votes = Vote.objects.filter(category=category, season=season)
     
-    results = votes.values('club__name', 'club__logo_url').annotate(
+    results = votes.values('club__name', 'club__league__name', 'club__logo_url').annotate(
         vote_count=Count('id')
     ).order_by('-vote_count')
+    
+    total_votes = votes.count()
+    
+    user_vote = None
+    if request.user.is_authenticated:
+        user_vote = votes.filter(user=request.user).first()
     
     context = {
         'category': category,
         'season': season,
         'results': results,
+        'total_votes': total_votes,
+        'user_vote': user_vote,
     }
     return render(request, 'statisticsrafi/vote_results.html', context)
 
