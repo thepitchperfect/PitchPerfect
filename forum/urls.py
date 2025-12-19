@@ -15,4 +15,8 @@ urlpatterns = [
     path('api/post/<int:post_pk>/comment/create/', views.create_comment, name='create_comment'),
     path('api/comment/<int:pk>/update/', views.update_comment, name='update_comment'),
     path('api/comment/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
+    path('json/', views.show_json, name='show_json'),
+    path('proxy-image/', views.proxy_image, name='proxy_image'),
+    path('api/post/<int:post_pk>/comment/create/flutter', views.create_comment_flutter, name='create_comment_flutter'),
+    path('api/post/create/flutter', views.create_post_flutter, name='create_post_flutter'),
 ]

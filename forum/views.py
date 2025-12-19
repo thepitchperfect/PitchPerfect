@@ -1,14 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.views.decorators.http import require_http_methods, require_GET
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.html import strip_tags
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Post, PostImage, Comment
 from .forms import PostForm
 from club_directories.models import Club, League, LeaguePick
-import traceback
-import json
+from main.models import CustomUser
+import requests, base64, json, traceback
+from urllib.parse import unquote
 
 
 def forum_home(request):
@@ -144,6 +147,107 @@ def get_post_data(request, pk):
     except Exception as e:
         print("Error in get_post_data:", traceback.format_exc()) # Keep for debugging
         return JsonResponse({'success': False, 'error': 'An internal server error occurred.'}, status=500)
+
+def show_json(request):
+    posts = Post.objects.all()
+
+    data = []
+    
+    for post in posts:
+        data.append({
+            "id": post.id,
+            "title": post.title,
+            "content": post.content,
+            "post_type": post.post_type,
+            "author": post.author.username,    
+            "created_at": post.created_at.isoformat(),
+            "updated_at": post.updated_at.isoformat(),
+            
+            "clubs": list(
+                post.clubs.values(
+                    "id",
+                    "name",
+                    "logo_url",
+                )
+            )[:3],
+
+            # Nested related images
+            "images": [
+                {
+                    "url": img.image_url,
+                    "caption": img.caption,
+                    "order": img.order,
+                }
+                for img in post.images.all()
+            ],
+
+            # Nested comments
+            "comments": [
+                {
+                    "author": c.author.username,
+                    "content": c.content,
+                    "created_at": c.created_at.isoformat()
+                }
+                for c in post.comments.all()
+            ]
+        })
+
+    return JsonResponse(data, safe=False)
+
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    # double encoding
+    decoded = image_url
+    while True:
+        new = unquote(decoded)
+        if new == decoded:
+            break
+        decoded = new
+
+    image_url = decoded
+
+    # CASE 1: base64 data URI => data:image/png;base64,....
+    if image_url.startswith("data:"):
+        try:
+            header, encoded = image_url.split(",", 1)
+
+            # header example: "data:image/png;base64"
+            try:
+                mime = header.split(";")[0].split(":")[1]   # extracts image/png
+            except Exception:
+                mime = "image/png"   # fallback
+
+            img_bytes = base64.b64decode(encoded)
+
+            return HttpResponse(
+                img_bytes,
+                content_type=mime
+            )
+        except Exception:
+            return HttpResponse("Invalid base64 image", status=400)
+
+    # CASE 2: URL fetch
+    try:
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/123.0 Safari/537.36"
+            )
+        }
+
+        response = requests.get(image_url, headers=headers, timeout=10)
+        response.raise_for_status()
+
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get("Content-Type", "image/png")
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f"Error fetching image!: {str(e)}", status=500)
 
 @login_required
 def create_post(request):
@@ -283,3 +387,100 @@ def delete_comment(request, pk):
     
     comment.delete()
     return JsonResponse({'success': True})
+
+@csrf_exempt
+def create_comment_flutter(request, post_pk):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            # required fields
+            content = strip_tags(data.get("content", ""))
+            user_id = data.get("user_id")
+
+            if not content:
+                return JsonResponse({"status": "error", "message": "Content required"}, status=400)
+
+            if not user_id:
+                return JsonResponse({"status": "error", "message": "User ID required"}, status=400)
+
+            # fetch objects
+            post = get_object_or_404(Post, pk=post_pk)
+            user = get_object_or_404(CustomUser, pk=user_id)
+
+            # create comment
+            comment = Comment.objects.create(
+                post=post,
+                author=user,
+                content=content
+            )
+
+            return JsonResponse({"status": "success"}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+    return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+
+@csrf_exempt
+def create_post_flutter(request):
+
+    if request.method != 'POST':
+        return JsonResponse({"success": False, "error": "POST required"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        title = strip_tags(data.get("title", ""))
+        content = strip_tags(data.get("content", ""))
+        post_type = data.get("post_type", "post")     
+        user_id = data.get("user_id")
+
+        if not user_id:
+            return JsonResponse({"success": False, "error": "user_id required"}, status=400)
+    
+        author = get_object_or_404(CustomUser, pk=user_id)
+
+        # Staff check for news posts
+        if post_type == "news" and not author.is_staff:
+            return JsonResponse({"success": False, "error": "Only staff can create official news."}, status=403)
+
+        # clubs 
+        club_ids = data.get("clubs", [])
+        if len(club_ids) > 3:
+            return JsonResponse({"success": False, "error": "Max 3 clubs allowed"}, status=400)
+
+        # images + captions 
+        image_urls = data.get("image_urls", [])
+        image_captions = data.get("image_captions", [])
+
+        post = Post.objects.create(
+            title=title,
+            content=content,
+            post_type=post_type,
+            author=author
+        )
+
+        # attach clubs
+        if club_ids:
+            post.clubs.set(club_ids)
+
+        # attach images
+        for idx, url in enumerate(image_urls):
+            if not url:
+                continue
+            caption = (
+                image_captions[idx] if idx < len(image_captions) else ""
+            )
+            PostImage.objects.create(
+                post=post,
+                image_url=url,
+                caption=caption
+            )
+
+        return JsonResponse({
+            "success": True,
+            "post_id": post.id
+        })
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
