@@ -7,5 +7,5 @@ urlpatterns = [
     path('', show_club_directory, name='show_club_directory'),
     path('club/<uuid:club_id>/', get_club_details, name='get_club_details'),
     path('set-league-pick/', set_league_pick, name='set_league_pick'),
-    path('api/', show_json_directory, name='show_json_directory'),
+    path('json/', show_json_directory, name='show_json_directory'),
 ]
