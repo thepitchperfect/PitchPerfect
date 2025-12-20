@@ -40,46 +40,6 @@
     </div>
 </div>
 
-<!-- Season Statistics -->
-<div class="card">
-    <div class="card-header">📊 Season Statistics</div>
-    
-    {% if stats %}
-    <table>
-        <thead>
-            <tr>
-                <th>Season</th>
-                <th>Apps</th>
-                <th>Goals</th>
-                <th>Assists</th>
-                <th>Clean Sheets</th>
-                <th>Yellow Cards</th>
-                <th>Red Cards</th>
-                <th>Avg Rating</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for stat in stats %}
-            <tr>
-                <td><strong>{{ stat.season }}</strong></td>
-                <td>{{ stat.appearances }}</td>
-                <td><strong style="color: var(--color-orange-300);">{{ stat.goals }}</strong></td>
-                <td><strong style="color: var(--color-orange-300);">{{ stat.assists }}</strong></td>
-                <td>{{ stat.clean_sheets }}</td>
-                <td>{{ stat.yellow_cards }}</td>
-                <td>{{ stat.red_cards }}</td>
-                <td>{{ stat.average_rating|default:"-" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p style="text-align: center; color: var(--color-gray-600); padding: 2rem;">
-        No statistics available for this player yet.
-    </p>
-    {% endif %}
-</div>
-
 <!-- Awards -->
 <div class="card">
     <div class="card-header">🏆 Awards & Achievements</div>

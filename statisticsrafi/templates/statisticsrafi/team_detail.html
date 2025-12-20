@@ -291,11 +291,6 @@
                 Official Website 🔗
             </a>
             {% endif %}
-            {% if player_stats.0 %}
-            <a href="{% url 'statisticsrafi:player_detail' player_stats.0.player.id %}" class="sidebar-button">
-                View Top Player
-            </a>
-            {% endif %}
             <a href="{% url 'statisticsrafi:club_rankings' %}" class="sidebar-button">
                 Club Rankings
             </a>

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import json_views
 
 app_name = 'statisticsrafi'
 
@@ -17,17 +18,8 @@ urlpatterns = [
     path('most-awards/', views.most_awards, name='most_awards'),
     path('club-rankings/', views.club_rankings, name='club_rankings'),
     
-    # Player Details
-    path('player/<int:player_id>/', views.player_detail, name='player_detail'),
-    
     # Team Details
     path('team/<uuid:club_id>/', views.team_detail, name='team_detail'),
-    
-    # Watchlist (CRUD)
-    path('watchlist/', views.my_watchlist, name='my_watchlist'),
-    path('watchlist/add/<int:player_id>/', views.add_to_watchlist, name='add_to_watchlist'),
-    path('watchlist/remove/<int:watchlist_id>/', views.remove_from_watchlist, name='remove_from_watchlist'),
-    path('watchlist/update/<int:watchlist_id>/', views.update_watchlist_notes, name='update_watchlist_notes'),
     
     # Voting
     path('vote/<str:category>/<str:season>/', views.vote, name='vote'),
@@ -43,4 +35,12 @@ urlpatterns = [
     
     # Style Guide
     path('style-guide/', views.style_guide, name='style_guide'),
+
+    # JSON API Endpoints
+    path('json/general/', json_views.get_general_stats_json, name='json_general'),
+    path('json/list/<str:category>/', json_views.get_specific_stat_json, name='json_specific_list'),
+    path('json/team/<uuid:club_id>/', json_views.get_team_detail_json, name='json_team_detail'),
+    path('json/vote/', json_views.vote_club_json, name='json_vote'),
+    path('json/vote-results/', json_views.get_vote_results_json, name='json_vote_results'),
+    path('json/all-clubs/', json_views.get_all_clubs_json, name='json_all_clubs'),
 ]
