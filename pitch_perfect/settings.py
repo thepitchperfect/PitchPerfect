@@ -37,8 +37,9 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "arisa-raezzura-pitchperfect.pbp.cs.u
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://10.0.2.2",
     "https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id",
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -65,7 +66,6 @@ INSTALLED_APPS = [
     'matchpredictions',
     'forum',
     'authentication',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +78,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'pitch_perfect.urls'

@@ -272,3 +272,15 @@ def voting_results(request):
     }
     
     return render(request, 'statisticsrafi/vote_results.html', context)
+
+@login_required
+def my_watchlist(request):
+    """Display user's voting history"""
+    votes = Vote.objects.filter(user=request.user).order_by('-voted_at')
+    club_votes = ClubVote.objects.filter(user=request.user).order_by('-created_at')
+    
+    context = {
+        'votes': votes,
+        'club_votes': club_votes,
+    }
+    return render(request, 'statisticsrafi/watchlist.html', context)

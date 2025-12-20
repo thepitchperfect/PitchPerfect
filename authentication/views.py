@@ -3,9 +3,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from main.models import CustomUser
 import json
-
-User = get_user_model()
 
 @csrf_exempt
 def login(request):
@@ -49,6 +48,8 @@ def register(request):
         username = data['username']
         password1 = data['password1']
         password2 = data['password2']
+        email = data['email']
+        full_name = data['full_name']
 
         if password1 != password2:
             return JsonResponse({
@@ -56,13 +57,13 @@ def register(request):
                 "message": "Passwords do not match."
             }, status=400)
         
-        if User.objects.filter(username=username).exists():
+        if CustomUser.objects.filter(username=username).exists():
             return JsonResponse({
                 "status": False,
                 "message": "Username already exists."
             }, status=400)
         
-        user = User.objects.create_user(username=username, password=password1)
+        user = CustomUser.objects.create_user(username=username, password=password1, email=email, full_name=full_name)
         user.save()
         
         return JsonResponse({

@@ -24,6 +24,7 @@ urlpatterns = [
     # Voting
     path('vote/<str:category>/<str:season>/', views.vote, name='vote'),
     path('vote-results/<str:category>/<str:season>/', views.vote_results, name='vote_results'),
+    path('my-watchlist/', views.my_watchlist, name='my_watchlist'),
     
     # Club of the Season Voting
     path('vote-club/<uuid:club_id>/', views.vote_for_club, name='vote_for_club'),
