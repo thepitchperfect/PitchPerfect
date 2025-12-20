@@ -52,6 +52,8 @@ def login_user(request):
             user = form.get_user()
             login(request, user)
             
+            profpict_url = user.profpict.url if user.profpict else ''
+
             response = JsonResponse({
                 'status': 'success', 
                 'message': 'Login successful!',
@@ -59,7 +61,7 @@ def login_user(request):
                     'username': user.username,
                     'full_name': user.full_name,
                     'role': user.role,
-                    'profpict': user.profpict
+                    'profpict': profpict_url 
                 },
                 'redirect_url': reverse('main:show_main')
             })
@@ -123,10 +125,13 @@ def profile(request):
 @login_required
 @require_POST
 def profile_edit(request):
-    form = CustomUserChangeForm(request.POST, instance=request.user)
+    form = CustomUserChangeForm(request.POST, request.FILES, instance=request.user)
     
     if form.is_valid():
         user = form.save()
+        
+        profpict_url = user.profpict.url if user.profpict else ''
+
         return JsonResponse({
             'status': 'success',
             'message': 'Profile updated successfully!',
@@ -134,7 +139,7 @@ def profile_edit(request):
                 'username': user.username,
                 'full_name': user.full_name,
                 'email': user.email,
-                'profpict': user.profpict,
+                'profpict': profpict_url,
             }
         }, status=200)
     else:
@@ -144,3 +149,17 @@ def profile_edit(request):
             'errors': errors
         }, status=400)
 
+def show_json(request):
+    product_list = LeaguePick.objects.all()
+    data = [
+        {
+            'id': str(product.id),
+            'league': product.league.name,
+            'club': product.club.name,
+            'user': product.user.full_name,
+            'username': product.user.username
+        }
+        for product in product_list
+    ]
+
+    return JsonResponse(data, safe=False)

@@ -23,7 +23,7 @@
             <!-- Main Profile Info -->
             <div class="flex flex-col items-center pt-4 pb-6 md:items-center text-center md:pt-8">
                 <img id="profile-pic-display"
-                    src="{% if user.profpict %}{{ user.profpict }}{% else %}{% static 'images/empty_profile_picture.jpg' %}{% endif %}"
+                    src="{% if user.profpict %}{{ user.profpict.url }}{% else %}{% static 'images/empty_profile_picture.jpg' %}{% endif %}"
                     alt="Profile Picture"
                     class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-[#FE8800] shadow-xl mb-4" />
                 <h1 id="full-name-display" class="text-xl md:text-2xl font-orbitron font-bold text-gray-900">{{ user.full_name }}</h1>
@@ -198,15 +198,14 @@
         <div class="px-6 py-4">
             <div id="message-container" class="mb-4 hidden"></div>
 
-            <form id="profileEditForm" class="space-y-4 md:space-y-6" method="POST">
+            <form id="profileEditForm" class="space-y-4 md:space-y-6" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div>
                     <label for="profpict" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
-                        Profile Picture URL
+                        Profile Picture
                     </label>
-                    <input id="profpict" name="profpict" type="url"
-                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]"
-                        placeholder="https://example.com/image.png" value="{{ edit_form.profpict.value|default:'' }}">
+                    <input id="profpict" name="profpict" type="file" accept="image/*"
+                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white border border-gray-300 shadow-sm">
                     <div id="error-profpict" class="text-red-600 text-sm mt-1"></div>
                 </div>
 
@@ -311,7 +310,6 @@
         messageContainer.classList.add('hidden');
         document.querySelectorAll('[id^="error-"]').forEach(el => el.innerHTML = '');
 
-        form.elements.profpict.value = "{{ edit_form.profpict.value|default:'' }}";
         form.elements.username.value = "{{ edit_form.username.value|default:'' }}";
         form.elements.full_name.value = "{{ edit_form.full_name.value|default:'' }}";
         form.elements.email.value = "{{ edit_form.email.value|default:'' }}";
@@ -361,7 +359,7 @@
                     if (user.profpict) {
                         document.getElementById('profile-pic-display').src = user.profpict;
                     } else {
-                        document.getElementById('profile-pic-display').src = 'https://placehold.co/150x150/EFEFEF/AAAAAA?text=No+Image';
+                        document.getElementById('profile-pic-display').src = "{% static 'images/empty_profile_picture.jpg' %}";
                     }
 
                     setTimeout(() => {

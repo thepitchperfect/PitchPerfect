@@ -1,5 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm
-from django.forms import ModelForm, CharField, TextInput, URLInput
+from django.forms import ModelForm, CharField, TextInput
 from django.utils.html import strip_tags
 from .models import CustomUser
 
