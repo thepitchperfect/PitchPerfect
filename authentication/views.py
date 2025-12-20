@@ -1,36 +1,47 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 import json
 
-# Create your views here.
+User = get_user_model()
+
 @csrf_exempt
 def login(request):
-    username = request.POST['username']
-    password = request.POST['password']
-    user = authenticate(username=username, password=password)
-    if user is not None:
-        if user.is_active:
-            auth_login(request, user)
-            # Login status successful.
-            return JsonResponse({
-                "username": user.username,
-                "status": True,
-                "message": "Login successful!"
-            }, status=200)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data['username']
+            password = data['password']
+        except:
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            if user.is_active:
+                auth_login(request, user)
+                return JsonResponse({
+                    "status": True,
+                    "message": "Login successful!",
+                    "username": user.username,
+                }, status=200)
+            else:
+                return JsonResponse({
+                    "status": False,
+                    "message": "Login failed, account is disabled."
+                }, status=401)
         else:
             return JsonResponse({
                 "status": False,
-                "message": "Login failed, account is disabled."
+                "message": "Login failed, please check your username or password."
             }, status=401)
+            
+    return JsonResponse({'status': False, 'message': 'Method not allowed'}, status=405)
 
-    else:
-        return JsonResponse({
-            "status": False,
-            "message": "Login failed, please check your username or password."
-        }, status=401)
-    
+
 @csrf_exempt
 def register(request):
     if request.method == 'POST':
@@ -81,3 +92,64 @@ def logout(request):
             "status": False,
             "message": "Logout failed."
         }, status=401)
+
+@login_required
+def profile_json(request):
+    user = request.user
+    
+    profpict_url = ''
+    if hasattr(user, 'profpict') and user.profpict:
+        profpict_url = user.profpict.url
+
+    full_name = getattr(user, 'full_name', user.username)
+    role = getattr(user, 'role', 'user')
+
+    data = {
+        'id': user.id,
+        'username': user.username,
+        'full_name': full_name,
+        'email': user.email,
+        'profpict': profpict_url,
+        'role': role,
+        'is_active': user.is_active,
+        'is_staff': user.is_staff,
+    }
+    
+    return JsonResponse([data], safe=False)
+
+@login_required
+@csrf_exempt
+def profile_edit(request):
+    if request.method == 'POST':
+        user = request.user
+        
+        # Capture the data from request.POST (not json.loads)
+        # We use .get() with the current value as fallback so we don't wipe data if it's missing
+        new_name = request.POST.get('full_name', user.full_name)
+        new_email = request.POST.get('email', user.email)
+        
+        # Update fields
+        user.full_name = new_name
+        user.email = new_email
+        
+        # Handle Image Upload (request.FILES)
+        if 'profpict' in request.FILES:
+            user.profpict = request.FILES['profpict']
+            
+        user.save()
+
+        # Build the response
+        profpict_url = user.profpict.url if user.profpict else ''
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Profile updated successfully!',
+            'user': {
+                'username': user.username,
+                'full_name': user.full_name,
+                'email': user.email,
+                'profpict': profpict_url,
+            }
+        }, status=200)
+
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

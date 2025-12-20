@@ -7,13 +7,14 @@ from django.urls import reverse, resolve
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from .models import CustomUser, CustomUserManager
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from . import views # Import views for URL resolution
+from . import views
 
-# Import dependent models for profile view testing (using try-except as in views)
 try:
-    from club_directories.models import League, Club, LeaguePick as FavoriteClub # Use LeaguePick as FavoriteClub based on previous context
+    from club_directories.models import League, Club, LeaguePick as FavoriteClub
 except ImportError:
     League, Club, FavoriteClub = None, None, None
 
@@ -23,12 +24,10 @@ except ImportError:
     Post = None
 
 try:
-    # Assuming matchpredictions has Match and Vote models
     from matchpredictions.models import Match, Vote
 except ImportError:
     Match, Vote = None, None
 
-# Helper function from previous tests
 def create_user(username, password='password123', is_staff=False, email_suffix='@example.com', full_name_prefix='Test ', role='user'):
     is_staff_flag = is_staff or (role == 'admin')
 
@@ -176,8 +175,13 @@ class MainAppTests(TestCase):
         self.assertEqual(form.cleaned_data['full_name'], 'FN Clean')
 
     def test_custom_user_change_form_valid(self):
-        form_data = {'full_name': 'Updated Name', 'email': 'updated@e.com', 'profpict': 'http://new.pic'}
-        form = CustomUserChangeForm(data=form_data, instance=self.user)
+        image_content = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+        uploaded_image = SimpleUploadedFile('test.gif', image_content, content_type='image/gif')
+        
+        form_data = {'full_name': 'Updated Name', 'email': 'updated@e.com'}
+        file_data = {'profpict': uploaded_image}
+        
+        form = CustomUserChangeForm(data=form_data, files=file_data, instance=self.user)
         if not form.is_valid(): print(form.errors.as_json())
         self.assertTrue(form.is_valid())
 
@@ -299,11 +303,11 @@ class MainAppTests(TestCase):
         self.assertTemplateUsed(response, 'profile.html')
         self.assertEqual(response.context['profile_user'], self.user)
         self.assertIsInstance(response.context['edit_form'], CustomUserChangeForm)
-        self.assertIn('favorite_clubs', response.context)
+        self.assertIn('league_pick', response.context)
         self.assertIn('user_posts', response.context)
         self.assertIn('user_predictions', response.context)
         if FavoriteClub and self.fav_club:
-            self.assertEqual(len(response.context['favorite_clubs']), 1)
+            self.assertEqual(len(response.context['league_pick']), 1)
         if Post and self.post:
             self.assertEqual(len(response.context['user_posts']), 1)
         if Vote and self.vote:
@@ -317,8 +321,12 @@ class MainAppTests(TestCase):
 
     def test_profile_edit_post_success(self):
         self.client.login(username='main_user', password='password123')
-        original_full_name = self.user.full_name
-        form_data = {'full_name': 'Updated Profile Name', 'email': 'new_profile@e.com', 'profpict': ''}
+        
+        image_content = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+        uploaded_image = SimpleUploadedFile('new_pic.gif', image_content, content_type='image/gif')
+
+        form_data = {'full_name': 'Updated Profile Name', 'email': 'new_profile@e.com', 'profpict': uploaded_image}
+        
         response = self.client.post(reverse('main:profile_edit'), form_data)
         self.assertEqual(response.status_code, 200)
         data = response.json()

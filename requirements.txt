@@ -8,3 +8,4 @@ python-dotenv
 openpyxl
 coverage
 django-cors-headers
+Pillow
