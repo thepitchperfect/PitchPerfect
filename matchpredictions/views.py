@@ -180,5 +180,54 @@ def delete_vote(request, match_id):
         "match": match,
     })
 
+#  JSON ENDPOINT (for Flutter / quicktype)
+def show_json_matches(request):
+    selected_league_id = request.GET.get('league')
+    search_query = request.GET.get('search', '').strip()
+    filter_type = request.GET.get('filter', 'all')
+
+    matches = Match.objects.select_related(
+        "league", "home_team", "away_team"
+    )
+
+    if selected_league_id:
+        matches = matches.filter(league__id=selected_league_id)
+
+    if search_query:
+        matches = matches.filter(
+            Q(home_team__name__icontains=search_query) |
+            Q(away_team__name__icontains=search_query)
+        )
+
+    if filter_type == 'my' and request.user.is_authenticated:
+        matches = matches.filter(votes__user=request.user).distinct()
+    elif filter_type == 'my':
+        matches = Match.objects.none()
+
+    data = []
+    for match in matches:
+        data.append({
+            "id": str(match.id),
+            "league": {
+                "id": match.league.id if match.league else None,
+                "name": match.league.name if match.league else None,
+            },
+            "home_team": {
+                "id": match.home_team.id,
+                "name": match.home_team.name,
+            },
+            "away_team": {
+                "id": match.away_team.id,
+                "name": match.away_team.name,
+            },
+            "match_date": match.match_date.isoformat(),
+            "status": match.status,
+            "total_votes": match.total_votes,
+            "vote_summary": match.vote_summary,
+        })
+
+    return JsonResponse(data, safe=False)
+
+
 
 

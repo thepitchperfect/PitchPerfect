@@ -24,6 +24,9 @@ urlpatterns = [
 
     path('<uuid:match_id>/edit_vote/', views.edit_vote, name='edit_vote'),
     path('<uuid:match_id>/delete_vote/', views.delete_vote, name='delete_vote'),
+    
+    path('json/', views.show_json_matches, name='show_json_matches'),
+
 
 ]
 
