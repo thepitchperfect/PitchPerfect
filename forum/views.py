@@ -28,7 +28,10 @@ def forum_home(request):
     
     # Get filter parameters
     club_ids = request.GET.getlist('clubs')  # Multiple clubs
+    club_ids = [cid for cid in club_ids if cid.strip()]
+
     league_id = request.GET.get('league')
+    league_id = league_id if league_id else None  
     search = request.GET.get('search')
     
     # Apply filters to all posts
@@ -56,7 +59,7 @@ def forum_home(request):
     discussion_posts = filtered_posts.filter(post_type='discussion')
     
     # Pagination for discussions only
-    paginator = Paginator(discussion_posts, 15)
+    paginator = Paginator(discussion_posts, 200)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -376,7 +379,7 @@ def update_comment(request, pk):
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 
-@login_required
+# @login_required
 @require_http_methods(["DELETE"])
 def delete_comment(request, pk):
     """Delete a comment (AJAX) - author or admin only"""
@@ -389,6 +392,7 @@ def delete_comment(request, pk):
     return JsonResponse({'success': True})
 
 @csrf_exempt
+# @login_required 
 def create_comment_flutter(request, post_pk):
     if request.method == 'POST':
         try:
@@ -396,26 +400,37 @@ def create_comment_flutter(request, post_pk):
 
             # required fields
             content = strip_tags(data.get("content", ""))
-            user_id = data.get("user_id")
+            # author = request.user
+
+            # test
+            try: 
+                author = CustomUser.objects.get(username='ayshia.la')
+            except CustomUser.DoesNotExist:
+                author = CustomUser.objects.first()
+
+            if not author:
+                return JsonResponse({"status": "error", "message": "No default user found for testing. Please create a user."}, status=500)
 
             if not content:
                 return JsonResponse({"status": "error", "message": "Content required"}, status=400)
 
-            if not user_id:
-                return JsonResponse({"status": "error", "message": "User ID required"}, status=400)
-
             # fetch objects
             post = get_object_or_404(Post, pk=post_pk)
-            user = get_object_or_404(CustomUser, pk=user_id)
 
             # create comment
             comment = Comment.objects.create(
                 post=post,
-                author=user,
+                author=author,
                 content=content
             )
 
-            return JsonResponse({"status": "success"}, status=200)
+            new_comment_data = {
+                'author': comment.author.username,
+                'content': comment.content,
+                'created_at': comment.created_at.isoformat()
+            }
+
+            return JsonResponse({"status": "success", "comment": new_comment_data}, status=200)
 
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -423,8 +438,8 @@ def create_comment_flutter(request, post_pk):
     return JsonResponse({"status": "error", "message": "POST required"}, status=405)
 
 @csrf_exempt
+# @login_required
 def create_post_flutter(request):
-
     if request.method != 'POST':
         return JsonResponse({"success": False, "error": "POST required"}, status=405)
 
@@ -432,13 +447,20 @@ def create_post_flutter(request):
         data = json.loads(request.body)
         title = strip_tags(data.get("title", ""))
         content = strip_tags(data.get("content", ""))
-        post_type = data.get("post_type", "post")     
-        user_id = data.get("user_id")
+        post_type = data.get("post_type", "").lower() 
+        # author = request.user  
+        
+        #  test  
+        try: 
+            author = CustomUser.objects.get(username='admin')
+        except CustomUser.DoesNotExist:
+            author = CustomUser.objects.first()
 
-        if not user_id:
-            return JsonResponse({"success": False, "error": "user_id required"}, status=400)
-    
-        author = get_object_or_404(CustomUser, pk=user_id)
+        if not author:
+            return JsonResponse({"status": "error", "message": "No default user found for testing. Please create a user."}, status=500)
+
+        if not content:
+            return JsonResponse({"status": "error", "message": "Content required"}, status=400)
 
         # Staff check for news posts
         if post_type == "news" and not author.is_staff:
