@@ -400,16 +400,16 @@ def create_comment_flutter(request, post_pk):
 
             # required fields
             content = strip_tags(data.get("content", ""))
-            # author = request.user
+            author = request.user
 
             # test
-            try: 
-                author = CustomUser.objects.get(username='ayshia.la')
-            except CustomUser.DoesNotExist:
-                author = CustomUser.objects.first()
+            # try: 
+            #     author = CustomUser.objects.get(username='ayshia.la')
+            # except CustomUser.DoesNotExist:
+            #     author = CustomUser.objects.first()
 
-            if not author:
-                return JsonResponse({"status": "error", "message": "No default user found for testing. Please create a user."}, status=500)
+            # if not author:
+            #     return JsonResponse({"status": "error", "message": "No default user found for testing. Please create a user."}, status=500)
 
             if not content:
                 return JsonResponse({"status": "error", "message": "Content required"}, status=400)
@@ -448,13 +448,13 @@ def create_post_flutter(request):
         title = strip_tags(data.get("title", ""))
         content = strip_tags(data.get("content", ""))
         post_type = data.get("post_type", "").lower() 
-        # author = request.user  
+        author = request.user  
         
         #  test  
-        try: 
-            author = CustomUser.objects.get(username='admin')
-        except CustomUser.DoesNotExist:
-            author = CustomUser.objects.first()
+        # try: 
+        #     author = CustomUser.objects.get(username='admin')
+        # except CustomUser.DoesNotExist:
+        #     author = CustomUser.objects.first()
 
         if not author:
             return JsonResponse({"status": "error", "message": "No default user found for testing. Please create a user."}, status=500)
