@@ -2,8 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, Http404 
 from .models import League, Club, ClubDetails, LeaguePick
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
 import json
+from django.views.decorators.csrf import csrf_exempt
 
 def show_club_directory(request):
     leagues = League.objects.prefetch_related('clubs').all().order_by('name')
@@ -86,16 +86,56 @@ def get_club_details(request, club_id):
     }
     return JsonResponse(data)
 
+def show_json_directory(request):
+    leagues = League.objects.prefetch_related('clubs').all().order_by('name')
+    
+    league_coords = {
+        "Premier League": [53.4, -2.2], 
+        "La Liga": [40.4, -3.7], 
+        "Bundesliga": [51.5, 10.5],
+        "Serie A": [41.9, 12.5], 
+        "Ligue 1 McDonald's": [48.85, 2.35], 
+        "Primeira Liga": [38.7, -9.1]
+    }
+
+    leagues_data = []
+    for league in leagues:
+        coords = league_coords.get(league.name, [0, 0])
+        
+        leagues_data.append({
+            'id': str(league.id), 
+            'name': league.name,
+            'region': league.region,
+            'logo_path': league.logo_path,
+            'coordinate_lat': coords[0],  
+            'coordinate_lng': coords[1],
+            'clubs': [{
+                'id': str(club.id),
+                'name': club.name, 
+                'logo_url': club.logo_url,
+                'founded_year': club.founded_year,
+            } for club in league.clubs.all()]
+        })
+    
+    return JsonResponse({'leagues': leagues_data})
+
+@csrf_exempt
 @login_required
-@require_POST
 def set_league_pick(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+        
     try:
-        club_id = request.POST.get('club_id')
-        league_id = request.POST.get('league_id') 
+        try:
+            data = json.loads(request.body)
+            club_id = data.get('club_id')
+            league_id = data.get('league_id')
+        except json.JSONDecodeError:
+            club_id = request.POST.get('club_id')
+            league_id = request.POST.get('league_id')
 
         if not club_id and not league_id:
              return JsonResponse({'status': 'error', 'message': 'Club or League ID is required.'}, status=400)
-
         if club_id == 'NONE':
             if not league_id:
                 return JsonResponse({'status': 'error', 'message': 'League ID is required to clear a pick.'}, status=400)
