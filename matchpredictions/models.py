@@ -6,7 +6,7 @@ import uuid
 from club_directories.models import League, Club
 
 
-# 🎯 Match Model
+#  Match Model
 class Match(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     league = models.ForeignKey(League, on_delete=models.CASCADE, null=True, blank=True)
@@ -42,7 +42,7 @@ class Match(models.Model):
         }
 
 
-# 🗳️ Vote Model
+#  Vote Model
 class Vote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
