@@ -163,3 +163,53 @@ def show_json(request):
     ]
 
     return JsonResponse(data, safe=False)
+
+@login_required
+def user_activity_api(request):
+    profile_user = request.user
+
+    league_picks_data = []
+    if 'LeaguePick' in globals(): 
+        picks = LeaguePick.objects.filter(user=profile_user).select_related('club')
+        for pick in picks:
+            league_picks_data.append({
+                'id': pick.id,
+                'club_name': pick.club.name, # Adjust 'name' to your actual Club model field
+                'club_logo': pick.club.logo.url if pick.club.logo else None, # Example for images
+            })
+
+    user_posts_data = []
+    if 'Post' in globals():
+        posts = profile_user.forum_posts.all()[:10]
+        for post in posts:
+            user_posts_data.append({
+                'id': post.id,
+                'title': post.title,
+                'content': post.content,
+                'created_at': post.created_at.strftime('%Y-%m-%d %H:%M'),
+            })
+
+    user_predictions_data = []
+    if 'Vote' in globals():
+        votes = profile_user.matchpred_votes.all().select_related(
+            'match', 'match__home_team', 'match__away_team'
+        )[:10]
+        
+        for vote in votes:
+            user_predictions_data.append({
+                'id': vote.id,
+                'match_title': f"{vote.match.home_team.name} vs {vote.match.away_team.name}",
+                'home_team': vote.match.home_team.name,
+                'away_team': vote.match.away_team.name,
+                'voted_for': vote.choice,
+                'match_date': vote.match.date.strftime('%Y-%m-%d %H:%M'),
+            })
+
+    data = {
+        'username': profile_user.username,
+        'league_picks': league_picks_data,
+        'user_posts': user_posts_data,
+        'user_predictions': user_predictions_data,
+    }
+
+    return JsonResponse(data)
