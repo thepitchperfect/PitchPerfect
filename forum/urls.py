@@ -19,4 +19,5 @@ urlpatterns = [
     path('proxy-image/', views.proxy_image, name='proxy_image'),
     path('api/post/<int:post_pk>/comment/create/flutter/', views.create_comment_flutter, name='create_comment_flutter'),
     path('api/post/create/flutter/', views.create_post_flutter, name='create_post_flutter'),
+    path('get-favorite-clubs/flutter/', views.get_user_favorite_clubs_flutter, name='get_favorite_clubs_flutter'),
 ]

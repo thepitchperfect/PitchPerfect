@@ -506,3 +506,19 @@ def create_post_flutter(request):
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=400)
+ 
+def get_user_favorite_clubs_flutter(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "User not authenticated"}, status=401)
+    
+    user_favorite_clubs = Club.objects.filter(picked_in_leagues__user=request.user).distinct()
+    
+    clubs_data = [
+        {
+            "id": club.id,
+            "name": club.name,
+        }
+        for club in user_favorite_clubs
+    ]
+
+    return JsonResponse({"status": "success", "clubs": clubs_data})

@@ -26,6 +26,7 @@ def login(request):
                     "status": True,
                     "message": "Login successful!",
                     "username": user.username,
+                    "is_staff": user.is_staff, 
                 }, status=200)
             else:
                 return JsonResponse({
