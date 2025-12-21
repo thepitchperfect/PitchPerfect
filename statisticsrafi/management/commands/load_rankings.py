@@ -31,7 +31,7 @@ RANKINGS_DATA = [
     {"club_name": "Olympique Lyon", "rank": 24, "points": 1471.0, "continent": "Europe"},
     {"club_name": "Atalanta", "rank": 25, "points": 1447.5, "continent": "Europe"},
     {"club_name": "Benfica", "rank": 26, "points": 1424.0, "continent": "Europe"},
-    {"club_name": "FC Heidenheim 1846", "rank": 27, "points": 1400.5, "continent": "Europe"},
+    {"club_name": "1. FC Heidenheim 1846", "rank": 27, "points": 1400.5, "continent": "Europe"},
     {"club_name": "Villarreal CF", "rank": 28, "points": 1377.0, "continent": "Europe"},
     {"club_name": "West Ham United", "rank": 29, "points": 1353.5, "continent": "Europe"},
     {"club_name": "Sporting CP", "rank": 30, "points": 1330.0, "continent": "Europe"},
