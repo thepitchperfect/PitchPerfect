@@ -5,6 +5,11 @@ from .models import Match, Vote, League, Club
 from .forms import MatchForm
 from django.db.models import Q
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.contrib.admin.views.decorators import staff_member_required
+import json
+
 
 #  Home
 def home(request):
@@ -205,7 +210,15 @@ def show_json_matches(request):
         matches = Match.objects.none()
 
     data = []
+
     for match in matches:
+        # 🔥 THIS IS THE CRITICAL PART
+        user_vote = None
+        if request.user.is_authenticated:
+            vote = match.votes.filter(user=request.user).first()
+            if vote:
+                user_vote = vote.prediction
+
         data.append({
             "id": str(match.id),
             "league": {
@@ -224,10 +237,99 @@ def show_json_matches(request):
             "status": match.status,
             "total_votes": match.total_votes,
             "vote_summary": match.vote_summary,
+            "user_vote": user_vote,
         })
 
     return JsonResponse(data, safe=False)
 
+@csrf_exempt
+@login_required
+@require_POST
+def vote_match_api(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+    prediction = request.POST.get("prediction")
 
+    if prediction not in ["home_win", "away_win", "draw"]:
+        return JsonResponse({"error": "Invalid prediction"}, status=400)
 
+    Vote.objects.update_or_create(
+        user=request.user,
+        match=match,
+        defaults={"prediction": prediction},
+    )
 
+    return JsonResponse({
+        "message": "Vote recorded",
+        "vote_summary": match.vote_summary,
+        "total_votes": match.total_votes,
+    })
+
+@csrf_exempt
+@login_required
+def delete_vote_api(request, match_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    vote = Vote.objects.filter(
+        user=request.user,
+        match_id=match_id
+    ).first()
+
+    if not vote:
+        return JsonResponse({"error": "Vote not found"}, status=404)
+
+    vote.delete()
+
+    match = Match.objects.get(id=match_id)
+
+    return JsonResponse({
+        "success": True,
+        "total_votes": match.total_votes,
+        "vote_summary": match.vote_summary,
+    })
+
+@csrf_exempt  # OK because CookieRequest handles auth via session
+@staff_member_required
+@require_POST
+def match_create_api(request):
+    try:
+        # ✅ CookieRequest sends FORM data, not JSON
+        league_id = request.POST.get("league")
+        home_team_id = request.POST.get("home_team")
+        away_team_id = request.POST.get("away_team")
+        match_date = request.POST.get("match_date")
+        status = request.POST.get("status", "upcoming")
+
+        if not all([league_id, home_team_id, away_team_id, match_date]):
+            return JsonResponse(
+                {"status": "error", "message": "Missing required fields"},
+                status=400,
+            )
+
+        match = Match.objects.create(
+            league_id=league_id,
+            home_team_id=home_team_id,
+            away_team_id=away_team_id,
+            match_date=match_date,
+            status=status,
+        )
+
+        return JsonResponse(
+            {
+                "status": "success",
+                "id": str(match.id),
+            },
+            status=201,
+        )
+
+    except Exception as e:
+        return JsonResponse(
+            {"status": "error", "message": str(e)},
+            status=400,
+        )
+
+@login_required
+def is_admin(request):
+    return JsonResponse({
+        "is_admin": request.user.is_staff
+    })
