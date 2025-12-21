@@ -27,6 +27,23 @@ urlpatterns = [
     
     path('json/', views.show_json_matches, name='show_json_matches'),
 
+    path(
+  "vote/api/<uuid:match_id>/",
+  views.vote_match_api,
+  name="vote_match_api"
+),
+    path(
+        "delete-vote/api/<uuid:match_id>/",
+        views.delete_vote_api,
+        name="delete_vote_api",
+    ),
+    path("auth/is-admin/", views.is_admin, name="is_admin"),
+
+    path(
+    "add/api/",
+    views.match_create_api,
+    name="match_create_api",
+),
 
 ]
 
