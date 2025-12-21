@@ -198,18 +198,18 @@
         <div class="px-6 py-4">
             <div id="message-container" class="mb-4 hidden"></div>
 
-            <form id="profileEditForm" class="space-y-4 md:space-y-6" method="POST" enctype="multipart/form-data">
+            <form id="profileEditForm" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div>
+                <div class="mb-4 md:mb-6">
                     <label for="profpict" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
                         Profile Picture
                     </label>
                     <input id="profpict" name="profpict" type="file" accept="image/*"
-                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white border border-gray-300 shadow-sm">
+                        class="w-full px-3 py-2 font-lato text-sm md:text-lg rounded-md bg-white shadow-[0_2px_5px_0_rgba(0,0,0,0.20)]">
                     <div id="error-profpict" class="text-red-600 text-sm mt-1"></div>
                 </div>
 
-                <div>
+                <div class="mb-4 md:mb-6">
                     <label for="username" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
                         Username
                     </label>
@@ -219,7 +219,7 @@
                     <div id="error-username" class="text-red-600 text-sm mt-1"></div>
                 </div>
 
-                <div>
+                <div class="mb-4 md:mb-6">
                     <label for="full_name" class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">
                         Full Name
                     </label>
@@ -229,7 +229,7 @@
                     <div id="error-full_name" class="text-red-600 text-sm mt-1"></div>
                 </div>
 
-                <div>
+                <div class="mb-1 md:mb-2">
                     <label for="email"
                         class="block font-lato text-sm md:text-lg font-semibold text-gray-900 mb-1">Email</label>
                     <input id="email" name="email" type="email" required
