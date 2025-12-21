@@ -379,7 +379,7 @@ def update_comment(request, pk):
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 
-# @login_required
+@login_required
 @require_http_methods(["DELETE"])
 def delete_comment(request, pk):
     """Delete a comment (AJAX) - author or admin only"""
@@ -392,7 +392,7 @@ def delete_comment(request, pk):
     return JsonResponse({'success': True})
 
 @csrf_exempt
-# @login_required 
+@login_required 
 def create_comment_flutter(request, post_pk):
     if request.method == 'POST':
         try:
@@ -438,7 +438,7 @@ def create_comment_flutter(request, post_pk):
     return JsonResponse({"status": "error", "message": "POST required"}, status=405)
 
 @csrf_exempt
-# @login_required
+@login_required
 def create_post_flutter(request):
     if request.method != 'POST':
         return JsonResponse({"success": False, "error": "POST required"}, status=405)

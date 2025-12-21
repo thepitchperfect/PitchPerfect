@@ -35,7 +35,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id", "10.0.2.2"]
 
-CSRF_TRUSTED_ORIGINS = ["https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id","http://localhost:50325"]
+CSRF_TRUSTED_ORIGINS = ["https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id", "http://localhost:61432"]
 
 # Application definition
 
