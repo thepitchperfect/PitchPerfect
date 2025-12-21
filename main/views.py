@@ -1,4 +1,5 @@
 import datetime
+import traceback
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import login, logout
@@ -166,50 +167,76 @@ def show_json(request):
 
 @login_required
 def user_activity_api(request):
-    profile_user = request.user
+    try:
+        profile_user = request.user
 
-    league_picks_data = []
-    if 'LeaguePick' in globals(): 
-        picks = LeaguePick.objects.filter(user=profile_user).select_related('club')
+        # --- 1. LEAGUE PICKS ---
+        league_picks_data = []
+        # Uses related_name='league_picks' from your model
+        picks = profile_user.league_picks.select_related('club')
+        
         for pick in picks:
+            club = pick.club
             league_picks_data.append({
-                'id': pick.id,
-                'club_name': pick.club.name, # Adjust 'name' to your actual Club model field
-                'club_logo': pick.club.logo.url if pick.club.logo else None, # Example for images
+                'id': str(club.id),       # UUID to string
+                'name': club.name,
+                'logo_url': club.logo_url, # EXACT FIELD NAME
+                'founded_year': club.founded_year,
+                'desc': getattr(club, 'details', None).description if hasattr(club, 'details') else "", 
+                'is_league_pick': True,
             })
 
-    user_posts_data = []
-    if 'Post' in globals():
+        # --- 2. USER POSTS ---
+        user_posts_data = []
+        # Uses related_name='forum_posts' from your model
         posts = profile_user.forum_posts.all()[:10]
+
         for post in posts:
             user_posts_data.append({
                 'id': post.id,
                 'title': post.title,
                 'content': post.content,
-                'created_at': post.created_at.strftime('%Y-%m-%d %H:%M'),
+                'post_type': post.post_type, # 'discussion' or 'news'
+                'author': profile_user.username,
+                'created_at': post.created_at.isoformat(),
+                'updated_at': post.updated_at.isoformat(),
+                'clubs': [],    # Simplified for profile
+                'images': [],   # Simplified for profile
+                'comments': [], # Simplified for profile
             })
 
-    user_predictions_data = []
-    if 'Vote' in globals():
-        votes = profile_user.matchpred_votes.all().select_related(
-            'match', 'match__home_team', 'match__away_team'
-        )[:10]
-        
+        # --- 3. PREDICTIONS ---
+        user_predictions_data = []
+        # Uses related_name='matchpred_votes' from your model
+        votes = profile_user.matchpred_votes.all().select_related('match', 'match__home_team', 'match__away_team')[:10]
+
+        # Helper to make 'home_win' look nicer
+        def format_prediction(code, match):
+            if code == 'home_win': return f"{match.home_team.name} Win"
+            if code == 'away_win': return f"{match.away_team.name} Win"
+            if code == 'draw': return "Draw"
+            return code
+
         for vote in votes:
             user_predictions_data.append({
-                'id': vote.id,
+                'id': str(vote.id), # UUID to string
                 'match_title': f"{vote.match.home_team.name} vs {vote.match.away_team.name}",
-                'home_team': vote.match.home_team.name,
-                'away_team': vote.match.away_team.name,
-                'voted_for': vote.choice,
-                'match_date': vote.match.date.strftime('%Y-%m-%d %H:%M'),
+                'voted_for': format_prediction(vote.prediction, vote.match), # EXACT FIELD NAME: prediction
+                'match_date': vote.match.match_date.strftime('%Y-%m-%d'),
             })
 
-    data = {
-        'username': profile_user.username,
-        'league_picks': league_picks_data,
-        'user_posts': user_posts_data,
-        'user_predictions': user_predictions_data,
-    }
+        data = {
+            'username': profile_user.username,
+            'league_picks': league_picks_data,
+            'user_posts': user_posts_data,
+            'user_predictions': user_predictions_data,
+        }
 
-    return JsonResponse(data)
+        return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": str(e),
+            "trace": traceback.format_exc()
+        }, status=500)
