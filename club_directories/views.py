@@ -113,11 +113,34 @@ def set_league_pick(request):
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
     
-    club_id = request.POST.get('club_id')
-    league_id = request.POST.get('league_id')
+    # --- DEBUG PRINTS (Check your terminal!) ---
+    print(f"DEBUG: Content Type: {request.content_type}")
+    print(f"DEBUG: Body: {request.body}")
+    print(f"DEBUG: POST Data: {request.POST}")
     
+    club_id = None
+    league_id = None
+
+    # 1. Try JSON Parsing
+    try:
+        data = json.loads(request.body)
+        club_id = data.get('club_id')
+        league_id = data.get('league_id')
+        print(f"DEBUG: Parsed JSON - Club: {club_id}, League: {league_id}")
+    except (json.JSONDecodeError, AttributeError):
+        pass
+
+    # 2. Fallback to POST Form Data (if JSON failed or wasn't sent)
+    if not club_id:
+        club_id = request.POST.get('club_id')
+        league_id = request.POST.get('league_id')
+        print(f"DEBUG: Parsed POST - Club: {club_id}, League: {league_id}")
+
     if not league_id:
          return JsonResponse({'status': 'error', 'message': 'League ID is required.'}, status=400)
+    
+    if not club_id:
+         return JsonResponse({'status': 'error', 'message': 'Club ID is required.'}, status=400)
 
     try:
         if club_id == 'NONE':
@@ -148,16 +171,14 @@ def set_league_pick(request):
             
     except Http404:
         message = 'Object not found.'
-        if 'club' not in locals() and club_id != 'NONE':
-             message = 'Club not found.'
-        elif 'league' not in locals() and club_id == 'NONE':
-             message = 'League not found.'
+        # simplified check
         return JsonResponse({'status': 'error', 'message': message}, status=404)
     except Club.DoesNotExist: 
         return JsonResponse({'status': 'error', 'message': 'Club not found.'}, status=404)
     except League.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'League not found.'}, status=404)
     except Exception as e:
+        print(f"DEBUG: Exception: {str(e)}") # Print exception to terminal
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def show_json_directory(request):
@@ -195,4 +216,15 @@ def show_json_directory(request):
             'coords': league_coords,  # Added coords here
             'clubs': clubs
         })
-    return JsonResponse(data, safe=False)
+
+    picks_data = {}
+    if request.user.is_authenticated:
+        picks = LeaguePick.objects.filter(user=request.user).select_related('club')
+        for pick in picks:
+            picks_data[str(pick.league_id)] = {
+                'clubId': str(pick.club_id),
+                'clubName': pick.club.name,
+                'logoUrl': pick.club.logo_url
+            }
+
+    return JsonResponse({'leagues': data, 'picks': picks_data})
