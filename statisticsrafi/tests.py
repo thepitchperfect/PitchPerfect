@@ -8,91 +8,11 @@ from decimal import Decimal
 
 from club_directories.models import League, Club
 from .models import (
-    Player, PlayerStatistics, Award, UserWatchlist,
-    Vote, PlayerComparison, ClubRanking, TeamStatistics, ClubVote
+    Award,
+    Vote, ClubRanking, TeamStatistics, ClubVote
 )
 
 User = get_user_model()
-
-
-class PlayerModelTest(TestCase):
-    """Test Player model"""
-    
-    def setUp(self):
-        self.league = League.objects.create(
-            name="Premier League",
-            region="England"
-        )
-        self.club = Club.objects.create(
-            name="Manchester United",
-            league=self.league
-        )
-    
-    def test_player_creation(self):
-        """Test creating a player"""
-        player = Player.objects.create(
-            name="Wayne Rooney",
-            club=self.club,
-            position="FWD",
-            nationality="English",
-            jersey_number=10,
-            market_value=Decimal('50.00')
-        )
-        self.assertEqual(player.name, "Wayne Rooney")
-        self.assertEqual(player.club, self.club)
-        self.assertEqual(str(player), f"Wayne Rooney ({self.club})")
-    
-    def test_player_str_with_none_club(self):
-        """Test player string representation when club is None"""
-        player = Player.objects.create(
-            name="Free Agent",
-            club=None,
-            position="MID",
-            nationality="Unknown"
-        )
-        self.assertEqual(str(player), "Free Agent (None)")
-
-
-class PlayerStatisticsModelTest(TestCase):
-    """Test PlayerStatistics model"""
-    
-    def setUp(self):
-        self.league = League.objects.create(name="La Liga", region="Spain")
-        self.club = Club.objects.create(name="Barcelona", league=self.league)
-        self.player = Player.objects.create(
-            name="Lionel Messi",
-            club=self.club,
-            position="FWD",
-            nationality="Argentine"
-        )
-    
-    def test_statistics_creation(self):
-        """Test creating player statistics"""
-        stats = PlayerStatistics.objects.create(
-            player=self.player,
-            season="2023/24",
-            goals=30,
-            assists=20,
-            appearances=40,
-            clean_sheets=0
-        )
-        self.assertEqual(stats.goals, 30)
-        self.assertEqual(stats.season, "2023/24")
-        self.assertEqual(str(stats), f"Lionel Messi - 2023/24")
-    
-    def test_statistics_unique_together(self):
-        """Test that unique_together constraint works"""
-        PlayerStatistics.objects.create(
-            player=self.player,
-            season="2023/24",
-            goals=30
-        )
-        with self.assertRaises(IntegrityError):
-            PlayerStatistics.objects.create(
-                player=self.player,
-                season="2023/24",
-                goals=40
-            )
 
 
 class AwardModelTest(TestCase):
@@ -101,25 +21,6 @@ class AwardModelTest(TestCase):
     def setUp(self):
         self.league = League.objects.create(name="Bundesliga", region="Germany")
         self.club = Club.objects.create(name="Bayern Munich", league=self.league)
-        self.player = Player.objects.create(
-            name="Thomas Muller",
-            club=self.club,
-            position="MID",
-            nationality="German"
-        )
-    
-    def test_award_creation_with_player(self):
-        """Test creating award for a player"""
-        award = Award.objects.create(
-            player=self.player,
-            award_type="GOLDEN_BOOT",
-            title="Top Scorer 2023/24",
-            season="2023/24",
-            date_awarded=date(2024, 5, 1),
-            description="Most goals in the season"
-        )
-        self.assertEqual(award.player, self.player)
-        self.assertEqual(str(award), f"Thomas Muller - Top Scorer 2023/24 (2023/24)")
     
     def test_award_creation_with_club(self):
         """Test creating award for a club"""
@@ -135,42 +36,6 @@ class AwardModelTest(TestCase):
         self.assertEqual(str(award), f"Bayern Munich - Champions League Winner (2023/24)")
 
 
-class UserWatchlistModelTest(TestCase):
-    """Test UserWatchlist model"""
-    
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            full_name="Test User",
-            password="testpass123"
-        )
-        self.league = League.objects.create(name="Serie A", region="Italy")
-        self.club = Club.objects.create(name="AC Milan", league=self.league)
-        self.player = Player.objects.create(
-            name="Zlatan Ibrahimovic",
-            club=self.club,
-            position="FWD",
-            nationality="Swedish"
-        )
-    
-    def test_watchlist_creation(self):
-        """Test creating a watchlist entry"""
-        watchlist = UserWatchlist.objects.create(
-            user=self.user,
-            player=self.player,
-            notes="Great striker!"
-        )
-        self.assertEqual(watchlist.user, self.user)
-        self.assertEqual(str(watchlist), f"testuser - Zlatan Ibrahimovic")
-    
-    def test_watchlist_unique_together(self):
-        """Test that unique_together constraint works"""
-        UserWatchlist.objects.create(user=self.user, player=self.player)
-        with self.assertRaises(IntegrityError):
-            UserWatchlist.objects.create(user=self.user, player=self.player)
-
-
 class VoteModelTest(TestCase):
     """Test Vote model"""
     
@@ -183,24 +48,6 @@ class VoteModelTest(TestCase):
         )
         self.league = League.objects.create(name="Ligue 1", region="France")
         self.club = Club.objects.create(name="PSG", league=self.league)
-        self.player = Player.objects.create(
-            name="Kylian Mbappe",
-            club=self.club,
-            position="FWD",
-            nationality="French"
-        )
-    
-    def test_vote_creation_with_player(self):
-        """Test creating a vote for a player"""
-        vote = Vote.objects.create(
-            user=self.user,
-            player=self.player,
-            category="PLAYER_WEEK",
-            season="2024/25",
-            week_number=5
-        )
-        self.assertEqual(vote.player, self.player)
-        self.assertEqual(str(vote), f"voter voted Kylian Mbappe for PLAYER_WEEK")
     
     def test_vote_creation_with_club(self):
         """Test creating a vote for a club"""
@@ -308,41 +155,6 @@ class ClubVoteModelTest(TestCase):
             ClubVote.objects.create(user=self.user, club=self.club, season="2024/25")
 
 
-class PlayerComparisonModelTest(TestCase):
-    """Test PlayerComparison model"""
-    
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username="compareuser",
-            email="compare@example.com",
-            full_name="Compare User",
-            password="pass123"
-        )
-        self.league = League.objects.create(name="Premier League", region="England")
-        self.club = Club.objects.create(name="Chelsea", league=self.league)
-        self.player1 = Player.objects.create(
-            name="Cristiano Ronaldo",
-            club=self.club,
-            position="FWD",
-            nationality="Portuguese"
-        )
-        self.player2 = Player.objects.create(
-            name="Lionel Messi",
-            club=self.club,
-            position="FWD",
-            nationality="Argentine"
-        )
-    
-    def test_player_comparison_creation(self):
-        """Test creating a player comparison"""
-        comparison = PlayerComparison.objects.create(
-            user=self.user,
-            player1=self.player1,
-            player2=self.player2,
-            season="2023/24"
-        )
-        self.assertEqual(comparison.player1, self.player1)
-        self.assertEqual(str(comparison), f"Cristiano Ronaldo vs Lionel Messi (2023/24)")
 
 
 class StatisticsViewsTest(TestCase):
@@ -419,24 +231,17 @@ class StatisticsViewsTest(TestCase):
     
     def test_most_awards(self):
         """Test most awards view"""
-        # Create test data
-        player = Player.objects.create(
-            name="Test Player",
-            club=self.club1,
-            position="FWD",
-            nationality="English"
-        )
         Award.objects.create(
-            player=player,
-            award_type="POTY",
-            title="Player of the Year",
+            club=self.club1,
+            award_type="TEAM_OTY",
+            title="Team of the Year",
             season="2023/24",
             date_awarded=date(2024, 5, 1)
         )
         
         response = self.client.get(reverse('statisticsrafi:most_awards'))
         self.assertEqual(response.status_code, 200)
-        self.assertIn('players', response.context)
+        self.assertIn('clubs', response.context)
     
     def test_club_rankings(self):
         """Test club rankings view"""
@@ -467,120 +272,6 @@ class StatisticsViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class PlayerViewsTest(TestCase):
-    """Test player-related views"""
-    
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            full_name="Test User",
-            password="testpass123"
-        )
-        self.league = League.objects.create(name="Premier League", region="England")
-        self.club = Club.objects.create(name="Chelsea", league=self.league)
-        self.player = Player.objects.create(
-            name="Eden Hazard",
-            club=self.club,
-            position="MID",
-            nationality="Belgian"
-        )
-        self.player_stats = PlayerStatistics.objects.create(
-            player=self.player,
-            season="2023/24",
-            goals=15,
-            assists=10
-        )
-    
-    def test_player_detail(self):
-        """Test player detail view"""
-        response = self.client.get(reverse('statisticsrafi:player_detail', args=[self.player.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['player'], self.player)
-    
-    def test_add_to_watchlist_authenticated(self):
-        """Test adding to watchlist when authenticated"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('statisticsrafi:add_to_watchlist', args=[self.player.id]))
-        self.assertIn(response.status_code, [302, 200])  # Redirect or response
-        # Check if watchlist item was created
-        self.assertTrue(UserWatchlist.objects.filter(user=self.user, player=self.player).exists())
-    
-    def test_add_to_watchlist_unauthenticated(self):
-        """Test adding to watchlist when not authenticated"""
-        response = self.client.get(reverse('statisticsrafi:add_to_watchlist', args=[self.player.id]))
-        self.assertEqual(response.status_code, 302)  # Redirect to login
-    
-    def test_add_to_watchlist_already_exists(self):
-        """Test adding already existing player to watchlist"""
-        self.client.login(username='testuser', password='testpass123')
-        UserWatchlist.objects.create(user=self.user, player=self.player)
-        response = self.client.get(reverse('statisticsrafi:add_to_watchlist', args=[self.player.id]))
-        self.assertIn(response.status_code, [302, 200])  # Redirect or response
-
-
-class WatchlistViewsTest(TestCase):
-    """Test watchlist views"""
-    
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            full_name="Test User",
-            password="testpass123"
-        )
-        self.league = League.objects.create(name="Premier League", region="England")
-        self.club = Club.objects.create(name="Tottenham", league=self.league)
-        self.player = Player.objects.create(
-            name="Harry Kane",
-            club=self.club,
-            position="FWD",
-            nationality="English"
-        )
-        self.watchlist_item = UserWatchlist.objects.create(
-            user=self.user,
-            player=self.player,
-            notes="Great striker"
-        )
-    
-    def test_my_watchlist_authenticated(self):
-        """Test my watchlist view when authenticated"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('statisticsrafi:my_watchlist'))
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('votes', response.context)
-    
-    def test_my_watchlist_unauthenticated(self):
-        """Test my watchlist view when not authenticated"""
-        response = self.client.get(reverse('statisticsrafi:my_watchlist'))
-        self.assertEqual(response.status_code, 302)  # Redirect to login
-    
-    def test_remove_from_watchlist(self):
-        """Test removing from watchlist"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('statisticsrafi:remove_from_watchlist', args=[self.watchlist_item.id]))
-        self.assertIn(response.status_code, [302, 200])  # Redirect after removal or response
-        # Check if watchlist item was deleted
-        self.assertFalse(UserWatchlist.objects.filter(id=self.watchlist_item.id).exists())
-    
-    def test_update_watchlist_notes_get(self):
-        """Test update watchlist notes (GET request)"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('statisticsrafi:update_watchlist_notes', args=[self.watchlist_item.id]))
-        self.assertEqual(response.status_code, 200)
-    
-    def test_update_watchlist_notes_post(self):
-        """Test update watchlist notes (POST request)"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.post(reverse('statisticsrafi:update_watchlist_notes', args=[self.watchlist_item.id]), {
-            'notes': 'Updated notes about the player'
-        })
-        self.assertIn(response.status_code, [302, 200])  # Redirect after update or response
-        # Check if notes were updated
-        updated_item = UserWatchlist.objects.get(id=self.watchlist_item.id)
-        self.assertEqual(updated_item.notes, 'Updated notes about the player')
 
 
 class VotingViewsTest(TestCase):
@@ -596,19 +287,13 @@ class VotingViewsTest(TestCase):
         )
         self.league = League.objects.create(name="Premier League", region="England")
         self.club = Club.objects.create(name="Manchester City", league=self.league)
-        self.player = Player.objects.create(
-            name="Kevin De Bruyne",
-            club=self.club,
-            position="MID",
-            nationality="Belgian"
-        )
     
     def test_vote_results(self):
         """Test vote results view"""
         from django.urls import reverse
         try:
             response = self.client.get(reverse('statisticsrafi:vote_results', 
-                                               kwargs={'category': 'PLAYER_WEEK', 'season': '2024/25'}))
+                                               kwargs={'category': 'TEAM_WEEK', 'season': '2024/25'}))
             self.assertEqual(response.status_code, 200)
             self.assertIn('category', response.context)
             self.assertIn('season', response.context)
@@ -616,19 +301,6 @@ class VotingViewsTest(TestCase):
             # If URL doesn't exist, skip this test
             pass
     
-    def test_vote_post_player(self):
-        """Test POST vote for player"""
-        self.client.login(username='testuser', password='testpass123')
-        try:
-            response = self.client.post(reverse('statisticsrafi:vote', args=['PLAYER_WEEK', '2024/25']), {
-                'player_id': self.player.id,
-                'week_number': '5'
-            })
-            self.assertIn(response.status_code, [302, 200])
-            # Check vote exists
-            self.assertTrue(Vote.objects.filter(user=self.user, player=self.player, category='PLAYER_WEEK').exists())
-        except:
-            pass
     
     def test_vote_post_club(self):
         """Test POST vote for club"""
@@ -650,15 +322,15 @@ class VotingViewsTest(TestCase):
         # Create initial vote
         Vote.objects.create(
             user=self.user,
-            player=self.player,
-            category='PLAYER_WEEK',
+            club=self.club,
+            category='TEAM_WEEK',
             season='2024/25',
             week_number=5
         )
         try:
             # Update vote
-            response = self.client.post(reverse('statisticsrafi:vote', args=['PLAYER_WEEK', '2024/25']), {
-                'player_id': self.player.id,
+            response = self.client.post(reverse('statisticsrafi:vote', args=['TEAM_WEEK', '2024/25']), {
+                'club_id': self.club.id,
                 'week_number': '5'
             })
             self.assertIn(response.status_code, [302, 200])
@@ -670,15 +342,15 @@ class VotingViewsTest(TestCase):
         # Create votes
         Vote.objects.create(
             user=self.user,
-            player=self.player,
-            category='PLAYER_WEEK',
+            club=self.club,
+            category='TEAM_WEEK',
             season='2024/25',
             week_number=5
         )
         
         try:
             response = self.client.get(reverse('statisticsrafi:vote_results',
-                                               kwargs={'category': 'PLAYER_WEEK', 'season': '2024/25'}))
+                                               kwargs={'category': 'TEAM_WEEK', 'season': '2024/25'}))
             self.assertEqual(response.status_code, 200)
             self.assertIn('results', response.context)
         except:
@@ -810,22 +482,6 @@ class TeamDetailViewTest(TestCase):
             losses=3
         )
         
-        # Create players
-        self.player = Player.objects.create(
-            name="Dominic Calvert-Lewin",
-            club=self.club,
-            position="FWD",
-            nationality="English"
-        )
-        
-        # Create player statistics
-        PlayerStatistics.objects.create(
-            player=self.player,
-            season="2025/26",
-            goals=12,
-            assists=8
-        )
-        
         # Create club ranking
         ClubRanking.objects.create(
             club=self.club,
@@ -841,7 +497,6 @@ class TeamDetailViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['club'], self.club)
         self.assertIn('team_stats', response.context)
-        self.assertIn('players', response.context)
     
     def test_team_detail_with_vote_status(self):
         """Test team detail view with user vote status"""

@@ -6,8 +6,8 @@ from django.contrib import messages
 from django.db import IntegrityError
 from django.views.decorators.http import require_POST
 from .models import (
-    Player, Club, PlayerStatistics, Award, 
-    UserWatchlist, Vote, PlayerComparison, ClubRanking, TeamStatistics, ClubVote
+    Club, Award, 
+    Vote, ClubRanking, TeamStatistics, ClubVote
 )
 
 # READ - List Views
@@ -37,12 +37,8 @@ def most_clean_sheets(request, season='2025/26'):
     return render(request, 'statisticsrafi/clean_sheets.html', {'clean_sheets': top_clean_sheets, 'season': season})
 
 def most_awards(request):
-    """Players and clubs with most awards"""
+    """Clubs with most awards"""
     from club_directories.models import Club
-    
-    players_with_awards = Player.objects.annotate(
-        award_count=Count('awards')
-    ).filter(award_count__gt=0).order_by('-award_count')
     
     clubs_with_awards = Club.objects.annotate(
         award_count=Count('awards')
@@ -52,7 +48,6 @@ def most_awards(request):
     club_awards = Award.objects.filter(club__isnull=False).select_related('club').order_by('-date_awarded')
     
     return render(request, 'statisticsrafi/most_awards.html', {
-        'players': players_with_awards,
         'clubs': clubs_with_awards,
         'club_awards': club_awards,
     })
@@ -62,79 +57,11 @@ def club_rankings(request):
     rankings = ClubRanking.objects.order_by('rank')
     return render(request, 'statisticsrafi/club_rankings.html', {'rankings': rankings})
 
-# READ - Detail Views
-def player_detail(request, player_id):
-    """Individual player statistics"""
-    player = get_object_or_404(Player, id=player_id)
-    stats = PlayerStatistics.objects.filter(player=player)
-    awards = Award.objects.filter(player=player)
-    
-    context = {
-        'player': player,
-        'stats': stats,
-        'awards': awards,
-    }
-    return render(request, 'statisticsrafi/player_detail.html', context)
-
-# CREATE - Watchlist
-@login_required
-def add_to_watchlist(request, player_id):
-    """Add player to user's watchlist"""
-    player = get_object_or_404(Player, id=player_id)
-    
-    watchlist_item, created = UserWatchlist.objects.get_or_create(
-        user=request.user,
-        player=player
-    )
-    
-    if created:
-        messages.success(request, f'{player.name} added to your watchlist!')
-    else:
-        messages.info(request, f'{player.name} is already in your watchlist.')
-    
-    return redirect('statisticsrafi:player_detail', player_id=player_id)
-
-# READ - User Votes
-@login_required
-def my_watchlist(request):
-    """User's voting history"""
-    votes = Vote.objects.filter(user=request.user)
-    club_votes = ClubVote.objects.filter(user=request.user)
-    return render(request, 'statisticsrafi/watchlist.html', {
-        'votes': votes,
-        'club_votes': club_votes
-    })
-
-# DELETE - Watchlist
-@login_required
-def remove_from_watchlist(request, watchlist_id):
-    """Remove player from watchlist"""
-    watchlist_item = get_object_or_404(UserWatchlist, id=watchlist_id, user=request.user)
-    player_name = watchlist_item.player.name
-    watchlist_item.delete()
-    messages.success(request, f'{player_name} removed from your watchlist.')
-    return redirect('statisticsrafi:my_watchlist')
-
-# UPDATE - Watchlist Notes
-@login_required
-def update_watchlist_notes(request, watchlist_id):
-    """Update notes for a watchlist item"""
-    watchlist_item = get_object_or_404(UserWatchlist, id=watchlist_id, user=request.user)
-    
-    if request.method == 'POST':
-        watchlist_item.notes = request.POST.get('notes', '')
-        watchlist_item.save()
-        messages.success(request, 'Notes updated successfully!')
-        return redirect('statisticsrafi:my_watchlist')
-    
-    return render(request, 'statisticsrafi/edit_watchlist_notes.html', {'item': watchlist_item})
-
 # CREATE - Vote
 @login_required
 def vote(request, category, season):
-    """Vote for Player/Team of Week/Month/Season"""
+    """Vote for Team of Week/Month/Season"""
     if request.method == 'POST':
-        player_id = request.POST.get('player_id')
         club_id = request.POST.get('club_id')
         week_number = request.POST.get('week_number')
         month_number = request.POST.get('month_number')
@@ -147,7 +74,6 @@ def vote(request, category, season):
                 week_number=week_number,
                 month_number=month_number,
                 defaults={
-                    'player_id': player_id if player_id else None,
                     'club_id': club_id if club_id else None,
                 }
             )
@@ -167,19 +93,22 @@ def vote_results(request, category, season):
     """Display voting results"""
     votes = Vote.objects.filter(category=category, season=season)
     
-    if 'PLAYER' in category:
-        results = votes.values('player__name', 'player__club__name', 'player__club__logo_url').annotate(
-            vote_count=Count('id')
-        ).order_by('-vote_count')
-    else:
-        results = votes.values('club__name', 'club__logo_url').annotate(
-            vote_count=Count('id')
-        ).order_by('-vote_count')
+    results = votes.values('club__name', 'club__league__name', 'club__logo_url').annotate(
+        vote_count=Count('id')
+    ).order_by('-vote_count')
+    
+    total_votes = votes.count()
+    
+    user_vote = None
+    if request.user.is_authenticated:
+        user_vote = votes.filter(user=request.user).first()
     
     context = {
         'category': category,
         'season': season,
         'results': results,
+        'total_votes': total_votes,
+        'user_vote': user_vote,
     }
     return render(request, 'statisticsrafi/vote_results.html', context)
 
@@ -221,15 +150,6 @@ def team_detail(request, club_id):
     club = get_object_or_404(Club, id=club_id)
     team_stats = TeamStatistics.objects.filter(club=club).order_by('-season').first()
     
-    # Get club's players
-    players = Player.objects.filter(club=club)
-    
-    # Get club's player statistics for the season
-    player_stats = PlayerStatistics.objects.filter(
-        player__club=club,
-        season=team_stats.season if team_stats else '2025/26'
-    ).select_related('player').order_by('-goals')
-    
     # Get club rankings
     club_ranking = ClubRanking.objects.filter(club=club).order_by('-ranking_date').first()
     
@@ -248,8 +168,6 @@ def team_detail(request, club_id):
     context = {
         'club': club,
         'team_stats': team_stats,
-        'players': players,
-        'player_stats': player_stats,
         'club_ranking': club_ranking,
         'club_awards': club_awards,
         'user_has_voted': user_has_voted,
@@ -354,3 +272,15 @@ def voting_results(request):
     }
     
     return render(request, 'statisticsrafi/vote_results.html', context)
+
+@login_required
+def my_watchlist(request):
+    """Display user's voting history"""
+    votes = Vote.objects.filter(user=request.user).order_by('-voted_at')
+    club_votes = ClubVote.objects.filter(user=request.user).order_by('-created_at')
+    
+    context = {
+        'votes': votes,
+        'club_votes': club_votes,
+    }
+    return render(request, 'statisticsrafi/watchlist.html', context)
