@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, Http404 
 from .models import League, Club, ClubDetails, LeaguePick
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 import json
 from django.views.decorators.csrf import csrf_exempt
 
@@ -19,127 +20,107 @@ def show_club_directory(request):
                 'logoUrl': pick.club.logo_url
             }
 
+    # Coordinates mapping for known leagues
+    COORD_MAP = {
+        "Premier League": [52.3555, -1.1743],       # UK
+        "La Liga": [40.4637, -3.7492],              # Spain
+        "Bundesliga": [51.1657, 10.4515],           # Germany
+        "Serie A": [41.8719, 12.5674],              # Italy
+        "Ligue 1 McDonald's": [46.603354, 1.888334], # France
+        "Primeira Liga": [39.3999, -8.2245]         # Portugal
+    }
+
     leagues_data = []
     for league in leagues:
         short_id_map = {
             "Premier League": "PREM", "La Liga": "LALI", "Bundesliga": "BUND",
             "Serie A": "SERI", "Ligue 1 McDonald's": "LIG1", "Primeira Liga": "PRIM"
         }
-        leagues_data.append({
-            'id': str(league.id), 'name': league.name,
-            'short_id': short_id_map.get(league.name, league.name[:4].upper()),
-            'region': league.region, 'logo_path': league.logo_path,
-            'coords': {
-                "Premier League": [53.4, -2.2], "La Liga": [40.4, -3.7], "Bundesliga": [51.5, 10.5],
-                "Serie A": [41.9, 12.5], "Ligue 1 McDonald's": [48.85, 2.35], "Primeira Liga": [38.7, -9.1]
-            }.get(league.name, [0, 0]),
-            'clubs': [{
-                'id': club.id,
-                'name': club.name, 
-                'logo_url': club.logo_url,
-                'desc': f"Founded in {club.founded_year or 'N/A'}. Plays in {league.name}.",
-            } for club in league.clubs.all()]
-        })
-    
-    context = {
-        'leagues_data': leagues_data,
-        'league_picks_data': league_picks,
-    }
-    return render(request, 'club_directories/directory.html', context)
-
-def get_club_details(request, club_id):
-    club = get_object_or_404(Club.objects.select_related('league'), pk=club_id)
-    
-    is_league_pick = False
-    if request.user.is_authenticated:
-        is_league_pick = LeaguePick.objects.filter(user=request.user, club=club).exists()
-
-    try:
-        details = club.details 
-        description = details.description
-        history_summary = details.history_summary
-        stadium_name = details.stadium_name
-        stadium_capacity = details.stadium_capacity
-        manager_name = details.manager_name
-    except ClubDetails.DoesNotExist:
-        description = f"A football club founded in {club.founded_year or 'N/A'}, currently playing in {club.league.name}, based in {club.league.region}."
-        history_summary = f"{club.name} has a rich history in {club.league.name}..." # Placeholder
-        stadium_name = "N/A"
-        stadium_capacity = None
-        manager_name = "N/A"
-
-    data = {
-        'id': str(club.id),
-        'name': club.name,
-        'logo_url': club.logo_url,
-        'founded_year': club.founded_year,
-        'league_id': str(club.league.id), 
-        'league_name': club.league.name,
-        'league_logo_path': club.league.logo_path,
-        'region': club.league.region,
-        'is_league_pick': is_league_pick,
-        'description': description,
-        'history_summary': history_summary,
-        'stadium_name': stadium_name,
-        'stadium_capacity_str': f"{stadium_capacity:,}" if stadium_capacity else "N/A", 
-        'manager_name': manager_name,
-    }
-    return JsonResponse(data)
-
-def show_json_directory(request):
-    leagues = League.objects.prefetch_related('clubs').all().order_by('name')
-    
-    league_coords = {
-        "Premier League": [53.4, -2.2], 
-        "La Liga": [40.4, -3.7], 
-        "Bundesliga": [51.5, 10.5],
-        "Serie A": [41.9, 12.5], 
-        "Ligue 1 McDonald's": [48.85, 2.35], 
-        "Primeira Liga": [38.7, -9.1]
-    }
-
-    leagues_data = []
-    for league in leagues:
-        coords = league_coords.get(league.name, [0, 0])
         
+        # Get coords from map, or default to Paris if name doesn't match
+        league_coords = COORD_MAP.get(league.name, [48.8566, 2.3522])
+
         leagues_data.append({
             'id': str(league.id), 
             'name': league.name,
-            'region': league.region,
+            'short_id': short_id_map.get(league.name, league.name[:3].upper()),
             'logo_path': league.logo_path,
-            'coordinate_lat': coords[0],  
-            'coordinate_lng': coords[1],
+            'coords': league_coords, 
             'clubs': [{
-                'id': str(club.id),
-                'name': club.name, 
-                'logo_url': club.logo_url,
-                'founded_year': club.founded_year,
-            } for club in league.clubs.all()]
+                'id': str(c.id), 'name': c.name, 
+                'logo_url': c.logo_url,
+                'desc': c.details.description[:100] + '...' if hasattr(c, 'details') and c.details.description else "No description available."
+            } for c in league.clubs.all()]
         })
-    
-    return JsonResponse({'leagues': leagues_data})
+
+    return render(request, 'club_directories/directory.html', {
+        'leagues_data': leagues_data,
+        'league_picks_data': league_picks
+    })
+
+def get_club_details(request, club_id):
+    try:
+        club = Club.objects.select_related('league').get(pk=club_id)
+        
+        try:
+            details = club.details
+            description = details.description
+            history = details.history_summary
+            stadium = details.stadium_name
+            capacity = details.stadium_capacity
+            manager = details.manager_name
+        except ClubDetails.DoesNotExist:
+            description = ""
+            history = ""
+            stadium = ""
+            capacity = None
+            manager = ""
+
+        # Generate URL for statistics module
+        try:
+            stats_url = reverse('statisticsrafi:team_detail', args=[club.id])
+        except Exception:
+            stats_url = "#"
+
+        data = {
+            'id': str(club.id),
+            'name': club.name,
+            'league_name': club.league.name,
+            'league_id': str(club.league.id),
+            'league_logo_path': club.league.logo_path,
+            'logo_url': club.logo_url,
+            'founded_year': club.founded_year,
+            'description': description,
+            'history_summary': history,
+            'stadium_name': stadium,
+            'stadium_capacity': capacity,
+            'stadium_capacity_str': f"{capacity:,}" if capacity else "N/A",
+            'manager_name': manager,
+            'stats_url': stats_url
+        }
+        
+        if request.user.is_authenticated:
+            is_pick = LeaguePick.objects.filter(user=request.user, league=club.league, club=club).exists()
+            data['is_league_pick'] = is_pick
+
+        return JsonResponse(data)
+    except Club.DoesNotExist:
+        raise Http404("Club not found")
 
 @csrf_exempt
 @login_required
 def set_league_pick(request):
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
-        
-    try:
-        try:
-            data = json.loads(request.body)
-            club_id = data.get('club_id')
-            league_id = data.get('league_id')
-        except json.JSONDecodeError:
-            club_id = request.POST.get('club_id')
-            league_id = request.POST.get('league_id')
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+    
+    club_id = request.POST.get('club_id')
+    league_id = request.POST.get('league_id')
+    
+    if not league_id:
+         return JsonResponse({'status': 'error', 'message': 'League ID is required.'}, status=400)
 
-        if not club_id and not league_id:
-             return JsonResponse({'status': 'error', 'message': 'Club or League ID is required.'}, status=400)
+    try:
         if club_id == 'NONE':
-            if not league_id:
-                return JsonResponse({'status': 'error', 'message': 'League ID is required to clear a pick.'}, status=400)
-            
             league = get_object_or_404(League, pk=league_id) 
             LeaguePick.objects.filter(user=request.user, league=league).delete()
             return JsonResponse({'status': 'cleared', 'league_id': league_id})
@@ -176,6 +157,25 @@ def set_league_pick(request):
         return JsonResponse({'status': 'error', 'message': 'Club not found.'}, status=404)
     except League.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'League not found.'}, status=404)
-        
-    except Exception as e: 
-        return JsonResponse({'status': 'error', 'message': 'An internal server error occurred.'}, status=500)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+def show_json_directory(request):
+    leagues = League.objects.prefetch_related('clubs').all().order_by('name')
+    data = []
+    for league in leagues:
+        clubs = []
+        for club in league.clubs.all():
+            clubs.append({
+                'id': str(club.id),
+                'name': club.name,
+                'logo_url': club.logo_url,
+                'founded_year': club.founded_year
+            })
+        data.append({
+            'id': str(league.id),
+            'name': league.name,
+            'region': league.region,
+            'clubs': clubs
+        })
+    return JsonResponse(data, safe=False)
