@@ -1,6 +1,7 @@
+from django.contrib.auth.backends import ModelBackend
 from .models import CustomUser
 
-class CustomUserBackend:
+class CustomUserBackend(ModelBackend):
     """
     A custom authentication backend for the CustomUser model.
     """

@@ -43,10 +43,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id",
 ]
 CORS_ALLOW_CREDENTIALS = True
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "http://localhost:50325", "http://127.0.0.1:8000", "https://arisa-raezzura-pitchperfect.pbp.cs.ui.ac.id"]
 
