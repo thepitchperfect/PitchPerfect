@@ -162,6 +162,17 @@ def set_league_pick(request):
 
 def show_json_directory(request):
     leagues = League.objects.prefetch_related('clubs').all().order_by('name')
+    
+    # Coordinates mapping (Same as in show_club_directory)
+    COORD_MAP = {
+        "Premier League": [52.3555, -1.1743],       # UK
+        "La Liga": [40.4637, -3.7492],              # Spain
+        "Bundesliga": [51.1657, 10.4515],           # Germany
+        "Serie A": [41.8719, 12.5674],              # Italy
+        "Ligue 1 McDonald's": [46.603354, 1.888334], # France
+        "Primeira Liga": [39.3999, -8.2245]         # Portugal
+    }
+
     data = []
     for league in leagues:
         clubs = []
@@ -170,12 +181,18 @@ def show_json_directory(request):
                 'id': str(club.id),
                 'name': club.name,
                 'logo_url': club.logo_url,
-                'founded_year': club.founded_year
+                'founded_year': club.founded_year,
+                'desc': club.details.description[:100] + '...' if hasattr(club, 'details') and club.details.description else "No description available."
             })
+        
+        # Get coords from map, or default to Paris
+        league_coords = COORD_MAP.get(league.name, [48.8566, 2.3522])
+        
         data.append({
             'id': str(league.id),
             'name': league.name,
             'region': league.region,
+            'coords': league_coords,  # Added coords here
             'clubs': clubs
         })
     return JsonResponse(data, safe=False)
