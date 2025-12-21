@@ -141,7 +141,7 @@ BUNDESLIGA_DETAILS = [
         "manager_name": "Gerardo Seoane"
     },
     {
-        "club_name": "FC Heidenheim 1846",
+        "club_name": "1. FC Heidenheim 1846",
         "description": "A club known for its remarkable and steady climb to the Bundesliga under one manager.",
         "history_summary": "Under long-serving manager Frank Schmidt, Heidenheim made an incredible journey from the lower leagues, culminating in their first-ever promotion to the Bundesliga in 2023.",
         "stadium_name": "Voith-Arena",

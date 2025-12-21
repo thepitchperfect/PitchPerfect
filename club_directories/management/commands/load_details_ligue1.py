@@ -93,7 +93,7 @@ LIGUE_1_DETAILS = [
         "manager_name": "Stéphane Gilli"
     },
     {
-        "club_name": "Stade de Reims",
+        "club_name": "Stade Brestois 29",
         "description": "A legendary club of French football, a dominant force in the 1950s and two-time European Cup finalist.",
         "history_summary": "Led by the legendary Raymond Kopa, Reims was one of Europe's best teams, reaching the first-ever European Cup final in 1956. They have re-established themselves as a stable Ligue 1 side.",
         "stadium_name": "Stade Auguste-Delaune",
